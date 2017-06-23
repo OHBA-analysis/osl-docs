@@ -10,7 +10,7 @@ OSL is a set of Matlab tools and scripts for running M/EEG analysis on CTF and E
 
 The Github repository is insufficient to run OSL, as it requires a bunch of supporting directories. These can be downloaded from the OSL wiki. To get access to this please email [mark.woolrich@ohba.ox.ac.uk](mailto:mark.woolrich@ohba.ox.ac.uk)
 
-### Examples
+### Tutorial examples
 
 {% for cat in site.category-list %}
 <ul>
