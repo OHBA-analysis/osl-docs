@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Introduction to MEG Work Experience programme</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-07-02"><meta name="DC.source" content="osl_example_intro_to_meg.m"></head><body><div class="content"><h1>Introduction to MEG Work Experience programme</h1><!--introduction--><p>This example script is designed to be used as part of a guided 1-hour overview of MEG analysis aimed at audiences with no/limited experience in neuroimaging (e.g. public). It is intended to be followed together with a presenter from OHBA who will cover complementary background content. The basic outline of the session is</p><p>1. Review of typical task design 2. Common analysis in sensor space 3. Overview of coregistration and beamforming 4. Spatial maps and activity timecourse in source space</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Review of experimental task design</a></li><li><a href="#3">Trial response, individual trials and averaging</a></li><li><a href="#12">Stats - COPEs and t-stats_</a></li><li><a href="#13">Computing sensor stats</a></li><li><a href="#16">Spatial variation in sensor task response</a></li><li><a href="#18">Source space analysis: Concepts</a></li><li><a href="#19">MRI structural scans</a></li><li><a href="#23">Coregistering MEG and MRI</a></li><li><a href="#24">Beamforming</a></li><li><a href="#25">Source-space spatial maps</a></li><li><a href="#28">Source space stats timecourses</a></li></ul></div><h2 id="2">Review of experimental task design</h2><p>Instructor to cover</p><h2 id="3">Trial response, individual trials and averaging</h2><p>First, we are going to load in the data files</p><pre class="codeinput">abspath = @(s) fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'intro_to_meg'</span>,s); <span class="comment">% Get files relative to this path</span>
+   <title>Introduction to MEG Work Experience programme</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-07-03"><meta name="DC.source" content="osl_example_intro_to_meg.m"></head><body><div class="content"><h1>Introduction to MEG Work Experience programme</h1><!--introduction--><p>This example script is designed to be used as part of a guided 1-hour overview of MEG analysis aimed at audiences with no/limited experience in neuroimaging (e.g. public). It is intended to be followed together with a presenter from OHBA who will cover complementary background content. The basic outline of the session is</p><div><ol><li>Review of typical task design</li><li>Common analysis in sensor space</li><li>Overview of coregistration and beamforming</li><li>Spatial maps and activity timecourse in source space</li></ol></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Review of experimental task design</a></li><li><a href="#2">Trial response, individual trials and averaging</a></li><li><a href="#12">Stats - COPEs and t-stats</a></li><li><a href="#13">Computing sensor stats</a></li><li><a href="#16">Spatial variation in sensor task response</a></li><li><a href="#18">Source space analysis: Concepts</a></li><li><a href="#19">MRI structural scans</a></li><li><a href="#24">Coregistering MEG and MRI</a></li><li><a href="#25">Beamforming</a></li><li><a href="#26">Source space stats timecourses</a></li><li><a href="#28">Source-space spatial maps</a></li></ul></div><h2 id="1">Review of experimental task design</h2><p>Your tutor will briefly review experimental task design, covering</p><div><ul><li>Task structure and conditions in experiments</li><li>How these are laid out with triggers in recordings</li><li>Difference between continuous and epoched analysis</li></ul></div><h2 id="2">Trial response, individual trials and averaging</h2><p>First, we are going to load in the data files</p><pre class="codeinput">abspath = @(s) fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'intro_to_meg'</span>,s); <span class="comment">% Get files relative to this path</span>
 oat = osl_load_oat(abspath(<span class="string">'sensorspace_erf.oat'</span>));
 D = spm_eeg_load(abspath(<span class="string">'meg_recording'</span>));
 response = @(sensor,trial) plot(D.time,mean(D(sensor,:,trial),3));
@@ -56,23 +56,21 @@ hold <span class="string">on</span>
 axis <span class="string">equal</span>
 axis <span class="string">vis3d</span>
 axis <span class="string">off</span>
-</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_02.png" alt=""> <p>So each numbers on the plot corresponds to the first of three sensors at that location</p><p><b>ACTIVITIES</b></p><div><ul><li>What does the response look like at other sensors?</li><li>How much variability do you think there is in the response?</li></ul></div><p>We can also look at the response, averaged over trials</p><pre class="codeinput">figure
+</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_02.png" alt=""> <p>So each numbers on the plot corresponds to the first of three sensors at that location</p><p><b>ACTIVITIES</b></p><div><ul><li>For faces vs. motorbikes, where might you expect to see the biggest changes?</li><li>What does the response look like at other sensors?</li><li>How much variability do you think there is in the response?</li></ul></div><p>We can also look at the response, averaged over trials</p><pre class="codeinput">figure
 average_response(10)
-</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_03.png" alt=""> <p>Have a look at the average response for some different sensors</p><p><b>ACTIVITIES</b></p><div><ul><li>Why do you think we normally average over trials?</li><li>What would be the effect of averaging over sensors as well? Do you think   that would be a good idea?</li></ul></div><h2 id="12">Stats - COPEs and t-stats_</h2><p>Instructor to cover</p><h2 id="13">Computing sensor stats</h2><pre class="codeinput"><span class="comment">% Now we are ready to look at some statistics. First, pick the one with the</span>
-<span class="comment">% strongest response</span>
-first_level_results=oat.first_level.results_fnames{1};
+</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_03.png" alt=""> <p><b>ACTIVITIES</b></p><div><ul><li>Have a look at the average response from several sensors. How does the consistency compare with individual trials?</li><li>Look at the response at sensors 229 and 259, and their corresponding extra gradiometer and magnetometer. How do they compare?</li><li>Why do these sensors show similarity in their measurements?</li></ul></div><p><b>ACTIVITIES</b></p><div><ul><li>Why do you think we normally average over trials?</li><li>What would be the effect of averaging over sensors as well? Do you think   that would be a good idea?</li></ul></div><h2 id="12">Stats - COPEs and t-stats</h2><p>Your tutor will present a brief overview of why statistical tests are used in the analysis, what COPEs and t-statistics are, and how to interpret them</p><h2 id="13">Computing sensor stats</h2><p>Now we are ready to look at some statistics. First, we need to find the location with the strongest response. Previously we did that by trial and error, but now we will do it systematically and automatically.</p><pre class="codeinput">first_level_results=oat.first_level.results_fnames{1};
 first_level_results=oat_load_results(oat,first_level_results);
 first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; <span class="comment">% plots all of these contrasts</span>
 S2=oat.first_level.report;
 S2.stats=first_level_results;
 S2.modality=oat.first_level.report.modality_to_do;
 [vox_ind_max time_ind_max freq_ind_max stats max_stat] = oat_find_max_stats( S2 );
-</pre><p>Then, make a plot with it</p><pre class="codeinput">S2=[];
+</pre><p>Next, plot the statistics over time. Note that the index of 'vox_ind_max' doesn't match the ones in the previous figure (see Activities to explore why this is the case)</p><pre class="codeinput">S2=[];
 S2.stats=stats;
 S2.chanlabel=stats.chanlabels{vox_ind_max}; <span class="comment">% can change to this setting to plot the time courses at the voxel with the max t-stat</span>
-S2.first_level_cons_to_do=first_level_cons_to_do; <span class="comment">% plots all of these contrasts</span>
+S2.first_level_cons_to_do=first_level_cons_to_do;
 [fig_handle fig_name fig_title] = oat_plot_vox_stats(S2);
-</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_04.png" alt=""> <p><b>ACTIVITIES</b></p><div><ul><li>If you change 'vox_ind_max' to a different number, how do the plots   change?</li></ul></div><h2 id="16">Spatial variation in sensor task response</h2><p>Now, we want a more systematic way to analyze the differences in space.</p><pre class="codeinput">S2=[];
+</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_04.png" alt=""> <p><b>ACTIVITIES</b></p><div><ul><li>Look at <tt>stats.chanlabels</tt> to see all of the channel labels. What do you notice about the channels? Why?</li><li>How do you read off the times when faces and motorbikes had different responses?</li><li>If you change 'vox_ind_max' to a different number, how do the plots   change?</li></ul></div><h2 id="16">Spatial variation in sensor task response</h2><p>Next, we want a more systematic way to analyze the differences in space.</p><pre class="codeinput">S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
 S2.modality=<span class="string">'MEGPLANAR'</span>; <span class="comment">% can also set this to 'MEGMAG'</span>
@@ -83,9 +81,11 @@ S2.view_cope=1; <span class="comment">% set to 0 to see the t-stat</span>
 Changing the number of channels, so discarding online montages.
 selection avg along dimension 1
 reading layout from file /Users/romesh/oxford_postdoc/toolboxes/osl/layouts/neuromag306cmb.lay
-</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_05.png" alt=""> <p>This plot is interactive * You can select sensors by drawing a box on the plot * You can then click inside the box to generate a time series obtained by averaging over all of the plots. * Finally, you can draw a box to select times on the plot, which will then be displayed on a 'topoplot' showing how they change over space</p><p><b>ACTIVITIES</b></p><div><ul><li>Change <tt>S2.first_level_contrast</tt> to a different contrast</li><li>Change <tt>S2.view_cope</tt> to 0 to see the t-statistic instead</li></ul></div><h2 id="18">Source space analysis: Concepts</h2><p>Instructor to introduce</p><h2 id="19">MRI structural scans</h2><p>Have a look at the whole head</p><pre class="codeinput">runcmd(<span class="string">'fsleyes %s'</span>,abspath(<span class="string">'mri_scan_head.nii'</span>))
-</pre><p><img vspace="5" hspace="5" src="osl_fsleyes_head.png" alt=""> </p><p>But usually, we're only interested in the brain</p><pre class="codeinput">runcmd(<span class="string">'fsleyes %s'</span>,abspath(<span class="string">'mri_scan_brain.nii.gz'</span>))
-</pre><p><img vspace="5" hspace="5" src="osl_fsleyes_brain.png" alt=""> </p><h2 id="23">Coregistering MEG and MRI</h2><p>First problem is that we aren't too interested in the rest of the head - but we need to know where the sensors are in this picture. That's what coregistration is</p><pre class="codeinput">D = spm_eeg_load(abspath(<span class="string">'rhino_example'</span>))
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_multiplotER" took 1 seconds and required the additional allocation of an estimated NaN MB
+</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_05.png" alt=""> <p>This plot is interactive * You can select sensors by drawing a box on the plot * You can then click inside the box to generate a time series obtained by averaging over all of the plots. * Finally, you can draw a box to select times on the plot, which will then be displayed on a 'topoplot' showing how they change over space</p><p><b>ACTIVITIES</b></p><div><ul><li>Change <tt>S2.first_level_contrast</tt> to a different contrast</li><li>Change <tt>S2.view_cope</tt> to 0 to see the t-statistic instead</li><li>At what time does the brain first differentiate between the two?</li><li>Is the response different in the left and right hemispheres?</li><li>How does the response time for faces differ to motorbikes?</li></ul></div><h2 id="18">Source space analysis: Concepts</h2><p>Your tutor will briefly introduce the key concepts of source analysis</p><div><ul><li>Motivation</li><li>Concept of beamforming</li><li>Concept of an ill-posed problem</li></ul></div><h2 id="19">MRI structural scans</h2><p>A critical step in beamforming is to quantify the position of the brain inside the head, in order to</p><div><ul><li>Map the subject's brain to a standard brain</li><li>Compute the lead fields</li></ul></div><p>First, we will take a look at a whole-head MRI scan.</p><pre class="codeinput">runcmd(<span class="string">'fsleyes %s'</span>,abspath(<span class="string">'mri_scan_head.nii'</span>))
+</pre><p><b>ACTIVITIES</b> * Trace visual pathway to V1 via thalamus * Find the cerebellum, and thalamus * Where is the grey matter? And the white matter? What does the white matter consist of?</p><p><img vspace="5" hspace="5" src="osl_fsleyes_head.png" alt=""> </p><p>But usually, we're only interested in the brain. This second image is one that we are more used to, where the brain has been identified and extracted. This one is a 'standard brain' image, which is typically used for analysis after coregistration</p><pre class="codeinput">runcmd(<span class="string">'fsleyes %s'</span>,abspath(<span class="string">'mri_scan_brain.nii.gz'</span>))
+</pre><p><img vspace="5" hspace="5" src="osl_fsleyes_brain.png" alt=""> </p><h2 id="24">Coregistering MEG and MRI</h2><p>The challenge in coregistration is to identify the brain inside the MEG scanner. Coregistration matches up the fiducial locations and the head shape data points with the MRI scan. We have software to automatically match them up. We can view the result of this process to check that the algorithm performed correctly</p><pre class="codeinput">D = spm_eeg_load(abspath(<span class="string">'rhino_example'</span>))
 rhino_display(D);
 </pre><pre class="codeoutput">SPM M/EEG data object
 Type: single
@@ -101,9 +101,8 @@ Use the syntax D(channels, samples, trials) to access the data
 Type "methods('meeg')" for the list of methods performing other operations with the object
 Type "help meeg/method_name" to get help about methods
 
-</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_06.png" alt=""> <h2 id="24">Beamforming</h2><p>Instructor to cover</p><h2 id="25">Source-space spatial maps</h2><p>And then, look at spatial pattern of response</p><pre class="codeinput">fsleyes(abspath(<span class="string">'beamformer_erf.oat/session1_wholebrain_first_level_dir/cope1_2mm.nii.gz'</span>))
-</pre><p><img vspace="5" hspace="5" src="osl_fsleyes_task.png" alt=""> </p><p><b>ACTIVITIES</b></p><div><ul><li>'cope1_2mm' corresponds to the first COPE. Try changing 'cope' to 'tstat' and also change the contrast e.g. 'tstat3_2mm' *</li></ul></div><h2 id="28">Source space stats timecourses</h2><p>Now we are in source space, we can ask what the timecourses look like for locations in the brain rather than for sensors.</p><pre class="codeinput">oat = osl_load_oat(abspath(<span class="string">'beamformer_erf.oat'</span>),<span class="string">'wholebrain_first_level'</span>)
-mni_coord=[4,-82,-8]; <span class="comment">% Visual Cortex Voxel</span>
+</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_06.png" alt=""> <h2 id="25">Beamforming</h2><p>Your tutor may wish to provide more information about beamforming at this point. However, it is sufficient to understand that the beamforming process takes place after coregistration.</p><h2 id="26">Source space stats timecourses</h2><p>Now we are in source space, we can ask what the timecourses look like for locations in the brain rather than for sensors.</p><pre class="codeinput">oat = osl_load_oat(abspath(<span class="string">'beamformer_erf.oat'</span>),<span class="string">'wholebrain_first_level'</span>)
+mni_coord=[32,-64,-18]; <span class="comment">% Visual Cortex Voxel</span>
 S2=[];
 S2.vox_coord=mni_coord;
 S2.stats=oat.first_level.results_fnames{1};
@@ -126,7 +125,8 @@ oat =
           results: [1&times;1 struct]
             fname: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/intro_to_meg/beamformer_erf.oat/oat_wholebrain_first_level_sub_level_group_level.mat'
 
-</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_07.png" alt=""> <p>This will bring up a the COPE and tstat estimates across time for a voxel in visual cortex. Note the prominant response around 100ms This corresponds to a point in Right Hemisphere Fusiform Cortex. Note that the 100ms response does not appear here, rather the later Face specific response is more dominant.</p><p><b>ACTIVITIES</b></p><div><ul><li>Try changing the voxel to 32,-64,-18</li><li>Use fsleyes to find where this voxel is</li></ul></div><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="osl_example_intro_to_meg_07.png" alt=""> <p>This will bring up a the COPE and tstat estimates across time for a voxel in visual cortex. Note the prominant response around 100ms</p><p><b>ACTIVITIES</b></p><div><ul><li>Which directions are the MNI XYZ coordinates (the <tt>[4,-82,-8]</tt>)?</li><li>Try changing the voxel to <tt>[32,-64,-18]</tt>. How does the activity differ?</li><li>Use fsleyes to find where these voxels are</li></ul></div><h2 id="28">Source-space spatial maps</h2><p>As before, we might want an overview of where brain activity is in space. In sensor-space we did this using the topological plot. In source-space, we can do this using the brain scan itself.</p><pre class="codeinput">fsleyes(abspath(<span class="string">'beamformer_erf.oat/session1_wholebrain_first_level_dir/cope1_2mm.nii.gz'</span>))
+</pre><p><img vspace="5" hspace="5" src="osl_fsleyes_task.png" alt=""> </p><p>Note that you can change the colour range in the image to change which parts are displayed. In the first instance, it will be useful to change the lower limit to 0.</p><p><b>ACTIVITIES</b></p><div><ul><li>'cope1_2mm' corresponds to the first COPE. Try changing 'cope' to 'tstat' and also change the contrast e.g. 'tstat3_2mm'</li></ul></div><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Introduction to MEG Work Experience programme
 % This example script is designed to be used as part of a guided 1-hour overview of MEG analysis aimed
@@ -134,16 +134,18 @@ oat =
 % to be followed together with a presenter from OHBA who will cover complementary 
 % background content. The basic outline of the session is 
 % 
-% 1. Review of typical task design
-% 2. Common analysis in sensor space
-% 3. Overview of coregistration and beamforming
-% 4. Spatial maps and activity timecourse in source space
-
-%%
-% 
+% # Review of typical task design
+% # Common analysis in sensor space
+% # Overview of coregistration and beamforming
+% # Spatial maps and activity timecourse in source space
 
 %% Review of experimental task design
-% Instructor to cover
+% Your tutor will briefly review experimental task design, covering
+%
+% * Task structure and conditions in experiments
+% * How these are laid out with triggers in recordings
+% * Difference between continuous and epoched analysis
+%
 
 %% Trial response, individual trials and averaging
 %%
@@ -186,6 +188,7 @@ axis off
 %
 % *ACTIVITIES*
 %
+% * For faces vs. motorbikes, where might you expect to see the biggest changes?
 % * What does the response look like at other sensors?
 % * How much variability do you think there is in the response?
 
@@ -195,7 +198,16 @@ figure
 average_response(10)
 
 %%
-% Have a look at the average response for some different sensors
+% *ACTIVITIES*
+% 
+% * Have a look at the average response from several sensors. How does the consistency compare with individual trials?
+% * Look at the response at sensors 229 and 259, and their corresponding extra gradiometer and magnetometer. How do they compare?
+% * Why do these sensors show similarity in their measurements?
+%
+
+
+%%
+% 
 %
 % *ACTIVITIES*
 %
@@ -203,14 +215,12 @@ average_response(10)
 % * What would be the effect of averaging over sensors as well? Do you think
 %   that would be a good idea?
 
-%% Stats - COPEs and t-stats_
-% Instructor to cover
+%% Stats - COPEs and t-stats
+% Your tutor will present a brief overview of why statistical tests are used in the analysis, what COPEs and t-statistics are, and how to interpret them
 
 %% Computing sensor stats
-
-
-% Now we are ready to look at some statistics. First, pick the one with the
-% strongest response
+% Now we are ready to look at some statistics. First, we need to find the location with the
+% strongest response. Previously we did that by trial and error, but now we will do it systematically and automatically.
 first_level_results=oat.first_level.results_fnames{1};
 first_level_results=oat_load_results(oat,first_level_results); 
 first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; % plots all of these contrasts 
@@ -220,21 +230,23 @@ S2.modality=oat.first_level.report.modality_to_do;
 [vox_ind_max time_ind_max freq_ind_max stats max_stat] = oat_find_max_stats( S2 ); 
 
 %%
-% Then, make a plot with it
+% Next, plot the statistics over time. Note that the index of 'vox_ind_max' doesn't match the ones in the previous figure (see Activities to explore why this is the case)
 S2=[]; 
 S2.stats=stats; 
 S2.chanlabel=stats.chanlabels{vox_ind_max}; % can change to this setting to plot the time courses at the voxel with the max t-stat 
-S2.first_level_cons_to_do=first_level_cons_to_do; % plots all of these contrasts 
+S2.first_level_cons_to_do=first_level_cons_to_do; 
 [fig_handle fig_name fig_title] = oat_plot_vox_stats(S2); 
 
 %%
 % *ACTIVITIES*
 %
+% * Look at |stats.chanlabels| to see all of the channel labels. What do you notice about the channels? Why?
+% * How do you read off the times when faces and motorbikes had different responses?
 % * If you change 'vox_ind_max' to a different number, how do the plots
 %   change?
 
 %% Spatial variation in sensor task response
-% Now, we want a more systematic way to analyze the differences in space.
+% Next, we want a more systematic way to analyze the differences in space.
 S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
@@ -255,20 +267,41 @@ S2.view_cope=1; % set to 0 to see the t-stat
 %
 % * Change |S2.first_level_contrast| to a different contrast
 % * Change |S2.view_cope| to 0 to see the t-statistic instead
+% * At what time does the brain first differentiate between the two?
+% * Is the response different in the left and right hemispheres?
+% * How does the response time for faces differ to motorbikes?
 
 %% Source space analysis: Concepts
-% Instructor to introduce
+% Your tutor will briefly introduce the key concepts of source analysis
+%
+% * Motivation
+% * Concept of beamforming
+% * Concept of an ill-posed problem
+%
 
 %% MRI structural scans
-% Have a look at the whole head
-
+% A critical step in beamforming is to quantify the position of the brain inside the head, in order to
+% 
+% * Map the subject's brain to a standard brain
+% * Compute the lead fields
+%
+% First, we will take a look at a whole-head MRI scan.
 runcmd('fsleyes %s',abspath('mri_scan_head.nii'))
+
+%%
+% *ACTIVITIES*
+% * Trace visual pathway to V1 via thalamus
+% * Find the cerebellum, and thalamus
+% * Where is the grey matter? And the white matter? What does the white matter consist of?
+%
 
 %%
 % <<osl_fsleyes_head.png>>
 
 %%
-% But usually, we're only interested in the brain
+% But usually, we're only interested in the brain. This second image is one that we are more used to, where the brain 
+% has been identified and extracted. This one is a 'standard brain' image, which is typically used for analysis after 
+% coregistration
 
 runcmd('fsleyes %s',abspath('mri_scan_brain.nii.gz'))
 
@@ -276,34 +309,22 @@ runcmd('fsleyes %s',abspath('mri_scan_brain.nii.gz'))
 % <<osl_fsleyes_brain.png>>
 
 %% Coregistering MEG and MRI
-% First problem is that we aren't too interested in the rest of the head - but we need to 
-% know where the sensors are in this picture. That's what coregistration is
+% The challenge in coregistration is to identify the brain inside the MEG scanner. Coregistration matches up
+% the fiducial locations and the head shape data points with the MRI scan. We have software to automatically match 
+% them up. We can view the result of this process to check that the algorithm performed correctly 
+
 D = spm_eeg_load(abspath('rhino_example'))
 rhino_display(D);
 
 %% Beamforming
-% Instructor to cover
-
-%% Source-space spatial maps
-% And then, look at spatial pattern of response
-
-fsleyes(abspath('beamformer_erf.oat/session1_wholebrain_first_level_dir/cope1_2mm.nii.gz'))
-
-%%
-% <<osl_fsleyes_task.png>>
-
-%%
-% *ACTIVITIES*
-%
-% * 'cope1_2mm' corresponds to the first COPE. Try changing 'cope' to 'tstat' and also change the contrast
-% e.g. 'tstat3_2mm'
-% * 
+% Your tutor may wish to provide more information about beamforming at this point. However, it is sufficient to 
+% understand that the beamforming process takes place after coregistration. 
 
 %% Source space stats timecourses
 % Now we are in source space, we can ask what the timecourses look like for locations in the brain rather than
 % for sensors.
 oat = osl_load_oat(abspath('beamformer_erf.oat'),'wholebrain_first_level')
-mni_coord=[4,-82,-8]; % Visual Cortex Voxel
+mni_coord=[32,-64,-18]; % Visual Cortex Voxel
 S2=[];
 S2.vox_coord=mni_coord;
 S2.stats=oat.first_level.results_fnames{1};
@@ -311,17 +332,34 @@ S2.oat=oat;
 S2.first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; % plots all of these contrasts
 [vox_ind_used] = oat_plot_vox_stats(S2);
 
-%%
+%% 
 % This will bring up a the COPE and tstat estimates across time for a voxel in
 % visual cortex. Note the prominant response around 100ms
-% This corresponds to a point in Right Hemisphere Fusiform Cortex. Note that
-% the 100ms response does not appear here, rather the later Face specific
-% response is more dominant.
 %
 % *ACTIVITIES*
 %
-% * Try changing the voxel to 32,-64,-18
-% * Use fsleyes to find where this voxel is
+% * Which directions are the MNI XYZ coordinates (the |[4,-82,-8]|)?
+% * Try changing the voxel to |[32,-64,-18]|. How does the activity differ?
+% * Use fsleyes to find where these voxels are
+% 
+
+%% Source-space spatial maps
+% As before, we might want an overview of where brain activity is in space. In sensor-space we did this using the 
+% topological plot. In source-space, we can do this using the brain scan itself. 
+fsleyes(abspath('beamformer_erf.oat/session1_wholebrain_first_level_dir/cope1_2mm.nii.gz'))
+
+%%
+% <<osl_fsleyes_task.png>>
+
+%%
+% Note that you can change the colour range in the image to change which parts are displayed. In the first instance, it
+% will be useful to change the lower limit to 0.
+%
+% *ACTIVITIES*
+%
+% * 'cope1_2mm' corresponds to the first COPE. Try changing 'cope' to 'tstat' and also change the contrast
+% e.g. 'tstat3_2mm'
+
 
 
 
