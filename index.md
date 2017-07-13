@@ -6,11 +6,21 @@ The OHBA Software Library (OSL) is created by the OHBA Analysis Group, OHBA, Oxf
 
 OSL is a set of Matlab tools and scripts for running M/EEG analysis on CTF and Elekta Neuromag data, and is written mainly by members of the OHBA Analysis Group. It uses a combination of FSL, SPM and Fieldtrip.
 
-### Get a copy of OSL
+### Get OSL
 
-The Github repository is insufficient to run OSL, as it requires a bunch of supporting directories. These can be downloaded from the OSL wiki. To get access to this please email [mark.woolrich@ohba.ox.ac.uk](mailto:mark.woolrich@ohba.ox.ac.uk)
+OSL is distributed as an archive: [download a copy of OSL here](http://users.fmrib.ox.ac.uk/~romesh/osl/osl.tar.gz)
+
+The download archive file contains the contents of our GitHub repositories, as well as a number of supporting directories. For installation instructions, see the readme file contained in the archive. 
+
+Issues? Contact us at [analysis@ohba.ox.ac.uk](mailto:analysis@ohba.ox.ac.uk). Please note that we only have limited capacity to provide technical assistance at this stage, so OSL is publicly distributed as-is and we provide support on a best-effort basis. 
 
 ### Tutorial examples
+
+OSL comes with several tutorials to illustrate usage. The pages below document these, but you can run them yourself using the example files included with OSL. 
+
+[Download tutorial data](http://users.fmrib.ox.ac.uk/~romesh/osl/example_data.tar.gz)
+
+Note that we cannot publicly distribute data for all of the examples due to confidentiality restrictions, so currently it is not possible to run all of the tutorials using the public OSL release. 
 
 {% for cat in site.category-list %}
 <ul>
@@ -25,26 +35,3 @@ The Github repository is insufficient to run OSL, as it requires a bunch of supp
   {% endfor %}  <!-- page -->
 </ul>
 {% endfor %}  <!-- cat -->
-
-<!-- ### Tables
-
-| head1        | head two          | three |
-|:-------------|:------------------|:------|
-| ok           | good swedish fish | nice  |
-| out of stock | good and plenty   | nice  |
-| ok           | good `oreos`      | hmm   |
-| ok           | good `zoute` drop | yumm  |
-
-### Small image
-
-![](https://assets-cdn.github.com/images/icons/emoji/octocat.png)
-
-### Large image
-
-![](https://guides.github.com/activities/hello-world/branching.png)
-
-### Code
-
-```matlab
-x = f(x)
-``` -->
