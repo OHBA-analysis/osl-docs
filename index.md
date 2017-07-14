@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: title
 ---
 
 The OHBA Software Library (OSL) is created by the OHBA Analysis Group, OHBA, Oxford, UK.

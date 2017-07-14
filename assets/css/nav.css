@@ -13,7 +13,7 @@
 }
 
 #nav li a {
-    background-color: #4CAF50;
+    background-color: #333;
     display: block;
     color: white;
     text-align: center;
@@ -28,7 +28,7 @@
 
 
 #nav .dropbtn {
-    background-color: #4CAF50;
+    background-color: #333;
     display: inline-block;
     color: white;
     text-align: center;
@@ -74,4 +74,22 @@
 /* Change the background color of the dropdown button when the dropdown content is shown */
 #nav .dropdown:hover .dropbtn {
     background-color: #4c9250;
+}
+
+
+/*#markdown-toc::before {
+    content: "Contents";
+    font-weight: bold;
+}*/
+
+#markdown-toc ul {
+    list-style: decimal;
+}
+
+
+#markdown-toc {
+    border: 1px solid #aaa;
+    width: 100%;
+    padding: 1.5em;
+    display: inline-block;
 }

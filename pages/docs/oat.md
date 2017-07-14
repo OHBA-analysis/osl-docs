@@ -1,10 +1,8 @@
 ---
 layout: default
-title: Slides
+title: OAT
 resource: true
 categories: documentation
 ---
 
-# Slides
-
-Download links to various slides
+# OAT documentation
