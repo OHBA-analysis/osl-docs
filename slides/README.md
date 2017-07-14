@@ -1,0 +1,1 @@
+This folder is for slides - but not sure if this will end up being useful as opposed to just generic pages though

@@ -25,6 +25,7 @@ OSL comes with several tutorials to illustrate usage. The pages below document t
 Note that we cannot publicly distribute data for all of the examples due to confidentiality restrictions, so currently it is not possible to run all of the tutorials using the public OSL release. 
 
 {% for cat in site.category-list %}
+{{cat}}
 <ul>
   {% for page in site.pages %}
     {% if page.resource == true %}

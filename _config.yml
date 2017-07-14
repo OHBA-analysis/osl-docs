@@ -28,7 +28,7 @@ markdown: kramdown
 theme: jekyll-theme-cayman
 show_downloads: false
 
-category-list: [examples]
+category-list: [examples,documentation,slides]
 
 gems:
   - jekyll-feed

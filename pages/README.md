@@ -1,0 +1,1 @@
+This folder is for static pages that are not generated automatically from Matlab by osl_publish
