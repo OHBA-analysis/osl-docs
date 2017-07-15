@@ -1,5 +1,6 @@
 ---
 layout: title
+title: Home
 ---
 
 The OHBA Software Library (OSL) is created by the OHBA Analysis Group, OHBA, Oxford, UK.
@@ -24,18 +25,16 @@ OSL comes with several tutorials to illustrate usage. The pages below document t
 
 Note that we cannot publicly distribute data for all of the examples due to confidentiality restrictions, so currently it is not possible to run all of the tutorials using the public OSL release. 
 
-{% for cat in site.category-list %}
-<p>{{cat | capitalize}}</p>
 <ul>
   {% assign sorted_pages =  site.pages | sort:"title" %}
   {% for page in sorted_pages %}
     {% if page.resource == true %}
       {% for pc in page.categories %}
-        {% if pc == cat %}
+        {% if pc == "examples" %}
           <li><a href="{{ site.baseurl }}{{ page.url }}">{{ page.title }}</a></li>
         {% endif %}   <!-- cat-match-p -->
       {% endfor %}  <!-- page-category -->
     {% endif %}   <!-- resource-p -->
   {% endfor %}  <!-- page -->
 </ul>
-{% endfor %}  <!-- cat -->
+
