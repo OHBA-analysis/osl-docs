@@ -5,6 +5,8 @@ resource: true
 categories: archive
 ---
 
+_Note that OIL has not been tested for some time and likely does not currently function with the latest version of OSL_
+
 * TOC
 {:toc}
 

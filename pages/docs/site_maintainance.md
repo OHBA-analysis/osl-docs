@@ -29,6 +29,19 @@ The document will automatically be added to the navbar section corresponding to 
 2. Run `osl_publish` on your Matlab file
 3. Add and commit the files in the `osl-docs` repository (NOT `osl-core`)
 
+### Renaming a tutorial
+
+One thing that `osl_publish` does instead of just `publish` is that automatically adds the requisite YAML header to the resulting HTML file so that it is included when the site is built by Jekyll. All of the published tutorials start with something like
+
+	---
+	layout: matlab_wrapper
+	title: OAT 3 - Sourcespace Analysis
+	resource: true
+	categories: examples
+	---
+
+The title or category could be manually changed, if designed. However, so that the tutorials can be rebuilt when required, is is highly advised to edit the tutorial script and to re-publish it, rather than making manual changes to the pages. 
+
 ### Making a new nav section
 
 Open `_config.yml`. There is a list of categories e.g.
@@ -61,6 +74,22 @@ at the top of the page
 ### Linking to a file
 
 	[session3_ohba_workshop_osl_source_recon_2017.pdf]({{ site.baseurl }}/downloads/- session3_ohba_workshop_osl_source_recon_2017.pdf)
+
+### Linking to another wiki page
+
+	[Link]({{ site.baseurl }}/Home)
+	[a relative link](another-page.md)
+
+### Linking to a section within the wiki
+
+If the section has a title (e.g. with a series of hashes) then you can refer to it as
+
+	### My Section
+	See [here](#another-section)
+
+	### Another section
+
+where spaces are swapped for hyphens and everything is lowercase. 
 
 ### Moving wiki content checklist
 

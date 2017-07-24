@@ -1,3 +1,9 @@
+/*#nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+}*/
+
 #nav ul {
     list-style-type: none;
     margin: 0;
@@ -7,10 +13,27 @@
 }
 
 #nav li {
-    float: left;
     margin: 0;
     padding: 0;
 }
+
+#nav li.left{
+    float: left;
+}
+
+#nav li.right{
+    float: right;
+}
+
+/*@media screen and (max-width: 600px){
+    #nav li.left{
+        float: none;
+    }
+
+    #nav li.right{
+        float: none;
+    }
+}*/
 
 #nav li a {
     background-color: #333;

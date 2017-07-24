@@ -16,4 +16,4 @@ HMM-MAR (Hidden Markov Model - Multivariate Autoregressive) is a toolbox to segm
 
 HMM-MAR only requires Matlab and is experimental software. 
 
-Please refer to the HMM-MAR wiki for more information and to obtain the code.
+Please refer to the [HMM-MAR wiki](https://github.com/OHBA-analysis/HMM-MAR/wiki) for more information and to obtain the code.

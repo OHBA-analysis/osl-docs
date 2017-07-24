@@ -16,7 +16,7 @@
 <div id="nav">
     <ul>
 
-    <li><a href="{{ site.baseurl }}/"">Home</a></li>
+    <li class="left"><a href="{{ site.baseurl }}/"">Home</a></li>
     {% for cat in site.category-list %}
         <div class="dropdown">
           <button class="dropbtn">{{cat | capitalize}}</button>
@@ -34,6 +34,6 @@
           </div>
         </div>
     {% endfor %}  
-    <li style="float:right"><a href="{{ site.baseurl }}/pages/sitemap"">Site map</a></li>
+    <li class="right"><a href="{{ site.baseurl }}/pages/sitemap"">Site map</a></li>
     </ul>
 </div>

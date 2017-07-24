@@ -38,3 +38,26 @@ Note that we cannot publicly distribute data for all of the examples due to conf
   {% endfor %}  <!-- page -->
 </ul>
 
+### Extra content 
+
+OSL is a set of Matlab tools and scripts for running M/EEG analysis on CTF and Elekta Neuromag data, and is written mainly by members of the OHBA Analysis Group. It uses a combination of FSL, SPM and Fieldtrip. FSL needs to be installed before OSL can be used. SPM and Fieldtrip come included.
+
+OSL includes OAT (OSL’s easy Analysis Tool), which can be used to analyse a multi-subject MEG study in source or sensor space.
+
+Overview of Tools
+
+Preprocessing
+using Maxfilter
+oslview
+AFRICA (ICA denoising)
+Co-registration and forward modelling
+OAT (multi-subject analysis of task M/EEG data)
+OIL (multi-subject analysis of task/resting M/EEG data using ICA)
+
+Download OSL
+
+Getting started
+
+Support
+OSL workshops
+Source code on Github
