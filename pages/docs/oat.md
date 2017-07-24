@@ -329,7 +329,7 @@ con=S.first_level_copes_to_do(1);
 runcmd(['fslview ' OSLDIR '/std_masks/MNI152_T1_2mm_brain.nii.gz ' gstats.dir '/tstat' num2str(con) '_gc1_2mm.nii.gz ' gstats.dir '/clustere_tstat' num2str(con) '_gc1_2mm.nii.gz ' gstats.dir '/clustere_corrp_tstat' num2str(con) '_gc1_2mm.nii.gz &']);
 ```
 
-Output from osl_cluster_permutation_testing includes the following files:
+Output from `osl_cluster_permutation_testing` includes the following files:
 
 - `stats_tstat_gc1_2mm` : original unthresholded t-stat
 - `stats_clustere_tstat_gc1_2mm` : cluster extent for each voxel
@@ -407,7 +407,7 @@ con=3;
 runcmd(['fslview ' OSLDIR '/std_masks/MNI152_T1_' num2str(S2.resamp_gridstep) 'mm_brain.nii.gz ' statsdir '/tstat' num2str(con) '_gc1_clust4d_corrp_' num2str(S2.resamp_gridstep) 'mm.nii.gz ' statsdir '/tstat' num2str(con) '_gc1_clust4d_tstats_' num2str(S2.resamp_gridstep) 'mm.nii.gz ' statsdir '/tstat' num2str(con) '_gc1_clust4d_' num2str(S2.resamp_gridstep) 'mm.nii.gz &']);
 ```
 
-Output from osl_cluster_permutation_testing includes the following files (not if doing 4D):
+Output from `osl_cluster_permutation_testing` includes the following files (not if doing 4D):
 
 - `stats_tstat_gc1_2mm` : original unthresholded t-stat
 - `stats_clustere_tstat_gc1_2mm` : cluster extent for each voxel
@@ -450,9 +450,9 @@ oat.source_recon.recon_method='beamform';
 ```
 for a source space analysis.
 
-The data inputted into this stage is the SPM MEEG objects with dimensions of (num_sensors x num_trials x num_timepoint_withintrial ) for each subject (see [Data Input](#data-input)).
+The data inputted into this stage is the SPM MEEG objects with dimensions of (`num_sensors` x `num_trials` x `num_timepoint_withintrial` ) for each subject (see [Data Input](#data-input)).
 
-The data output from this stage will be data in sensor or source space with the dimensions of (num_sensors x num_trials x num_timepoint_withintrial) or (num_voxels x num_trials x num_timepoint_withintrial) for each subject. 
+The data output from this stage will be data in sensor or source space with the dimensions of (`num_sensors` x `num_trials` x `num_timepoint_withintrial`) or (`num_voxels` x `num_trials` x `num_timepoint_withintrial`) for each subject. 
 
 **ROIs**
 
@@ -502,11 +502,11 @@ This mask needs to be a subset of the mask used in the source_recon level. To vi
 
 This performs a time-wise GLM on continuous data, in which you to describe the experimental design in terms of how it varies over time (e.g. different conditions at the first-level). The GLM has two key ingredients:
 
-1. The design matrix, X: This is a num_timepoints x  num_regressors matrix describing the variability over times (e.g. in terms of condition groups).
+1. The design matrix, X: This is a `num_timepoints` x `num_regressors` matrix describing the variability over times (e.g. in terms of condition groups).
 2. The contrasts, c: Each contrast describes a linear combination of the regression parameter estimates (called a COPE – Contrast Of Parameter Estimates). This allows you to ask a wide range of questions, e.g. for a GLM with 2 regressors modeling which trials belong to which condition, you can use a [1 0] contrast to look at the main effect of conditions 1, or a [1 -1] contrast to look for a difference between conditions.
-The data inputted into this stage is the output from the source recon stage, with dimensions of (num_voxels x 1 x num_timepoint_withintrial) for each session (assuming it is a source space analysis).
+The data inputted into this stage is the output from the source recon stage, with dimensions of (`num_voxels` x 1 x `num_timepoint_withintrial`) for each session (assuming it is a source space analysis).
 
-The data output from this stage will be the first-level effect sizes (COPEs) and statistics with the dimensions of (num_ voxels x num_first_level_contrasts x 1 x num_frequencies) for each session.
+The data output from this stage will be the first-level effect sizes (COPEs) and statistics with the dimensions of (`num_voxels` x `num_first_level_contrasts` x 1 x `num_frequencies`) for each session.
 
 Do `help osl_check_oat` to find out more.
 
@@ -514,7 +514,7 @@ Do `help osl_check_oat` to find out more.
 
 This performs a trial-wise GLM, in which you to describe the experimental design in terms of how it varies over trials (e.g. different conditions at the first-level). The GLM has two key ingredients:
 
-1. The design matrix, X: This is a num_trials x  num_regressors matrix describing the variability over trials (e.g. in terms of condition groups).
+1. The design matrix, X: This is a `num_trials` x `num_regressors` matrix describing the variability over trials (e.g. in terms of condition groups).
 2. The contrasts, c: Each contrast describes a linear combination of the regression parameter estimates (called a COPE – Contrast Of Parameter Estimates). This allows you to ask a wide range of questions, e.g. for a GLM with 2 regressors modeling which trials belong to which condition, you can use a [1 0] contrast to look at the main effect of conditions 1, or a [1 -1] contrast to look for a difference between conditions. 
 
 There is a brief overview of GLM analysis in the context of a time-wise FMRI GLM at [FSL FEAT Appendix A](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/feat5/glm.html). The principles for a trial-wise MEG GLM **ERF** analysis is the same, but where the data and regressors are over trials (rather than time), and where a separate GLM is run not just at each point in space, but also at each time-point within trials.
@@ -543,18 +543,51 @@ See also [ERF Source Space Sign Ambiguity](sign_ambiguity.md).
 
 ##### First-Level Design Matrix Specification
 
-[ERF Source Space Sign Ambiguity]
+Either set
+
+    oat.first_level.design_matrix 
+
+explicitly (this will then be the same for all subjects - this is normally a approach taken only with continuous data), 
+
+or set
+
+    oat.first_level.design_matrix_summary
+
+in one of two different ways: 
+
+**1) `oat.first_level.design_matrix_summary` as a parsimonious description of the design matrix.**
+
+It contains a vector for each regressor, i.e. `oatin.first_level.design_matrix_summary{reg}`, where reg is a regressor no., and the vector contains a value for each condition/trigger that will be duplicated over all trials of that condition/trigger in the resulting design matrix to create the (`num_regressors` x `num_trials`) design matrix. 
+
+E.g. for an analysis with two conditions then use the following to create a design matrix with two regressors that pick out trials belonging to condition 1 and condition 2: 
+
+    oat.first_level.design_matrix_summary={}; 
+    oat.first_level.design_matrix_summary{1}=[1 0];
+    oat.first_level.design_matrix_summary{2}=[0 1];
+
+A note on demeaning and constant regressors...  You need to model the DC offset (mean value) of your data in the GLM.  One way of doing this is to specify a vector of ones in the design matrix to account for the mean.  You can also demean both the data and the design matrix.   Finally, you can account for the DC offset using the regressors themselves, provided every trial in your data is included in one of the regressors.  See [this mailing list post](http://mailman.imsu.ox.ac.uk/pipermail/ohbaosl/2013-May/000018.html) for information about a pitfall if demeaning and using absolute (not relative) contrasts 
+
+**2) `oat.first_level.design_matrix_summary` as a list of full file paths to text files containing each subject's design matrix.**
+
+Each text file is `num_trials` x `num_regressors` for a subject, where the `num_trials` (and trial order) assumes that the `D.reject` trials have been removed. Outputs the design matrix, X, which is `num_trials` x `num_regressors`.You also can (optionally) set: 
+
+    oat.first_level.trial_rejects 
+
+which is a text file containing a list of trial indices (indexed via the trial order in the loaded in design matrix) to indicate any further trials (on top of the `D.reject` trials) that you do not want to include in the analysis (e.g. for behavioural reasons), and which will get set to 0 in the design matrix.
+
+This is straightforward if you have 1 condition type (in `oat.source_recon.conditons`), but you need to be careful about getting the trial orderings right if you have more than one condition type. Hence, it is recommended that you collapse all relevant conditions into one uber condition, and specify all trial-wise variability using the subject-specific design matrix.
 
 #### Subject-level Stage
+
 The third stage of the pipeline is a between-session within subject fixed effects averaging over multiple sessions that you may have for each subject.
 
-The data inputted into this stage is the output from the first-level stage, with dimensions of (num_voxels x num_first_level_contrasts x num_timepoints x num_frequencies) for each session (assuming it is a source space analysis), where num_timepoints is the number of timepoints within a trial for epoched data.
+The data inputted into this stage is the output from the first-level stage, with dimensions of (`num_voxels` x `num_first_level_contrasts` x `num_timepoints` x `num_frequencies`) for each session (assuming it is a source space analysis), where `num_timepoints` is the number of timepoints within a trial for epoched data.
 
-The data output from this stage will be the subject level effect sizes (COPEs) for each subject, and statistics with the dimensions of (num_ voxels x num_first_level_contrasts x num_timepoint_withintrial x num_frequencies) for each subject.
+The data output from this stage will be the subject level effect sizes (COPEs) for each subject, and statistics with the dimensions of (`num_voxels` x `num_first_level_contrasts` x `num_timepoint_withintrial` x `num_frequencies`) for each subject.
 
-Different subject level analyses can be run on the same source-recon/first-level results; these will be placed in the OAT directory specified by oat.source_recon.dirname, and are distinguished by the suffix oat.subject_level.name. Hence, you should ensure that you change oat.subject_level.name for a new subject-level analysis, if you want to avoid overwriting an old one.
+Different subject level analyses can be run on the same source-recon/first-level results; these will be placed in the OAT directory specified by `oat.source_recon.dirname`, and are distinguished by the suffix `oat.subject_level.name`. Hence, you should ensure that you change `oat.subject_level.name` for a new subject-level analysis, if you want to avoid overwriting an old one.
 
-Do “help osl_check_oat” to find out more.
+Do `help osl_check_oat` to find out more.
 
 #### Group-level Stage
 The fourth stage of the pipeline is a between-subject group analysis, using subject-wise general linear modelling (GLM) (or multiple regression). It allows you to describe the experimental design in terms of how it varies over subjects (e.g. different population groups at the group-level).
@@ -569,7 +602,7 @@ The data output from this stage will be the group level effect sizes (COPEs) and
 
 Different group level analyses can be run on the same source-recon/first-level/subject-level results; these will be placed in the OAT directory specified by oat.source_recon.dirname, and are distinguished by the suffix oat.group_level.name. Hence, you should ensure that you change oat.group _level.name for a new group-level analysis, if you want to avoid overwriting an old one.
 
-Do “help osl_check_oat” to find out more.
+Do `help osl_check_oat` to find out more.
 
 How to set up the group-level design matrix and contrasts
 
