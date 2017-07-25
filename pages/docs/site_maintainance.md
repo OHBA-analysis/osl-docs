@@ -10,6 +10,8 @@ This site is a fairly standard GitHub Pages setup using Jekyll. Documents are se
 * TOC
 {:toc}
 
+## Writing pages
+
 ### Making a new page
 
 Make a new file anywhere - but best to put it in the `docs` folder. Start the file with
@@ -22,41 +24,6 @@ Make a new file anywhere - but best to put it in the `docs` folder. Start the fi
 	---
 
 The document will automatically be added to the navbar section corresponding to its category, and the title will also be placed at the top of the page content. After this header, write content in Markdown (the same as on GitHub wiki pages). 
-
-### Making a new tutorial
-
-1. Write the content in Matlab
-2. Run `osl_publish` on your Matlab file
-3. Add and commit the files in the `osl-docs` repository (NOT `osl-core`)
-
-### Renaming a tutorial
-
-One thing that `osl_publish` does instead of just `publish` is that automatically adds the requisite YAML header to the resulting HTML file so that it is included when the site is built by Jekyll. All of the published tutorials start with something like
-
-	---
-	layout: matlab_wrapper
-	title: OAT 3 - Sourcespace Analysis
-	resource: true
-	categories: examples
-	---
-
-The title or category could be manually changed, if designed. However, so that the tutorials can be rebuilt when required, is is highly advised to edit the tutorial script and to re-publish it, rather than making manual changes to the pages. 
-
-### Making a new nav section
-
-Open `_config.yml`. There is a list of categories e.g.
-
-	category-list: [overview,examples,documentation,archive]
-
-Add your category to the list. It will appear in the navbar and any pages given that category will automatically be added to it
-
-### Making a link to a page in the navbar
-
-If you just want to link to a page in the navbar, edit `_includes/navigation.html`. There is a list that corresponds to the content of the navbar. Currently, the first item in the list is a link to the home page e.g.
-
-	<li><a href="{{ site.baseurl }}/"">Home</a></li>
-
-Add other links in the same way. Put them before or after the automatically generated set of dropdowns.
 
 ### Adding a table of contents
 
@@ -91,11 +58,45 @@ If the section has a title (e.g. with a series of hashes) then you can refer to 
 
 where spaces are swapped for hyphens and everything is lowercase. 
 
-### Moving wiki content checklist
+### Linking to a Matlab tutorial
 
-There is a lot of content on the old Google Sites wiki that needs to be ported over. Here is a checklist of known items that need to be verified
+	[link]({{ site.baseurl }}/matlab/osl_example_oslview.html)
 
-- Have all pages that appear in the sidebar been moved?
-- For each page, have all subpages also been moved?
-- Make sure all images have been copied
-- Check that all links have been re-linked
+## Writing tutorials
+
+### Making a new tutorial
+
+1. Write the content in Matlab
+2. Run `osl_publish` on your Matlab file
+3. Add and commit the files in the `osl-docs` repository (NOT `osl-core`)
+
+### Renaming a tutorial
+
+One thing that `osl_publish` does instead of just `publish` is that automatically adds the requisite YAML header to the resulting HTML file so that it is included when the site is built by Jekyll. All of the published tutorials start with something like
+
+	---
+	layout: matlab_wrapper
+	title: OAT 3 - Sourcespace Analysis
+	resource: true
+	categories: examples
+	---
+
+The title or category could be manually changed, if designed. However, so that the tutorials can be rebuilt when required, is is highly advised to edit the tutorial script and to re-publish it, rather than making manual changes to the pages. 
+
+## Managing the site
+
+### Making a new nav section
+
+Open `_config.yml`. There is a list of categories e.g.
+
+	category-list: [overview,examples,documentation,archive]
+
+Add your category to the list. It will appear in the navbar and any pages given that category will automatically be added to it
+
+### Making a link to a page in the navbar
+
+If you just want to link to a page in the navbar, edit `_includes/navigation.html`. There is a list that corresponds to the content of the navbar. Currently, the first item in the list is a link to the home page e.g.
+
+	<li><a href="{{ site.baseurl }}/"">Home</a></li>
+
+Add other links in the same way. Put them before or after the automatically generated set of dropdowns.
