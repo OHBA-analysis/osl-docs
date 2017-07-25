@@ -61,3 +61,7 @@ Getting started
 Support
 OSL workshops
 Source code on Github
+
+Navbar - https://www.taniarascia.com/responsive-dropdown-navigation-bar/
+
+TODO - raise heading levels (e.g. ### becomes ##)

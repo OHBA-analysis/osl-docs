@@ -486,7 +486,7 @@ You can use ROIs to restrict the first level analysis to voxels (dipoles) within
 oat.first_level.mask_fname='mask_file_name.nii.gz';
 ```
 
-This mask needs to be a subset of the mask used in the source_recon level. To view the results in the ROI, see here.
+This mask needs to be a subset of the mask used in the `source_recon` level. To view the results in the ROI, see here.
 
 **MNI Coordinates**
 
@@ -496,7 +496,7 @@ You can use a list of MNI coordinates to restrict the first level analysis to ju
 oat.first_level.mni_coords=[20 -12 18; 22 -10 18]; % need to be num_coords x 3
 ```
 
-This mask needs to be a subset of the mask used in the source_recon level. To view the results in the ROI, see the section on "Viewing the results".
+This mask needs to be a subset of the mask used in the `source_recon` level. To view the results in the ROI, see the section on [Viewing the results](#viewing-the-results).
 
 ##### Continuous
 
@@ -590,23 +590,24 @@ Different subject level analyses can be run on the same source-recon/first-level
 Do `help osl_check_oat` to find out more.
 
 #### Group-level Stage
+
 The fourth stage of the pipeline is a between-subject group analysis, using subject-wise general linear modelling (GLM) (or multiple regression). It allows you to describe the experimental design in terms of how it varies over subjects (e.g. different population groups at the group-level).
 
 A corresponding group design matrix and group contrasts needs to be specified. See here for how to set up the group design. 
 
 The defaults correspond to a simple one-sample t-test group average.
 
-The data inputted into this stage is the output from the subject-level stage, with dimensions of (num_voxels x num_first_level_contrasts x num_timepoints x num_frequencies) for each subject (assuming it is a source space analysis), where num_timepoints is the number of timepoints within a trial for epoched data.
+The data inputted into this stage is the output from the subject-level stage, with dimensions of (`num_voxels` x `num_first_level_contrasts` x `num_timepoints` x `num_frequencies`) for each subject (assuming it is a source space analysis), where num_timepoints is the number of timepoints within a trial for epoched data.
 
-The data output from this stage will be the group level effect sizes (COPEs) and statistics with the dimensions of (num_voxels x num_first_level_contrasts x num_timepoints x num_frequencies x num_group_level_contrasts).
+The data output from this stage will be the group level effect sizes (COPEs) and statistics with the dimensions of (`num_voxels` x `num_first_level_contrasts` x `num_timepoints` x `num_frequencies` x `num_group_level_contrasts`).
 
-Different group level analyses can be run on the same source-recon/first-level/subject-level results; these will be placed in the OAT directory specified by oat.source_recon.dirname, and are distinguished by the suffix oat.group_level.name. Hence, you should ensure that you change oat.group _level.name for a new group-level analysis, if you want to avoid overwriting an old one.
+Different group level analyses can be run on the same `source-recon/first-level/subject-level` results; these will be placed in the OAT directory specified by `oat.source_recon.dirname`, and are distinguished by the suffix `oat.group_level.name`. Hence, you should ensure that you change `oat.group_level.name` for a new group-level analysis, if you want to avoid overwriting an old one.
 
 Do `help osl_check_oat` to find out more.
 
-How to set up the group-level design matrix and contrasts
+[How to set up the group-level design matrix and contrasts](#group-level-designs)
 
-ROIs
+**ROIs**
 
 You can use ROIs to restrict the group level analysis to voxels (dipoles) within a MNI 2mm standard space mask, e.g. :
 
@@ -614,49 +615,131 @@ You can use ROIs to restrict the group level analysis to voxels (dipoles) within
 oat.group_level.mask_fname='mask_file_name.nii.gz';
 ```
 
-This mask needs to be a subset of the mask used in the first/subject level. To view the results in the ROI, see here.
-MNI Coordinates
+This mask needs to be a subset of the mask used in the first/subject level. To view the results in the ROI, see [here](#viewing-the-results).
 
-It is not possible to use a new list of MNI coordinates at the group level. You should go to the first_level (or source_recon) stages to do this.
-Permutation testing
+**MNI Coordinates**
 
-It is recommended that use cluster level permutation testing to do group inference that corrects for multiple comparisons over sensors, voxels, time-points, freq-bands.
+It is not possible to use a new list of MNI coordinates at the group level. You should go to the `first_level` (or `source_recon`) stages to do this.
 
-See here (todo: link to permutation testing) for more on doing permutation testing using group OAT analysis output.
+**Permutation testing**
+
+It is recommended that use [cluster level permutation testing](#permutation-testing) to do group inference that corrects for multiple comparisons over sensors, voxels, time-points, freq-bands.
+
+See [here](#permutation-testing) for more on doing permutation testing using group OAT analysis output.
+
+##### Group-level Designs 
+
+The group design matrix is set explicitly using the:
+
+    oat.group_level.group_design_matrix
+
+field. This needs to be set to a matrix with dimensions of (`num_regressors` x `num_subjects`).
+
+**Design Matrix Examples**
+
+**Single group t-test**
+
+In this example there are simply 10 subjects and we just want to average over all subjects to test the group population mean using a mixed-effects model.
+
+```matlab
+Num_subjects =10;
+oat.group_level.group_design_matrix=ones(1,Num_subjects);
+oat.group_level.group_contrast{1}=[1]; % group average
+```
+
+**Single group behavioural measure**
+
+In this example there are 6 subjects and we want to test a behavioural covariate.
+
+```matlab
+Num_subjects =6;
+oat.group_level.group_design_matrix=ones(2,Num_subjects); % first regressor models group average
+oat.group_level.group_design_matrix(2,:)=demean([12 10 36 4 3 17]); % behavioural measures for each subject 
+oat.group_level.group_contrast{1}=[1 0]'; % group average
+oat.group_level.group_contrast{2}=[0 1]'; % behavioural measure effect
+```
+
+NOTE that you need to demean the behavioural measures regressor, if you want the first regressor's parameter estimate (contrast 1) to correspond to the group average. 
+
+**2-Group t-test**
+
+In this example the first 6 subjects are patients and the second 4 subjects are controls.
+
+```matlab
+Num_subjects =10;
+oat.group_level.group_design_matrix=zeros(2,Num_subjects);
+oat.group_level.group_design_matrix(1,1:6)=1; % 1st regressor picks out patient subjects
+oat.group_level.group_design_matrix(2,7:10)=1; % 2nd regressor picks out control subjects
+
+oat.group_level.group_contrast{1}=[1 1]'; % average over all 10 subjects
+oat.group_level.group_contrast{2}=[1 0]'; % average over patients
+oat.group_level.group_contrast{3}=[0 1]'; % average over controls
+oat.group_level.group_contrast{4}=[1 -1]'; % patients - controls
+oat.group_level.group_contrast{5}=[-1 1]'; % controls - patients
+```
+
+**Paired t-test**
+
+In this example there are 3 subjects in two conditions: pre- and post- treatment.
+Data is assumed to be ordered as follows:
+
+1. sub1, pre-treatment
+2. sub1, post-treatment
+3. sub2, pre-treatment
+4. sub2, post-treatment    etc...
+
+```matlab
+Num_subjects = 3;
+oat.group_level.group_design_matrix=zeros(Num_subjects+1,Num_subjects*2);
+oat.group_level.group_design_matrix(1,1:2)=1; % 1st regressor picks out subject 1
+oat.group_level.group_design_matrix(2,3:4)=1; % 2nd regressor picks out subject 2
+oat.group_level.group_design_matrix(3,5:6)=1; % 3rd regressor picks out subject 3
+oat.group_level.group_design_matrix(4,:)=[1 -1 1 -1 1 -1]; % 4th regressor picks out paired difference
+
+oat.group_level.group_contrast{1}=[0 0 0 -1]'; % post-treatment - pre-treatment
+oat.group_level.group_contrast{2}=[0 0 0 1]'; % pre-treatment - post-treatment
+```
 
 ### Running the Analysis
-The OAT structure should be passed to the function osl_run_oat.m, to run the pipeline.
 
-The OAT structure should contain a structure (oat.to_do), which is a list of binary values indicating which part of the pipeline is to be run.
+The OAT structure should be passed to the function `osl_run_oat.m`, to run the pipeline.
+
+The OAT structure should contain a structure (`oat.to_do`), which is a list of binary values indicating which part of the pipeline is to be run.
 
 E.g.:
 
-oat.to_do=[1 1 0 0]; will run just the source recon and first level stages, whereas 
-oat.to_do=[1 1 1 1]; will run all three (source-recon, first level, subject-level and group level).
+- `oat.to_do=[1 1 0 0];` will run just the source recon and first level stages, whereas 
+- `oat.to_do=[1 1 1 1];` will run all three (source-recon, first level, subject-level and group level).
+
 If you want to subsequently run, or re-run, one of the later stages of the analysis (e.g. first-level and or group-level GLM), you can do so without re-running the earlier stages of OAT.
 
 ### Settings
+
 The oat settings need to be in an OAT structure (e.g. called “oat”) that contains:
-oat.source_recon
-oat.first_level
-oat.subject_level
-oat.group_level
-Note that this organisation of settings corresponds to the different Pipeline stages.
 
-Once the required settings have been setup in the OAT structure, a call should then be made to the osl_check_oat.m function. This will check the settings, and will throw an error if any required inputs are missing, and will fill other settings that are not passed in with their default values. The OAT can then be passed to osl_run_oat to do an OAT analysis.
-Required inputs 
+- `oat.source_recon`
+- `oat.first_level`
+- `oat.subject_level`
+- `oat.group_level`
 
-For osl_check_oat.m are:
- oat.source_recon.time_range; Time range (from to) within trial, in secs, need to all be the same duration and one for each condition.
- oat.source_recon.conditions; list of conditions to include in the analysis, e.g. oat.source_recon.conditions={'Motorbike','Neutral face'};
- oat.source_recon.D_continuous; list of continuous time SPM MEEG object file paths to run the analysis on (list order should correspond to oat.source_recon.mri and oat.source_recon.D_epoched fields if provided)
+Note that this organisation of settings corresponds to the different [Pipeline stages](#pipeline-stages).
 
- AND/OR
+Once the required settings have been setup in the OAT structure, a call should then be made to the `osl_check_oat.m` function. This will check the settings, and will throw an error if any required inputs are missing, and will fill other settings that are not passed in with their default values. The OAT can then be passed to `osl_run_oat` to do an OAT analysis.
 
- oat.source_recon.D_epoched; list of epoched SPM MEEG object file paths to run the analysis on (list order should correspond to oat.source_recon.mri and  oat.source_recon.D_epoched fields if provided).E.g.:
- oat.source_recon.D_epoched{1}='subject1';
- oat.source_recon.D_epoched{2}='subject2' 
+**Required inputs**
 
- Optional inputs:
+For `osl_check_oat.m` are:
 
-See inside this function (e.g. use "type osl_check_oat") to see the other optional settings, or just look at the fields in the output oat! You can also look at the constituent [Pipeline stages](#pipeline-stages).
+- `oat.source_recon.time_range` Time range (from to) within trial, in secs, need to all be the same duration and one for each condition.
+- `oat.source_recon.conditions` list of conditions to include in the analysis, e.g. `oat.source_recon.conditions={'Motorbike','Neutral face'}`
+- `oat.source_recon.D_continuous` list of continuous time SPM MEEG object file paths to run the analysis on (list order should correspond to `oat.source_recon.mri` and `oat.source_recon.D_epoched` fields if provided)
+
+AND/OR
+
+- `oat.source_recon.D_epoched;` list of epoched SPM MEEG object file paths to run the analysis on (list order should correspond to oat.source_recon.mri and  oat.source_recon.D_epoched fields if provided).E.g.:
+    - `oat.source_recon.D_epoched{1}='subject1'`
+    - `oat.source_recon.D_epoched{2}='subject2'`
+
+**Optional inputs**
+
+See inside this function (e.g. use `type osl_check_oat`) to see the other optional settings, or just look at the fields in the output oat! You can also look at the constituent [Pipeline stages](#pipeline-stages).
