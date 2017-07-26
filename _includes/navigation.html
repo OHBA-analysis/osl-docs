@@ -2,38 +2,75 @@
 
 <!-- This finds the current page so it can be highlighted. -->
 
-{% for entry in site.data.navigation %}
-{% capture fullurl %}{{ site.baseurl }}{{ entry.url }}{% endcapture %}
-    {% if fullurl == page.url %}
-        {% assign current_page = fullurl %}
-        {% break %}
-    {% elsif page.url contains fullurl %}
-        {% assign current_page = fullurl %}
-    {% endif %}
-{% endfor %}
+<script>
+(function($) { // Begin jQuery
+  $(function() { // DOM ready
+    // If a link has a dropdown, add sub menu toggle.
+    $('nav ul li a:not(:only-child)').click(function(e) {
+      $(this).siblings('.nav-dropdown').toggle();
 
-<!-- Then we build the nav bar. -->
-<div id="nav">
-    <ul>
+      if ($(this).siblings('.nav-dropdown').is( ":visible" )) {
+        $(this).addClass('current-item');
+      } else { 
+        $(this).removeClass('current-item');
+      }
 
-    <li class="left"><a href="{{ site.baseurl }}/"">Home</a></li>
-    {% for cat in site.category-list %}
-        <div class="dropdown">
-          <button class="dropbtn">{{cat | capitalize}}</button>
-          <div class="dropdown-content">
-            {% assign sorted_pages =  site.pages | sort:"title" %}
-            {% for page in sorted_pages %}
-              {% if page.resource == true %}
-                {% for pc in page.categories %}
-                  {% if pc == cat %}
-                    <a href="{{ site.baseurl }}{{ page.url }}">{{ page.title }}</a>
-                  {% endif %}  
-                {% endfor %}  
-              {% endif %}  
-            {% endfor %}  
-          </div>
-        </div>
-    {% endfor %}  
-    <li class="right"><a href="{{ site.baseurl }}/pages/sitemap"">Site map</a></li>
-    </ul>
-</div>
+      // Close all other dropdowns
+      $('.nav-dropdown').not($(this).siblings()).hide();
+      $('.current-item').not($(this)).removeClass('current-item');
+
+      e.stopPropagation();
+    });
+    // Clicking away from dropdown will remove the dropdown class
+    $('html').click(function() {
+      $('.nav-dropdown').hide();
+      $('.current-item').removeClass('current-item');
+    });
+    // Toggle open and close nav styles on click
+    $('#nav-toggle').click(function() {
+      $('nav ul').slideToggle();
+    });
+    // Hamburger to X toggle
+    $('#nav-toggle').on('click', function() {
+      this.classList.toggle('active');
+    });
+  }); // end DOM ready
+})(jQuery); // end jQuery
+</script>
+
+
+<section class="navigation">
+  <div class="nav-container">
+    <div class="brand">
+      <a href="{{ site.baseurl }}/">OSL</a>
+    </div>
+    <nav>
+      <div class="nav-mobile"><a id="nav-toggle" href="#!"><span></span></a></div>
+      <ul class="nav-list">
+        <li class="nav-li">
+          <a href="{{ site.baseurl }}/">Home</a>
+        </li>
+        {% for cat in site.category-list %}
+        <li class="nav-li">
+          <a href="#!">{{cat | capitalize}}</a>
+          <ul class="nav-dropdown">
+              {% assign sorted_pages =  site.pages | sort:"title" %}
+              {% for page in sorted_pages %}
+                {% if page.resource == true %}
+                  {% for pc in page.categories %}
+                    {% if pc == cat %}
+                      <li class="nav-li">
+                        <a href="{{ site.baseurl }}{{ page.url }}">{{ page.title }}</a>
+                      </li>
+                    {% endif %}  
+                  {% endfor %}  
+                {% endif %}  
+              {% endfor %}  
+          </ul>
+        </li>
+        {% endfor %}  
+        <li class="nav-li"><a href="{{ site.baseurl }}/pages/sitemap"">Site map</a></li>
+      </ul>
+    </nav>
+  </div>
+</section>
