@@ -9,7 +9,7 @@ $nav-background: #262626;
 $nav-font-color: #ffffff;
 $nav-li-background: #fcfcfc;
 $nav-li-font-color: #424242;
-$link-hover-color: #2581DC;
+$link-hover-color: #159957;
 
 // Selected item
 .current-item {
@@ -72,7 +72,8 @@ nav {
         }
       } // Dropdown list
       ul li {
-        min-width: 400px;
+        width: 100%;
+        white-space:nowrap;
         margin: 0px;
         a,a:visited {
           padding: 15px;
