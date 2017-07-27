@@ -1,18 +1,18 @@
 ---
 layout: default
-title: OPT (OSL's Preprocessing Tool) 
+title: Preprocessing - OPT 
 resource: true
 categories: documentation
 ---
 
-OPT is a fully automated pipeline for preprocessing MEG data. This automates as many of the analysis decisions as possible, and allows easy (though still robust, efficient and valid) analysis, whilst giving some flexibility if needed. 
+OPT (OSL's Preprocessing Tool) is a fully automated pipeline for preprocessing MEG data. This automates as many of the analysis decisions as possible, and allows easy (though still robust, efficient and valid) analysis, whilst giving some flexibility if needed. 
 
 * TOC
 {:toc}
 
 OPT runs through the following pipeline steps (some of which can be optionally turned off):
 
-- For _Elekta Neuromag_ data: Runs the "Double Maxfilter Procedure" (to help Maxfilter with detection of bad channels):
+- For _Elekta Neuromag_ data: Runs the "Double [Maxfilter](preprocessing-maxfilter.md) Procedure" (to help Maxfilter with detection of bad channels):
     - Runs Maxfilter without SSS (with some intermediate downsampling to help with disk space/RAM)
     - Conversion of non-SSS data into SPM format
     - Automated detection of bad channels
@@ -28,7 +28,7 @@ OPT runs through the following pipeline steps (some of which can be optionally t
 
 An example/template script for calling OPT is called `osl_example_preprocessing_opt.m` and can be found in the OSL matlab directory. This script can easily be adapted to run on your own data.
 
-**Combining multiple OPT runs (including adding new sessions or re-running subsets of sessions)**
+#### Combining multiple OPT runs (including adding new sessions or re-running subsets of sessions)
 
 A common issue is running OPT separately on different sessions/subjects using separate calls to `osl_run_opt` for each one. This can happen when adding new sessions/subjects, or perhaps when re-running a "problem" session/subject.
 
@@ -46,7 +46,7 @@ When all sessions have been run, you can then use a call to:
 
 This will mine the `opt` directory and combine together the results it can find. It will also produce a consolidated OPT report.
 
-### Data Input
+## Data Input
 
 For each subject OPT requires, either (if Elekta Neuromag data):
 
@@ -66,7 +66,7 @@ Note that:
 
 See [Settings](#settings) for more.
 
-### Output
+## Output
 
 A call to `osl_run_opt`, i.e. 
 
@@ -85,17 +85,17 @@ In particular, this contains:
 
 It is highly recommended that you inspect both the `opt.results.logfile` and `opt.results.report`, to ensure that OPT has run successfully.
 
-### Running the Analysis
+## Running the Analysis
 
 The OPT structure should be passed to the function `osl_run_opt.m`, to run the pipeline.
 
-### Settings
+## Settings
 
 The `opt` settings need to be in an OPT structure (e.g. called `opt`) that needs to be setup with a call to the `osl_check_opt.m` function (with the required settings have been setup in the OPT structure - see below). 
 
 `osl_check_opt.m `will check the settings, and will throw an error if any required inputs are missing, and will fill other settings that are not passed in with their default values. The OPT structure can then be passed to `osl_run_opt` to do an OPT analysis.
 
-**Required inputs**
+#### Required inputs
 
 The required inputs for `osl_check_opt.m` are:
 
@@ -116,6 +116,6 @@ AND:
 - `opt.datatype`: Specifies the datatype; i.e. `neuromag`, `ctf`, `eeg`; e.g. 
     - `opt.datatype='neuromag'`;
 
-**Optional inputs:**
+#### Optional inputs
 
 See inside this function (e.g. use `type osl_check_opt.m`) to see the other optional settings, or just look at the fields in the output OPT structure! 

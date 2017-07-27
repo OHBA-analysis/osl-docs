@@ -5,8 +5,6 @@ resource: true
 categories: documentation
 ---
 
-_Moved from Google Sites wiki_
-
 OSL includes software for simulating MEG sensor data.
 
 By specifying the location and activity of any number of dipoles, the corresponding signals in the MEG sensor array can be simulated. White noise with a covariance structure drawn from empty room measurements can be added. 

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: OAT time-frequency analyses
+title: OAT - time-frequency analyses
 resource: true
 categories: documentation
 ---
@@ -14,13 +14,13 @@ You can choose the transform you require by setting `oat.first_level.tf_method`,
 
 Some information about the various transforms is available in a [set of slides]({{ site.baseurl }}/downloads/oat_tf_transform.pdf)
 
-### Taper transforms (Hanning and DPSS)
+## Taper transforms (Hanning and DPSS)
 
 OSL borrows Fieldtrip's methods for taper-based time frequency transforms.  The [Fieldtrip website](http://www.fieldtriptoolbox.org/tutorial/timefrequencyanalysis) is a useful source of information about these methods.  Their time-frequency tutorial may be the best place to start.
 
 There are a variety of decisions to be made in choosing options for the fieldtrip functions.  To supplement the fieldtrip tutorial documentation, the notes below describe how OSL deals with these decisions.
 
-#### Using fieldtrip's time-frequency analysis functions with OSL
+## Using fieldtrip's time-frequency analysis functions with OSL
 
 It is possible to specify a set number of oscillatory cycles to fit within the analysis time window at each frequency in the tf analysis, and create variable length time windows on that basis. For example, if 7 cycles were requested:
 
@@ -110,7 +110,7 @@ If the frequency range of interest was fairly high - e.g. 18-30 Hz, then we migh
 
 	oat.first_level.tf_multitaper_cycles./(oat.first_level.tf_freq_range(1))
 
-#### Setting time windows
+## Setting time windows
 
 `oat.first_level.tf_multitaper_twin` sets a limit on the time points at which the tf transform can be performed. Specifically, if the data time window is t1 to t2, then the viable time windows for the tf is bounded by:
 

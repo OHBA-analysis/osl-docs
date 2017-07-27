@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Maxfilter
+title: Preprocessing - Maxfilter
 resource: true
 categories: documentation
 ---
@@ -8,7 +8,7 @@ categories: documentation
 * TOC
 {:toc}
 
-### What is the MaxFilter?
+## What is the MaxFilter?
 
 Maxfilter is a program provided by Electa, which implements a spatial signal space separation (SSS) algorithm to remove external noise from MEG recordings.  See the [Maxfilter manual]({{ site.baseurl }}/downloads/maxfilter_user_guide.pdf) for details of the algorithm.
 
@@ -24,7 +24,7 @@ In addition to this page, you might want to check out the [CBU MEG wiki](http://
 
 Maxfilter can be temperamental, and it needs to be used with care.  It's a 'black box', and as such there's a temptation to feed it some data, set a few options, and assume it'll work.  Don't take that for granted!  The input to the maxfilter needs to be specified carefully, and the output needs to be sanity-checked.  Just because it ran, doesn't mean it worked!
 
-### How to use the Maxfilter
+## How to use the Maxfilter
 
 Maxfilter comes with a GUI, but you're almost certainly going to want to call it from matlab, via a system command.  A basic call from MATLAB, with no options set, might look like this:
 
@@ -43,7 +43,7 @@ This picks out all the lines with a warning, and also the lines that identify th
 
 Further options - and their associated pitfalls - are discussed in the linked pages below.
 
-### Bad channels
+## Bad channels
 
 Maxfilter can to detect bad channels in your data. You can toggle automatic bad channel detection by adding `-autobad` on to your maxfilter call.  However, it does not always detect all channels that contain artefacts.  _If a channel with artefacts does slip through, maxfilter can propagate this noise into other channels in the dataset._ To avoid this, you need to pick out bad channels and tell maxfilter about them using the `-bad` option.  You can do this manually, and to that end the maxfilter pipeline is:
 
@@ -69,7 +69,7 @@ Here's an example in which there is a smorgasbord of artefacts.  The channels th
 
 ![maxfilter_bad_channels_3](maxfilter_bad_channels_3.png)
 
-### Head movements
+## Head movements
 
 It's [advisable to compensate for head movements in your MEG data](http://www.sciencedirect.com/science/article/pii/S1053811912011597).
 
@@ -90,7 +90,7 @@ This option is used by specifying the `.fif` file you'd like to match (for head 
 
 	-trans /net/aton/data/my_meg_project/case_666/11041923/attention_task_session1.fif
 
-#### Failure when attempting to compensate large movements
+## Failure when attempting to compensate large movements
 
 If you use the `-trans` option and the movement compensation involves a large transformation (>3cm), the maxfilter can fail, and will considerably amplify the variance in the channels close to the vertex.  You might not notice this in sensorspace, as you're likely to be using a relative baseline.  In principle this can happen within session, so it's important to check that there isn't a very large movement within session for a given subject.  The maxfilter will also throw a warning if it is being asked to do a too-large shift.  It may be worth also checking the variance distribution in your data after maxfilter - you can adapt [this tool](maxfilter_makeStdTopo.m) to plot the topography of the variance in the combined gradiometers.  Here are three sessions from one subject in which the variance was amplified at the vertex:
 
@@ -107,12 +107,12 @@ Across 120 recording sessions, there was a correlation between the degree of var
 
 These outlier subjects must be detected by carefully inspecting your data post-maxfilter.
 
-### Further pitfalls when Maxfiltering
+## Further pitfalls when Maxfiltering
 
 
 In addition to the potential problems with head position and badchannels, there are further pitfalls to watch out for when maxfiltering
 
-#### Channel variance distortion
+## Channel variance distortion
 
 Even if you have not used the MaxMove options (see [Head position (MaxMove)](#head-movements)) you may still find that maxfilter distorts the channel variance in your data.  For example, here are two different recording sessions from a single subject, maxfiltered without setting `-trans` or `-movecomp`.  Before/after maxfilter histograms of ln(channel variance) are shown.  Gradiometers are plotted on the LHS and magnetometers on the RHS.  The maxfilter always reduces the variance in the magnetometers, probably because they are more susceptible to external noise than the gradiometers.  The gradiometer variance is typically similar pre and post maxfilter, but for the first session shown here, the gradiometer variance is increased following maxfilter.  This isn't the case for the second session.
 
@@ -129,7 +129,7 @@ There were no warnings thrown by the maxfilter for the first session.  It's impo
 
 You may also wish to check your head points.  Maxfilter performs a sphere-fit to these points, and this may have failed.  You can use [this tool](maxfilter_getHPIpoints.m) to get the cardinals, HPI coil locations, and head points.
 
-#### Zeros in maxfiltered data
+## Zeros in maxfiltered data
 
 Maxfilter sometimes spits out zeros.  It tends to set all channels to zero over a data buffer (or several buffers).  This is visible in OSLview, and zero-d segments can be rejected as bad epochs - but, be warned!  Short periods where the data are set to zero can be easy to miss.  Look at the cross-channel variance at the bottom of the OSLview display - zero-ed segments are visible here as a 'drop-out' in the variance trace.
 
@@ -140,7 +140,7 @@ In the maxfilter log file, you will see this warning if maxfilter has written ze
 	Warning: 13 bad channels, the output data are set to zero! (t = 829.000)
 	Warning: 13 bad channels, the output data are set to zero! (t = 830.000)
 
-#### What if maxfilter does not output any data
+## What if maxfilter does not output any data
 
 Sometimes maxfilter refuses to output data, in which case you'll see an error something like:
 
@@ -161,7 +161,7 @@ The most likely cause is setting too many bad channels.  More than about 10 or 1
 
 Presumably you specified those bad channels for a reason - but if you want to maxfilter this data, you will have to go back and redo the bad channel selection more conservatively.
 
-### Skipping data with Maxfilter
+## Skipping data with Maxfilter
 
 If you data contains noisy time-periods (for example you kept recording while you gave the participant a break and they moved around, masticated etc.), then before you do a proper Maxfilter (Elekta data only), you can use a function to remove these bad timeperiods ('bad_epochs'). Esentially Maxfilter will set these time chunks to zero and ignore them. This process is easy in theory, but cumbersome in practice, so please read the instructions below to make sure that you are not caught in a web of frustration. 
 

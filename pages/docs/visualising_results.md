@@ -5,9 +5,7 @@ resource: true
 categories: documentation
 ---
 
-_Moved from Google Sites wiki_
-
-### Orthoviews
+## Orthoviews
 
 3D stats images (or 4D at particular time points) can be viewed (e.g. for printing) using `ortho_overlay_act` e.g.
 
@@ -23,11 +21,11 @@ figure;
 ortho_overlay_act( S )
 ```
 
-### HCP workbench
+## HCP workbench
 
 ![hcp_workbench](hcp_workbench_gui_instructions.png){:style="max-height: 400px;"}
 
-### Produce Freesurfer surface images
+## Produce Freesurfer surface images
 
 Freesurfer can be used to produce images of cortical (single time point) surfaces. Need to call `osl_render_vols_to_surf.m` with `S.type='free surfer'`, and an appropriate time window that will be averaged over.
 
@@ -46,7 +44,7 @@ runcmd(['open ' res.left_tiff_names{1}]);
 runcmd(['open ' res.right_tiff_names{1}]);
 ```
 
-### Produce Freesurfer surface movies
+## Produce Freesurfer surface movies
 
 To produce .avi movie of 4D activity on a cortical surface, you can call `osl_make_surf_movie.m`
 

@@ -8,7 +8,7 @@ categories: documentation
 * TOC
 {:toc}
 
-### Overview
+## Overview
 
 OAT can be used to analyse a multi-subject MEG study from subject specific SPM MEEG objects through to group statistics in source or sensor space.
 
@@ -49,7 +49,7 @@ There is a template script for running OAT to do a wholebrain source-space ERF O
     osl_example_beamformer_full_pipeline.m
 
 
-### Data input
+## Data input
 
 OAT assumes that the MEG data has been [preprocessed](preprocessing.md) (e.g. using OSL) to create an SPM MEEG object for each subject. 
 
@@ -67,7 +67,7 @@ Note that:
 - any SPM MEEG object filenames should be provided with a .mat file extension
 - any structural filenames should be provided with a .nii file extension
 
-### Export trialwise Fieldtrip data
+## Export trialwise Fieldtrip data
 
 **Export trialwise data from an OAT analysis**
 
@@ -119,9 +119,9 @@ The function will sort the data back into chronological order, from OSL's condit
 
 **NB this function is only able to deal with time-domain trialwise data**
 
-### Output
+## Output
 
-#### Directory Structure
+## Directory Structure
 
 **Directory structure and file naming**
 
@@ -149,7 +149,7 @@ or to load subject 2's first level stats results use the call:
 
     osl_load_oat_results(oat,oat.first_level.results_fnames{2})
 
-#### Viewing the Results
+## Viewing the Results
 
 **Sensor space**
 
@@ -196,7 +196,7 @@ See examples of how to do this at the first level by looking in `osl_example_bea
 
 See examples of how to do this at the group level by looking in `osl_example_group_oat.m`.
 
-### Permutation Testing
+## Permutation Testing
 
 
 Permutation testing is restricted to the _group level_.
@@ -207,7 +207,7 @@ It is recommended that you use cluster level permutation testing to do group inf
 
 In the results, we are looking for clusters with corrp>0.95 to get null hypothesis rejection with a family wise FPR of 0.05.
 
-#### 1D/2D Cluster permutation
+## 1D/2D Cluster permutation
 
 _1D/2D cluster permutation testing (e.g. over time/frequency)_
 
@@ -262,7 +262,7 @@ con=3; imagesc(stats.times, stats.frequencies, squeeze(corrp));axis xy;
 ylabel('frequency (Hz)'); xlabel('time (s)'); colorbar; title(['cope' num2str(con)]);
 ```
 
-#### Sensor space: 1D/2D/3D
+## Sensor space: 1D/2D/3D
 
 _Sensor space: 1D/2D/3D cluster permutation testing over sensors plus (optionally) over time or frequency_
 
@@ -301,7 +301,7 @@ S2.cfg.colorbar='yes';
 [cfg, data]=osl_stats_multiplotER(S2);
 ```
 
-#### Source space: 3D
+## Source space: 3D
 
 _Source space: 3D cluster permutation testing over voxels_
 
@@ -335,7 +335,7 @@ Output from `osl_cluster_permutation_testing` includes the following files:
 - `stats_clustere_tstat_gc1_2mm` : cluster extent for each voxel
 - `stats_clustere_corrp_tstat_gc1_2mm`: whole-brain corrected P-values for each cluster
 
-#### Source space: 4D
+## Source space: 4D
 
 _Source space: 4D cluster permutation testing over voxels and (e.g. time or frequency)_
 
@@ -413,7 +413,7 @@ Output from `osl_cluster_permutation_testing` includes the following files (not 
 - `stats_clustere_tstat_gc1_2mm` : cluster extent for each voxel
 - `stats_clustere_corrp_tstat_gc1_2mm` : whole-brain corrected P-values for each cluster
 
-### Pipeline stages
+## Pipeline stages
 
 ![resting_state](oat_pipeline.jpg){:style="max-height: 400px;"}
 
@@ -433,7 +433,7 @@ The oat [settings](#settings) need to be in an OAT structure (e.g. called `oat`)
 
 Once the required settings have been setup in the OAT structure, a call should then be made to the `osl_check_oat.m` function. This will check the settings, and will throw an error if any required inputs are missing, and will fill other settings that are not passed in with their default values. The OAT can then be passed to `osl_run_oat` to do an OAT analysis.
 
-#### Source Recon Stage
+## Source Recon Stage
 
 The first part of the pipeline is source reconstruction. 
 
@@ -470,7 +470,7 @@ You can use a list of MNI coordinates to restrict the source recon to voxels (di
 oat.source_recon.mni_coords=[20 -12 18; 22 -10 18]; % need to be num_coords x 3
 ```
 
-#### First-level Stage
+## First-level Stage
 
 The second part of the pipeline is a within-session analysis, using a general linear modelling (GLM) (or multiple regression).
 
@@ -498,7 +498,7 @@ oat.first_level.mni_coords=[20 -12 18; 22 -10 18]; % need to be num_coords x 3
 
 This mask needs to be a subset of the mask used in the `source_recon` level. To view the results in the ROI, see the section on [Viewing the results](#viewing-the-results).
 
-##### Continuous
+### Continuous
 
 This performs a time-wise GLM on continuous data, in which you to describe the experimental design in terms of how it varies over time (e.g. different conditions at the first-level). The GLM has two key ingredients:
 
@@ -510,7 +510,7 @@ The data output from this stage will be the first-level effect sizes (COPEs) and
 
 Do `help osl_check_oat` to find out more.
 
-##### Epoched
+### Epoched
 
 This performs a trial-wise GLM, in which you to describe the experimental design in terms of how it varies over trials (e.g. different conditions at the first-level). The GLM has two key ingredients:
 
@@ -541,7 +541,7 @@ oat.first_level.cope_type='acope';
 
 See also [ERF Source Space Sign Ambiguity](sign_ambiguity.md).
 
-##### First-Level Design Matrix Specification
+### First-Level Design Matrix Specification
 
 Either set
 
@@ -577,7 +577,7 @@ which is a text file containing a list of trial indices (indexed via the trial o
 
 This is straightforward if you have 1 condition type (in `oat.source_recon.conditons`), but you need to be careful about getting the trial orderings right if you have more than one condition type. Hence, it is recommended that you collapse all relevant conditions into one uber condition, and specify all trial-wise variability using the subject-specific design matrix.
 
-#### Subject-level Stage
+## Subject-level Stage
 
 The third stage of the pipeline is a between-session within subject fixed effects averaging over multiple sessions that you may have for each subject.
 
@@ -589,7 +589,7 @@ Different subject level analyses can be run on the same source-recon/first-level
 
 Do `help osl_check_oat` to find out more.
 
-#### Group-level Stage
+## Group-level Stage
 
 The fourth stage of the pipeline is a between-subject group analysis, using subject-wise general linear modelling (GLM) (or multiple regression). It allows you to describe the experimental design in terms of how it varies over subjects (e.g. different population groups at the group-level).
 
@@ -627,7 +627,7 @@ It is recommended that use [cluster level permutation testing](#permutation-test
 
 See [here](#permutation-testing) for more on doing permutation testing using group OAT analysis output.
 
-##### Group-level Designs 
+### Group-level Designs 
 
 The group design matrix is set explicitly using the:
 
@@ -700,7 +700,7 @@ oat.group_level.group_contrast{1}=[0 0 0 -1]'; % post-treatment - pre-treatment
 oat.group_level.group_contrast{2}=[0 0 0 1]'; % pre-treatment - post-treatment
 ```
 
-### Running the Analysis
+## Running the Analysis
 
 The OAT structure should be passed to the function `osl_run_oat.m`, to run the pipeline.
 
@@ -713,7 +713,7 @@ E.g.:
 
 If you want to subsequently run, or re-run, one of the later stages of the analysis (e.g. first-level and or group-level GLM), you can do so without re-running the earlier stages of OAT.
 
-### Settings
+## Settings
 
 The oat settings need to be in an OAT structure (e.g. called “oat”) that contains:
 

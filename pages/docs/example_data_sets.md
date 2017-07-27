@@ -10,7 +10,7 @@ categories: documentation
 
 _Moved from Google Sites wiki_
 
-### Eyes-Closed/Eyes-Open/Movie data
+## Eyes-Closed/Eyes-Open/Movie data
 
 Ten healthy volunteers (7 males and 3 females, aged 27 years old on average) underwent a 10 minute block scan where the participant was scanned awaken at rest with their eyes closed and 10 minute block where the participant watched a movie. MEG. Data were acquired using a CTF 275 channel whole-head system. The data were sampled at a frequency of 600Hz and synthetic third order gradiometer correction was applied to reduce external interference. Head localisation within the MEG helmet was achieved using three electromagnetic head position indicator (HPI) coils placed at three fiducial points. By periodically energising these coils the head position within the MEG sensor array was identified. Structural MR images for each subject were acquired using a Philips Achieva 3T MRI system. 
 
@@ -19,7 +19,7 @@ The data set is presented in
 - SPM8 format and can be found in `hbaws11.ohba.ox.ac.uk@/home/disk3/hluckhoo/data/spm_files/3-state`
 - in FIF format in `hbaws11.ohba.ox.ac.uk@/home/disk3/hluckhoo/data/fif_files/3-state`
 
-### APOE data
+## APOE data
 
 This data set was used to investigate electrophysiological differences in the resting-state brain function according to the APOE-ε4 allele compared with APOE-ε3 homozygotes. 
 
@@ -31,18 +31,18 @@ The data set is presented in SPM8 format and can be found in hbaws11.ohba.ox.ac.
 
 An example script can be found [here](https://sites.google.com/site/ohbaosl/example-data-sets/apoe_analysis_for_dual_reg_paper.m?attredirects=0&d=1). It basically performs source reconstruction (beamforming), Hilbert enveloping and ICA. After performing dual regression, the ICA components are shown on cortical surface. 
 
-### Long resting-state acquisitions
+## Long resting-state acquisitions
 
 Neuromag data from 10 subjects. (Found on Henry's computer. Not sure where the data came from. Structurals are within a subfolder. - GC.)
 `hbaws11.ohba.ox.ac.uk:/home/disk3/hluckhoo/data/fif_files/rest_long`
 
-### Hedonia resting-state data
+## Hedonia resting-state data
 
 12 subjects' resting-state data, collected on Neuromag scanner. No sign of structurals - maybe someone knows
 - `hbaws11.ohba.ox.ac.uk:/home/disk3/hluckhoo/data/fif_files/hedonia`
 - `hbaws11.ohba.ox.ac.uk:/home/disk3/hluckhoo/data/spm_files/hedonia`
 
-### Healthy Volunteers Resting-state and Localizer
+## Healthy Volunteers Resting-state and Localizer
 
 A mixed dataset collected in a Neuromag scanner in Oxford and a CTF scanner in Nottingham, with total 7 subjects. 
 
@@ -52,7 +52,7 @@ Data can be found at `hbaws26:/home/gileslc/data/hba2013gk/` in fif, ds and spm 
 
 Scan notes are held in a separate subfolder. 
 
-### Schizophrenia Gene ZNF804A
+## Schizophrenia Gene ZNF804A
 
 A 50-subject joint fMRI/MEG study run by Helena Cousijn. Narrow age-range, 18-25, most in mid-20s. Subjects selected for presence or absence of ZNF804A. 
 Resting-state MEG data can be found at `hbaws17:/home/scratch_disk2/gwallis/resting_freqcorr`

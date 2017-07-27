@@ -100,3 +100,19 @@ If you just want to link to a page in the navbar, edit `_includes/navigation.htm
 	<li><a href="{{ site.baseurl }}/"">Home</a></li>
 
 Add other links in the same way. Put them before or after the automatically generated set of dropdowns.
+
+## Running the site locally
+
+When developing the tutorial pages, it can be helpful to view the pages locally. After checking out a copy of `osl-docs`, first make sure you have all the dependencies 
+
+	gem install bundler
+    brew install libxml2 libxslt
+    sudo gem install nokogiri -v 1.6.8.1 -- --use-system-libraries=true --with-xml2-include=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/usr/include/libxml2
+
+Then install the GitHub jekyll dependencies
+
+    bundle install
+
+Finally, run the local server
+
+    ./local_server.sh

@@ -5,8 +5,6 @@ resource: true
 categories: documentation
 ---
 
-_Moved from Google Sites wiki_
-
 For the beamforming source reconstruction please use a phrase along the lines of 
 
 _Data were source-transformed using a linearly constrained minimum variance beamformer, which combines information over both magnetometers and gradiometers and uses principal component analysis (PCA) to regularize the data covariance matrix estimation and account for the reduction in dimensionality caused by Maxfilter, with a single-shell forward model into MNI space at a 3D gridstep of 6 mm._
