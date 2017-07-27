@@ -54,7 +54,9 @@ There are some OSL functions relating to plotting on the cortical surface rely o
 
 ### Updating OSL
 
-The various components of OSL are available on GitHub. To update your copy of OSL to the latest code on GitHub, we have provided an upgrade script. From within Matlab, you can run `osl_upgrade`. If this does not work, you can also open a Terminal and run `osl-core/upgrade.sh` manually. Note that the most recent development code on GitHub may not be as extensively tested as the releases, so you may encounter unexpected behaviour. 
+_WARNING - Updating OSL is **not** recommended. Downloading a new copy is strongly advised_
+
+The various components of OSL are available on GitHub. To update your copy of OSL to the latest code on GitHub, we have provided an upgrade script. From within Matlab, you can run `osl_upgrade`. If this does not work, you can also open a Terminal and run `osl-core/upgrade.sh` manually. Note that parts of the OSL code on GitHub may have changed together with files in `std_masks` or other directories not included on GitHub, and in these cases you may also encounter unexpected behaviour. 
 
 ## Example data
 
