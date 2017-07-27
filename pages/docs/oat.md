@@ -207,7 +207,7 @@ It is recommended that you use cluster level permutation testing to do group inf
 
 In the results, we are looking for clusters with corrp>0.95 to get null hypothesis rejection with a family wise FPR of 0.05.
 
-## 1D/2D Cluster permutation
+### 1D/2D Cluster permutation
 
 _1D/2D cluster permutation testing (e.g. over time/frequency)_
 
@@ -262,7 +262,7 @@ con=3; imagesc(stats.times, stats.frequencies, squeeze(corrp));axis xy;
 ylabel('frequency (Hz)'); xlabel('time (s)'); colorbar; title(['cope' num2str(con)]);
 ```
 
-## Sensor space: 1D/2D/3D
+### Sensor space: 1D/2D/3D
 
 _Sensor space: 1D/2D/3D cluster permutation testing over sensors plus (optionally) over time or frequency_
 
@@ -301,7 +301,7 @@ S2.cfg.colorbar='yes';
 [cfg, data]=osl_stats_multiplotER(S2);
 ```
 
-## Source space: 3D
+### Source space: 3D
 
 _Source space: 3D cluster permutation testing over voxels_
 
@@ -335,7 +335,7 @@ Output from `osl_cluster_permutation_testing` includes the following files:
 - `stats_clustere_tstat_gc1_2mm` : cluster extent for each voxel
 - `stats_clustere_corrp_tstat_gc1_2mm`: whole-brain corrected P-values for each cluster
 
-## Source space: 4D
+### Source space: 4D
 
 _Source space: 4D cluster permutation testing over voxels and (e.g. time or frequency)_
 
