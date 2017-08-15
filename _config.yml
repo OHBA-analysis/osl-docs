@@ -30,6 +30,11 @@ show_downloads: false
 
 category-list: [overview,examples,documentation,archive]
 
+tipue_search:
+  include:
+    pages: true
+    collections: [overview,examples,documentation,archive]
+    
 gems:
   - jekyll-feed
 
