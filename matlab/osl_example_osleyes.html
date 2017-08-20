@@ -1,13 +1,13 @@
 ---
 layout: matlab_wrapper
-title: Utils - osleyes
+title: Utilities - osleyes
 resource: true
 categories: examples
 ---
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Utils - osleyes</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-20"><meta name="DC.source" content="osl_example_osleyes.m"></head><body><div class="content"><h1>Utils - osleyes</h1><!--introduction--><p>As an alternative to <tt>fslview</tt>/|fsleyes|, OSL includes its own NIFTI file viewer, <tt>osleyes</tt>. The main advantages of <tt>osleyes</tt> are</p><div><ul><li>Pure MATLAB implementation, does not require FSL</li><li>Loads faster than starting <tt>fslview</tt> or <tt>fsleyes</tt> externally</li><li>Controllable and scriptable from MATLAB</li><li>Easy to save high resolution figure outputs</li></ul></div><p>The main limitations are</p><div><ul><li>Not as extensively tested as <tt>fsleyes</tt></li><li>Is likely to have issues with files that have unusual xform   transformations, data types, or scalings. There is a low likelihood of   this being a problem in typical MEG analysis usage of OSL, but is a   limitation to keep in mind if using <tt>osleyes</tt> as a general NIFTI viewer</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Loading files</a></li><li><a href="#11">Selecting layers</a></li><li><a href="#15">Moving around the plot</a></li><li><a href="#16">Colour scales</a></li><li><a href="#24">Setting a title</a></li><li><a href="#25">Viewing different volumes</a></li><li><a href="#29">Saving output figures</a></li><li><a href="#30">Viewing the timeseries</a></li><li><a href="#34">Putting it all together</a></li></ul></div><h2 id="1">Loading files</h2><p>Loading files is simple. First we specify some files</p><pre class="codeinput">nii_parcels = fullfile(osldir,<span class="string">'parcellations'</span>,<span class="string">'dk_cortical.nii.gz'</span>);
+   <title>Utilities - osleyes</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-20"><meta name="DC.source" content="osl_example_osleyes.m"></head><body><div class="content"><h1>Utilities - osleyes</h1><!--introduction--><p>As an alternative to <tt>fslview</tt> or <tt>fsleyes</tt>, OSL includes its own NIFTI file viewer, <tt>osleyes</tt>. The main advantages of <tt>osleyes</tt> are</p><div><ul><li>Pure MATLAB implementation, does not require FSL</li><li>Loads faster than starting <tt>fslview</tt> or <tt>fsleyes</tt> externally</li><li>Controllable and scriptable from MATLAB</li><li>Easy to save high resolution figure outputs</li></ul></div><p>The main limitations are</p><div><ul><li>Not as extensively tested as <tt>fsleyes</tt></li><li>Is likely to have issues with files that have unusual xform   transformations, data types, or scalings. There is a low likelihood of   this being a problem in typical MEG analysis usage of OSL, but is a   limitation to keep in mind if using <tt>osleyes</tt> as a general NIFTI viewer</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Loading files</a></li><li><a href="#11">Selecting layers</a></li><li><a href="#15">Moving around the plot</a></li><li><a href="#16">Colour scales</a></li><li><a href="#24">Setting a title</a></li><li><a href="#25">Viewing different volumes</a></li><li><a href="#29">Saving output figures</a></li><li><a href="#30">Viewing the timeseries</a></li><li><a href="#34">Putting it all together</a></li></ul></div><h2 id="1">Loading files</h2><p>Loading files is simple. First we specify some files</p><pre class="codeinput">nii_parcels = fullfile(osldir,<span class="string">'parcellations'</span>,<span class="string">'dk_cortical.nii.gz'</span>);
 nii_roi = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'osleyes_example'</span>,<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz'</span>);
 nii_tstat = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'osleyes_example'</span>,<span class="string">'tstat1_gc1_8mm.nii.gz'</span>);
 nii_std_brain = fullfile(osldir,<span class="string">'std_masks'</span>,<span class="string">'MNI152_T1_8mm_brain.nii.gz'</span>);
@@ -71,7 +71,7 @@ ans =
 </pre><img vspace="5" hspace="5" src="osl_example_osleyes_03.png" alt=""> <p>Notice how in the figure</p><div><ul><li>The dropdown list item has changed to the first layer</li><li>The color range now corresponds to the values in the standard brain image</li><li>The selected volume and volume count have updated. The volume selection   field is greyed out because there is only one volume in the layer</li><li>The 'Value' readout corresponding to the data value at the position marked   by the crosshair displays the value of this layer</li></ul></div><p>Although the standard brain image is present, it cannot be seen because it is hidden by the tstat layer. The visibility of the tstat layer can be changed in two ways</p><div><ul><li>You could use the dropdown box to select the layer, and then the checkbox   to the left of the dropdown to turn the layer off</li><li>You can set the 'visible' property of the <tt>osleyes</tt> object to hide that   layer</li></ul></div><p>The 'visible' property is an array with as many elements as there are layers, and a value of 0 or 1 depending on whether the layer should be rendered or not. To hide the tstat layer, we can simply set the visibility of layer 3 to off</p><pre class="codeinput">o.visible(3) = 0;
 </pre><img vspace="5" hspace="5" src="osl_example_osleyes_04.png" alt=""> <p>Another way to change the visibility of a layer is by changing its opacity, which is in the <tt>layer_alpha</tt> property of the <tt>osleyes</tt> object - this is an array with as many entries as layers, and each entry is an opacity value between 0 (fully transparent) and 1 (fully opaque). So to render the t-stat layer as semi-transparent, we can use</p><pre class="codeinput">o.layer_alpha(3) = 0.5;
 o.visible(3) = 1;
-</pre><img vspace="5" hspace="5" src="osl_example_osleyes_05.png" alt=""> <h2 id="15">Moving around the plot</h2><p>Just like in <tt>fslview</tt>/|fsleyes|, you can change the slices that are displayed by clicking and dragging on any of the three brain images. As you move the mouse, the position of the crosshairs will change. The coordinates of the crosshairs in MNI coordinates are displayed as the 'XYZ' values in the figure. You can also retrieve them programatically through the <tt>current_point</tt> property of the <tt>osleyes</tt> object. This also lets you set which slices to render - for example</p><pre class="codeinput">o.current_point = [35  -55  -17];
+</pre><img vspace="5" hspace="5" src="osl_example_osleyes_05.png" alt=""> <h2 id="15">Moving around the plot</h2><p>Just like in <tt>fslview</tt> or <tt>fsleyes</tt>, you can change the slices that are displayed by clicking and dragging on any of the three brain images. As you move the mouse, the position of the crosshairs will change. The coordinates of the crosshairs in MNI coordinates are displayed as the 'XYZ' values in the figure. You can also retrieve them programatically through the <tt>current_point</tt> property of the <tt>osleyes</tt> object. This also lets you set which slices to render - for example</p><pre class="codeinput">o.current_point = [35  -55  -17];
 </pre><img vspace="5" hspace="5" src="osl_example_osleyes_06.png" alt=""> <h2 id="16">Colour scales</h2><p>Each layer has its own colormap and color range. These are stored in the <tt>colormaps</tt> and <tt>clims</tt> properties of the <tt>osleyes</tt> object, respectively. First, we will change to the parcel layer</p><pre class="codeinput">o.active_layer = 2;
 o.layer_alpha(3) = 1;
 o.visible(3) = 0;
@@ -134,9 +134,9 @@ close(v)
 <video vspace="5" hspace="5" src="osl_example_osleyes_animation_2.mp4" alt="" autoplay loop>
 </p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Utils - osleyes
+%% Utilities - osleyes
 %
-% As an alternative to |fslview|/|fsleyes|, OSL includes its own NIFTI file
+% As an alternative to |fslview| or |fsleyes|, OSL includes its own NIFTI file
 % viewer, |osleyes|. The main advantages of |osleyes| are
 %
 % * Pure MATLAB implementation, does not require FSL
@@ -286,7 +286,7 @@ o.layer_alpha(3) = 0.5;
 o.visible(3) = 1;
 
 %% Moving around the plot
-% Just like in |fslview|/|fsleyes|, you can change the slices that are displayed
+% Just like in |fslview| or |fsleyes|, you can change the slices that are displayed
 % by clicking and dragging on any of the three brain images. As you move the
 % mouse, the position of the crosshairs will change. The coordinates of the
 % crosshairs in MNI coordinates are displayed as the 'XYZ' values in the
