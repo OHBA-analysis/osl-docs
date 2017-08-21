@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Utilities - osleyes</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-21"><meta name="DC.source" content="osl_example_osleyes.m"></head><body><div class="content"><h1>Utilities - osleyes</h1><!--introduction--><p>As an alternative to <tt>fslview</tt> or <tt>fsleyes</tt>, OSL includes its own NIFTI file viewer, <tt>osleyes</tt>. The main advantages of <tt>osleyes</tt> are</p><div><ul><li>Pure MATLAB implementation, does not require FSL</li><li>Loads faster than starting <tt>fslview</tt> or <tt>fsleyes</tt> externally</li><li>Controllable and scriptable from MATLAB</li><li>Easy to save high resolution figure outputs</li></ul></div><p>The main limitations are</p><div><ul><li>Not as extensively tested as <tt>fsleyes</tt></li><li>May have issues with files that have unusual xform   transformations, data types, or scalings. There is a low likelihood of   this being a problem in typical MEG analysis usage of OSL, but is a   limitation to keep in mind if using <tt>osleyes</tt> as a general NIFTI viewer</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Loading files</a></li><li><a href="#11">Selecting layers</a></li><li><a href="#15">Moving around the plot</a></li><li><a href="#16">Colour scales</a></li><li><a href="#24">Setting a title</a></li><li><a href="#25">Viewing different volumes</a></li><li><a href="#29">Saving output figures</a></li><li><a href="#30">Viewing the timeseries</a></li><li><a href="#34">Formatting via input options</a></li><li><a href="#37">Putting it all together</a></li></ul></div><h2 id="1">Loading files</h2><p>Loading files is simple. First we specify some files</p><pre class="codeinput">nii_parcels = fullfile(osldir,<span class="string">'parcellations'</span>,<span class="string">'dk_cortical.nii.gz'</span>);
+   <title>Utilities - osleyes</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-21"><meta name="DC.source" content="osl_example_osleyes.m"></head><body><div class="content"><h1>Utilities - osleyes</h1><!--introduction--><p>As an alternative to <tt>fslview</tt> or <tt>fsleyes</tt>, OSL includes its own NIFTI file viewer, <tt>osleyes</tt>. The main advantages of <tt>osleyes</tt> are</p><div><ul><li>Pure MATLAB implementation, does not require FSL</li><li>Loads faster than starting <tt>fslview</tt> or <tt>fsleyes</tt> externally</li><li>Controllable and scriptable from MATLAB</li><li>Easy to save high resolution figure outputs</li></ul></div><p>The main limitations are</p><div><ul><li>Not as extensively tested as <tt>fsleyes</tt></li><li>May have issues with files that have unusual xform   transformations, data types, or scalings. There is a low likelihood of   this being a problem in typical MEG analysis usage of OSL, but is a   limitation to keep in mind if using <tt>osleyes</tt> as a general NIFTI viewer</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Loading files</a></li><li><a href="#11">Selecting layers</a></li><li><a href="#15">Moving around the plot</a></li><li><a href="#16">Colour scales</a></li><li><a href="#24">Setting a title</a></li><li><a href="#25">Viewing different volumes</a></li><li><a href="#29">Saving output figures</a></li><li><a href="#30">Viewing the timeseries</a></li><li><a href="#34">Formatting via input options</a></li><li><a href="#38">Putting it all together</a></li></ul></div><h2 id="1">Loading files</h2><p>Loading files is simple. First we specify some files</p><pre class="codeinput">nii_parcels = fullfile(osldir,<span class="string">'parcellations'</span>,<span class="string">'dk_cortical.nii.gz'</span>);
 nii_roi = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'osleyes_example'</span>,<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz'</span>);
 nii_tstat = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'osleyes_example'</span>,<span class="string">'tstat1_gc1_8mm.nii.gz'</span>);
 nii_std_brain = fullfile(osldir,<span class="string">'std_masks'</span>,<span class="string">'MNI152_T1_8mm_brain.nii.gz'</span>);
@@ -96,11 +96,17 @@ o.plot_timeseries()
 </pre><img vspace="5" hspace="5" src="osl_example_osleyes_20.png" alt=""> <img vspace="5" hspace="5" src="osl_example_osleyes_21.png" alt=""> <p>A warning will be displayed on the timeseries plot if this is the case.</p><h2 id="34">Formatting via input options</h2><p>In addition to the NII files, you can also pass additional options to the <tt>osleyes</tt> object. This could allow you to programatically format multiple plots, or to pass complete formatting options from one function to another. These options take the form of key-value pairs. Each key corresponds to a property of the object, and each value corresponds to what you want to assign to that property after construction. For example</p><pre class="codeinput">close <span class="string">all</span>
 o = osleyes({[],nii_roi,nii_tstat},<span class="string">'colormaps'</span>,{<span class="string">'jet'</span>,<span class="string">'hsv'</span>,osl_colormap(<span class="string">'green'</span>)},<span class="string">'clims'</span>,{[],[0 5],[1 5]},<span class="string">'show_crosshair'</span>,false,<span class="string">'current_vols'</span>,[1 1 50]);
 </pre><img vspace="5" hspace="5" src="osl_example_osleyes_22.png" alt=""> <p>is exactly equivalent to</p><pre class="language-matlab">o = osleyes({[],nii_roi,nii_tstat});
-o.colormaps = {<span class="string">'jet'</span>,<span class="string">'hsv'</span>,<span class="string">'autumn'</span>};
+o.colormaps = {<span class="string">'jet'</span>,<span class="string">'hsv'</span>,osl_colormap(<span class="string">'green'</span>)};
 o.clims = {[],[0 5],[1 5]};
 o.show_crosshair = false;
 o.current_vols = [1 1 50]
-</pre><p>Notice that we have specified two input files, but because a standard mask has automatically been added, there are three layers in the final image. This means that the <tt>colormaps</tt> and <tt>clims</tt> properties need to have three entries, because there are three layers. You can leave the <tt>colormap</tt> or the <tt>clim</tt> empty for any layer to leave its value unchanged. The same is true for other layer-wise properties such as <tt>current_vols</tt> or <tt>layer_alpha</tt>, but for these you need to provide a specific value.</p><h2 id="37">Putting it all together</h2><p>Suppose we wanted to make an animation of the tstat, with the parcel overlaid as a semitransparent volume with fixed colour. We could do this with</p><pre class="language-matlab">close <span class="string">all</span>
+</pre><p>Notice that we have specified two input files, but because a standard mask has automatically been added, there are three layers in the final image. This means that the <tt>colormaps</tt> and <tt>clims</tt> properties need to have three entries, because there are three layers. You can leave the <tt>colormap</tt> or the <tt>clim</tt> empty for any layer to leave its value unchanged. The same is true for other layer-wise properties such as <tt>current_vols</tt> or <tt>layer_alpha</tt>, but for these you need to provide a specific value.</p><p>Finally, you could also provide these options as a struct. For example</p><pre class="language-matlab">s = struct;
+s.colormaps = {<span class="string">'jet'</span>,<span class="string">'hsv'</span>,osl_colormap(<span class="string">'green'</span>)};
+s.clims = {[],[0 5],[1 5]};
+s.show_crosshair = false;
+s.current_vols = [1 1 50]
+o = osleyes({[],nii_roi,nii_tstat},s);
+</pre><h2 id="38">Putting it all together</h2><p>Suppose we wanted to make an animation of the tstat, with the parcel overlaid as a semitransparent volume with fixed colour. We could do this with</p><pre class="language-matlab">close <span class="string">all</span>
 o = osleyes({[],nii_tstat,nii_roi}); <span class="comment">% Put the ROI layer on top</span>
 o.current_point = [34  -50  -13]; <span class="comment">% Set the coordinate for the slice</span>
 o.colormaps{3} = [0 1 0]; <span class="comment">% Make the ROI green</span>
@@ -442,7 +448,7 @@ o = osleyes({[],nii_roi,nii_tstat},'colormaps',{'jet','hsv',osl_colormap('green'
 % is exactly equivalent to
 %
 %   o = osleyes({[],nii_roi,nii_tstat});
-%   o.colormaps = {'jet','hsv','autumn'};
+%   o.colormaps = {'jet','hsv',osl_colormap('green')};
 %   o.clims = {[],[0 5],[1 5]};
 %   o.show_crosshair = false;
 %   o.current_vols = [1 1 50]
@@ -455,6 +461,17 @@ o = osleyes({[],nii_roi,nii_tstat},'colormaps',{'jet','hsv',osl_colormap('green'
 % |clim| empty for any layer to leave its value unchanged. The same is true
 % for other layer-wise properties such as |current_vols| or |layer_alpha|, but
 % for these you need to provide a specific value.
+
+%%
+% Finally, you could also provide these options as a struct. For example
+%
+%   s = struct;
+%   s.colormaps = {'jet','hsv',osl_colormap('green')};
+%   s.clims = {[],[0 5],[1 5]};
+%   s.show_crosshair = false;
+%   s.current_vols = [1 1 50]
+%   o = osleyes({[],nii_roi,nii_tstat},s);
+%
 
 %% Putting it all together
 % Suppose we wanted to make an animation of the tstat, with the parcel
