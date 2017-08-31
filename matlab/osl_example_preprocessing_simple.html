@@ -1,0 +1,395 @@
+---
+layout: matlab_wrapper
+title: Preproc: Basic source space pipeline
+resource: true
+categories: examples
+---
+
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <title>Preproc: Basic source space pipeline</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-31"><meta name="DC.source" content="osl_example_preprocessing_simple.m"></head><body><div class="content"><h1>Preproc: Basic source space pipeline</h1><!--introduction--><p>This example script shows how to perform basic preprocessing manually. The main input to this pipeline is an MEEG object that has already had the coregistration and forward model run - refer to the relevant practicals for examples (in particular, the CTF data import tutorial). This pipeline goes from a raw sensorspace coregistered MEEG to a source reconstruction.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Overview</a></li><li><a href="#4">Update D.inv paths</a></li><li><a href="#6">Initial filtering</a></li><li><a href="#7">Downsampling</a></li><li><a href="#8">Remove artefacts</a></li><li><a href="#10">AFRICA - ICA artefact removal</a></li><li><a href="#13">Forward model</a></li><li><a href="#15">Beamforming</a></li></ul></div><h2 id="1">Overview</h2><p>Having read the raw files into an SPM MEEG object, we are now ready to implement a basic source reconstruction pipeline. The main steps are</p><div><ol><li>Update <tt>D.inv</tt> paths</li><li>Initial filtering (high pass, AC notch filter)</li><li>downsampling to reduce file size and processing time</li><li>Artefact detection to identify bad channels and epochs</li><li>ICA artefact removal</li><li>Optionally re-run forward model if changing the model type</li><li>Perform beamforming</li></ol></div><p>although you may not need or want to include all of these steps, depending on the analysis you are running.</p><p>First, we will load in the MEEG file. This example is a continuous resting state CTF recording</p><pre class="codeinput">data_dir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_simple_example'</span>);
+spm_file = fullfile(data_dir,<span class="string">'3006.mat'</span>);
+D = spm_eeg_load(spm_file);
+</pre><p>Note that at any point, we can find an MEEG object on disk by checking the <tt>fullfile</tt> property, so you don't really need to keep track of the file name separately.</p><pre class="codeinput">D.fullfile
+</pre><pre class="codeoutput">
+ans =
+
+    '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/3006.mat'
+
+</pre><h2 id="4">Update D.inv paths</h2><p>One issue you might encounter is that the paths to structural files in <tt>D.inv</tt> may be different if coregistration was performed on someone else's machine, or even on the same machine but in a different directory.</p><pre class="codeinput">D.inv{1}.mesh
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+       template: 0
+           sMRI: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRG.nii'
+            def: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/y_3006_CRG.nii'
+         Affine: [4&times;4 double]
+          Msize: 2
+       tess_mni: [1&times;1 struct]
+       tess_ctx: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRGcortex_8196.surf.gii'
+     tess_scalp: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRGscalp_2562.surf.gii'
+    tess_oskull: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRGoskull_2562.surf.gii'
+    tess_iskull: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRGiskull_2562.surf.gii'
+            fid: [1&times;1 struct]
+     tess_rhino: [1&times;1 struct]
+
+</pre><p>Notice how the structural files for this example are stored in the <tt>preproc_simple_example</tt> folder, but this is not the location contained in the MEEG object. This can be a problem if you want to display the coregistration e.g. with <tt>rhino_display</tt>. You can update these paths using <tt>osl_update_inv_dir()</tt>. The inputs to this file are the MEEG object, and the new path of the folder containing the structural files. This assumes that all of the files share a common root - this is generally a safe assumption if the files were created with RHINO.</p><pre class="codeinput">D = osl_update_inv_dir(D,data_dir);
+D.inv{1}.mesh
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+       template: 0
+           sMRI: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/3006_CRG.nii'
+            def: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/y_3006_CRG.nii'
+         Affine: [4&times;4 double]
+          Msize: 2
+       tess_mni: [1&times;1 struct]
+       tess_ctx: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/3006_CRGcortex_8196.surf.gii'
+     tess_scalp: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/3006_CRGscalp_2562.surf.gii'
+    tess_oskull: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/3006_CRGoskull_2562.surf.gii'
+    tess_iskull: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/3006_CRGiskull_2562.surf.gii'
+            fid: [1&times;1 struct]
+     tess_rhino: [1&times;1 struct]
+
+</pre><h2 id="6">Initial filtering</h2><p>For filtering, we will use the <tt>osl_filter</tt> function. This function applies a basic Butterworth filter. You specify both the filter type and key frequencies using two numbers - a lower and upper frequency <tt>[f1,f2]</tt>. The possibilities are</p><div><ul><li>Low pass filter - <tt>f1=0</tt> e.g. <tt>[0,45]</tt> will be a low pass filter</li><li>High pass filter - <tt>f2=inf</tt> e.g. <tt>[1,inf]</tt> will be a high pass filter</li><li>Bandpass filter - specify the lower and upper frequencies e.g. <tt>[8,13]</tt> will filter to select the alpha band</li><li>Bandstop filter - specify the frequencies as negative to suppress them e.g. <tt>-[48 52]</tt> will be a notch filter that suppresses line artefacts at 50Hz</li></ul></div><p>We would typically apply a high pass filter to remove very slow drift, and then notch filters to remove AC line artefacts and their harmonics (if the sampling frequency of your data is high enough that they may be present)</p><pre class="codeinput">D = osl_filter(D,[0.1 inf]); <span class="comment">% Remove slow drift</span>
+D = osl_filter(D,-1*(50+[-2 2])); <span class="comment">% Remove 50Hz with notch filter</span>
+D = osl_filter(D,-1*(2*100+[-2 2])); <span class="comment">% Remove 100Hz with notch filter</span>
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_filter (v5876)                      13:49:19 - 31/08/2017
+========================================================================
+Warning: filter instability detected - reducing the 5th order filter to an
+4th order filter 
+
+SPM12: spm_eeg_filter (v5876)                      13:49:31 - 31/08/2017
+========================================================================
+
+SPM12: spm_eeg_filter (v5876)                      13:49:42 - 31/08/2017
+========================================================================
+</pre><h2 id="7">Downsampling</h2><p>The raw files may have an unnecessarily high sampling rate for the analysis you wish to perform, which increases storage requirements and processing time. You can downsample your data at this point if you wish</p><pre class="codeinput">D = spm_eeg_downsample(struct(<span class="string">'D'</span>,D,<span class="string">'fsample_new'</span>,300));
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_downsample (v6614)                  13:49:54 - 31/08/2017
+========================================================================
+Resampling frequency is 300Hz
+</pre><h2 id="8">Remove artefacts</h2><p>You can remove artefacts using <tt>osl_detect_artefacts</tt>. Broadly, there are two kinds of artefacts this function identifies and classifies</p><div><ul><li>Bad channels - where an entire channel should be rejected. Rejection is   performed by setting <tt>D.badchannels</tt></li><li>Bad times - periods of time in the recording that should be rejected. For   continuous recordings, this is performed by setting <tt>D.badsegments</tt>. For   epoched recordings, this is performed by setting <tt>D.badtrials</tt>.</li></ul></div><p>It can be very important to run <tt>osl_detect_artefacts</tt> or to otherwise perform artefact rejection before doing ICA, as the presence of known artefacts can significantly degrade the ICA decomposition.</p><pre class="codeinput">D = osl_detect_artefacts(D);
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_epochs (v6596)                      13:50:03 - 31/08/2017
+========================================================================
+Data type is missing or incorrect, assigning default.
+Warning: There was no baseline specified. The data is not baseline-corrected 
+&gt; In spm_eeg_epochs (line 197)
+  In osl_epoch (line 28)
+  In osl_detect_artefacts (line 81)
+  In osl_example_preprocessing_simple (line 88)
+  In evalmxdom&gt;instrumentAndRun (line 109)
+  In evalmxdom (line 21)
+  In publish (line 191)
+  In osl_publish (line 34) 
+Bad epoch from 79.00-81.00
+Bad epoch from 82.00-84.00
+Bad epoch from 90.00-92.00
+Bad epoch from 96.00-101.00
+Bad epoch from 107.00-111.00
+Bad epoch from 114.00-116.00
+Bad epoch from 236.00-242.00
+Bad epoch from 244.00-247.00
+Bad epoch from 255.00-257.00
+Bad epoch from 259.00-261.00
+Bad epoch from 288.00-290.00
+</pre><p>By default, <tt>osl_detect_artefacts</tt> will identify both types of artefacts, although you can optionally specify which ones you want to detect. You can also choose different artefact detection metrics and thresholds, although the function is intended to use sensible defaults. See the artefact detection example for more detailed usage of <tt>osl_detect_artefacts</tt>. function.</p><p>Aside from examining the properties of the MEEG object, it can also be helpful to examine the bad epochs visually. You can do this by opening the MEEG object in <tt>oslview</tt></p><pre class="language-matlab">oslview(D)
+</pre><h2 id="10">AFRICA - ICA artefact removal</h2><p>Most of the information on how to perform ICA artefact removal is provided in the AFRICA example. Here, we are mainly concerned with how to perform automatic artefact rejection. The key settings that we will use are provided below</p><pre class="codeinput">S = struct;
+S.artefact_channels = {<span class="string">'EOG1'</span>,<span class="string">'ECG'</span>,<span class="string">'EMG'</span>,<span class="string">'EOG2'</span>}
+S.precompute_topos = false
+S.ident_func = @identify_artefactual_components_auto
+S.ident_params = struct(<span class="string">'artefact_chans_corr_thresh'</span>,0.4);
+</pre><p>We set <tt>artefact_channels</tt> to correspond to the <tt>chantypes</tt> of all the channels whose correlations we want to check. <tt>precompute_topos</tt> is slow and generates large files, and is only mainly necessary if you are performing manual artefact rejection. So we can save time by skipping that step here. We set the <tt>ident_func</tt> to the automatic classification function. Lastly, if you examine <tt>identify_artefactual_components_auto.m</tt> you can see what options are available to control the rejection process. One common setting you might want to change is the correlation threshold for rejection. You might also want to enable or disable other types of ICA component rejection. Finally, call <tt>osl_africa</tt></p><pre class="codeinput">D = osl_africa(D,S);
+has_montage(D)
+</pre><pre class="codeoutput">Number of signals: 274
+Number of samples: 80400
+Calculating covariance...
+Reducing dimension...
+Selected [ 150 ] dimensions.
+Smallest remaining (non-zero) eigenvalue [ 1.78083 ]
+Largest remaining (non-zero) eigenvalue [ 2638.26 ]
+Sum of removed eigenvalues [ 174.023 ]
+[ 98.5392 ] % of (non-zero) eigenvalues retained.
+Whitening...
+Check: covariance differs from identity by [ 7.46869e-14 ].
+Used approach [ symm ].
+Used nonlinearity [ tanh ].
+Using stabilized algorithm.
+Starting ICA calculation...
+Step no. 1
+Step no. 2, change in value of estimate: 0.999 
+...
+...
+Step no. 580, change in value of estimate: 0.000102 
+Convergence after 581 steps
+Adding the mean back to the data.
+Rejecting IC 58 due to ECG (correlation = 0.56)
+Rejecting IC 79 due to ECG (correlation = 0.40)
+Rejecting IC 81 due to ECG (correlation = 0.55)
+Rejecting IC 96 due to ECG (correlation = 0.58)
+SPM M/EEG data object
+Type: continuous
+Transform: time
+1 conditions
+274 channels
+90000 samples/trial
+1 trials
+Sampling frequency: 300 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_simple_example/dfff3006.mat
+
+1 online montage(s) setup
+Current montage applied (0=none): 1 ,named: "AFRICA denoised data"
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+0 - none (280 channels)
+*1 - AFRICA denoised data (274 channels)
+</pre><p>As you can see, a new online montage is created corresponding to the ICA-denoised signals.</p><h2 id="13">Forward model</h2><p>You can check which forward model was used by looking at the contents of <tt>D.inv</tt></p><pre class="codeinput">D.inv{1}.forward.voltype
+</pre><pre class="codeoutput">
+ans =
+
+    'MEG Local Spheres'
+
+</pre><p>If you want to change the forward model, you can do that now</p><pre class="codeinput">D = osl_forward_model(D,<span class="string">'forward_meg'</span>,<span class="string">'Single Shell'</span>);
+D.inv{1}.forward.voltype
+</pre><pre class="codeoutput">the input is mesh data with 2562 vertices and 5120 triangles
+
+ans =
+
+    'Single Shell'
+
+</pre><h2 id="15">Beamforming</h2><p>Finally, you can run the beamformer. You may want to use a filter at this point as well - 1-45Hz is typical.</p><pre class="codeinput">D = osl_filter(D,[1 45]);
+p = parcellation(8);
+D = osl_inverse_model(D,p.template_coordinates,struct(<span class="string">'pca_order'</span>,150));
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_filter (v5876)                      13:57:06 - 31/08/2017
+========================================================================
+Warning: Modalities specification not recognised or incorrect, assigning
+default: MEG 
+&gt; In osl_inverse_model (line 87)
+  In osl_example_preprocessing_simple (line 136)
+  In evalmxdom&gt;instrumentAndRun (line 109)
+  In evalmxdom (line 21)
+  In publish (line 191)
+  In osl_publish (line 34) 
+Warning: Beamformer type not recognised or incorrect, assigning default:
+"Scalar" 
+&gt; In osl_inverse_model (line 95)
+  In osl_example_preprocessing_simple (line 136)
+  In evalmxdom&gt;instrumentAndRun (line 109)
+  In evalmxdom (line 21)
+  In publish (line 191)
+  In osl_publish (line 34) 
+Warning: fuse specification not recognised or incorrect, assuming fuse='no'
+for now 
+&gt; In osl_inverse_model (line 120)
+  In osl_example_preprocessing_simple (line 136)
+  In evalmxdom&gt;instrumentAndRun (line 109)
+  In evalmxdom (line 21)
+  In publish (line 191)
+  In osl_publish (line 34) 
+Warning: inverse_method specification not recognised or incorrect, assuming
+beamform for now 
+&gt; In osl_inverse_model (line 128)
+  In osl_example_preprocessing_simple (line 136)
+  In evalmxdom&gt;instrumentAndRun (line 109)
+  In evalmxdom (line 21)
+  In publish (line 191)
+  In osl_publish (line 34) 
+Warning: conditions specification not recognised or incorrect, assuming
+conditions=all for now 
+&gt; In osl_inverse_model (line 146)
+  In osl_example_preprocessing_simple (line 136)
+  In evalmxdom&gt;instrumentAndRun (line 109)
+  In evalmxdom (line 21)
+  In publish (line 191)
+  In osl_publish (line 34) 
+
+
+------------------------------------------------------------------------
+Running job #1
+------------------------------------------------------------------------
+Running 'Prepare data'
+Done    'Prepare data'
+Running 'Define sources'
+computing surface normals
+Done    'Define sources'
+Running 'Covariance features'
+Done    'Covariance features'
+Running 'Inverse solution'
+Done    'Inverse solution'
+Running 'Output'
+Done    'Output'
+Running 'Write'
+
+SPM12: spm_eeg_montage (v6835)                     13:58:54 - 31/08/2017
+========================================================================
+
+SPM12: spm_eeg_montage (v6835)                     13:58:59 - 31/08/2017
+========================================================================
+Done    'Write'
+Done
+
+</pre><p>Notice that there are now online montages associated with the source reconstruction</p><pre class="codeinput">has_montage(D)
+</pre><pre class="codeoutput">0 - none (280 channels)
+1 - AFRICA denoised data (274 channels)
+2 - without weights normalisation, class 1 (3559 channels)
+*3 - with weights normalisation, class 1 (3559 channels)
+</pre><p>For more information about beamforming, refer to the beamforming example on this website. Now that the MEEG object has a beamformed montage, it is ready to be used in source space analysis e.g. source space connectivity analysis.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Preproc: Basic source space pipeline
+%
+% This example script shows how to perform basic preprocessing manually. 
+% The main input to this pipeline is an MEEG object that has already
+% had the coregistration and forward model run - refer to the
+% relevant practicals for examples (in particular, the CTF data import tutorial). 
+% This pipeline goes from a raw sensorspace coregistered MEEG to a source reconstruction. 
+
+%% Overview
+% Having read the raw files into an SPM MEEG object, we are now ready to implement 
+% a basic source reconstruction pipeline. The main steps are
+%
+% # Update |D.inv| paths
+% # Initial filtering (high pass, AC notch filter)
+% # downsampling to reduce file size and processing time
+% # Artefact detection to identify bad channels and epochs
+% # ICA artefact removal
+% # Optionally re-run forward model if changing the model type
+% # Perform beamforming
+%
+% although you may not need or want to include all of these steps, depending on 
+% the analysis you are running.
+
+%% 
+% First, we will load in the MEEG file. This example is a continuous resting
+% state CTF recording
+data_dir = fullfile(osldir,'example_data','preproc_simple_example');
+spm_file = fullfile(data_dir,'3006.mat');
+D = spm_eeg_load(spm_file);
+
+%%
+% Note that at any point, we can find an MEEG object on disk by checking the
+% |fullfile| property, so you don't really need to keep track of the file name
+% separately.
+D.fullfile
+
+%% Update D.inv paths
+% One issue you might encounter is that the paths to structural files in |D.inv|
+% may be different if coregistration was performed on someone else's machine, or even on the
+% same machine but in a different directory. 
+D.inv{1}.mesh
+
+%%
+% Notice how the structural files for this example are stored in the
+% |preproc_simple_example| folder, but this is not the location contained in
+% the MEEG object. This can be a problem if you want to display the
+% coregistration e.g. with |rhino_display|. You can update these paths using
+% |osl_update_inv_dir()|. The inputs to this file are the MEEG object, and the
+% new path of the folder containing the structural files. This assumes that
+% all of the files share a common root - this is generally a safe assumption
+% if the files were created with RHINO.
+D = osl_update_inv_dir(D,data_dir);
+D.inv{1}.mesh
+
+
+%% Initial filtering
+% For filtering, we will use the |osl_filter| function. This function applies a basic Butterworth filter. You specify both 
+% the filter type and key frequencies using two numbers - a lower and upper frequency |[f1,f2]|. The possibilities are
+%
+% * Low pass filter - |f1=0| e.g. |[0,45]| will be a low pass filter
+% * High pass filter - |f2=inf| e.g. |[1,inf]| will be a high pass filter
+% * Bandpass filter - specify the lower and upper frequencies e.g. |[8,13]| will filter to select the alpha band
+% * Bandstop filter - specify the frequencies as negative to suppress them e.g. |-[48 52]| will be a notch filter that suppresses line artefacts at 50Hz
+%
+% We would typically apply a high pass filter to remove very slow drift, and then notch filters to remove AC line artefacts and their harmonics (if the sampling frequency of your data is high enough that they may be present)
+D = osl_filter(D,[0.1 inf]); % Remove slow drift
+D = osl_filter(D,-1*(50+[-2 2])); % Remove 50Hz with notch filter
+D = osl_filter(D,-1*(2*100+[-2 2])); % Remove 100Hz with notch filter
+
+%% Downsampling
+% The raw files may have an unnecessarily high sampling rate for the analysis you wish to perform, which increases storage requirements and processing time.
+% You can downsample your data at this point if you wish
+D = spm_eeg_downsample(struct('D',D,'fsample_new',300)); 
+
+
+%% Remove artefacts
+% You can remove artefacts using |osl_detect_artefacts|. Broadly, there are
+% two kinds of artefacts this function identifies and classifies
+%
+% * Bad channels - where an entire channel should be rejected. Rejection is
+%   performed by setting |D.badchannels|
+% * Bad times - periods of time in the recording that should be rejected. For
+%   continuous recordings, this is performed by setting |D.badsegments|. For
+%   epoched recordings, this is performed by setting |D.badtrials|.
+%
+% It can be very important to run |osl_detect_artefacts| or to otherwise perform artefact rejection 
+% before doing ICA, as the presence of known artefacts can significantly degrade the ICA decomposition. 
+D = osl_detect_artefacts(D);
+
+%%
+% By default, |osl_detect_artefacts| will identify both types of artefacts, although you can optionally
+% specify which ones you want to detect. You can also choose different artefact detection metrics and thresholds, although
+% the function is intended to use sensible defaults. See the artefact detection example for more detailed usage of |osl_detect_artefacts|. 
+% function. 
+%
+% Aside from examining the properties of the MEEG object, it can also be helpful to examine the bad epochs visually. You can do this
+% by opening the MEEG object in |oslview|
+%
+%   oslview(D)
+%
+
+%% AFRICA - ICA artefact removal
+% Most of the information on how to perform ICA artefact removal is provided in the AFRICA example. Here, we are mainly concerned with
+% how to perform automatic artefact rejection. The key settings that we will use are provided below
+S = struct;
+S.artefact_channels = {'EOG1','ECG','EMG','EOG2'}
+S.precompute_topos = false
+S.ident_func = @identify_artefactual_components_auto
+S.ident_params = struct('artefact_chans_corr_thresh',0.4); 
+
+%%
+% We set |artefact_channels| to correspond to the |chantypes| of all the channels whose correlations we want to check. |precompute_topos| is slow
+% and generates large files, and is only mainly necessary if you are performing manual artefact rejection. So we can save time by
+% skipping that step here. We set the |ident_func| to the automatic classification function. Lastly, if you examine |identify_artefactual_components_auto.m|
+% you can see what options are available to control the rejection process. One common setting you might want to change is the correlation threshold for rejection.
+% You might also want to enable or disable other types of ICA component rejection. Finally, call |osl_africa|
+D = osl_africa(D,S);
+has_montage(D)
+
+%%
+% As you can see, a new online montage is created corresponding to the ICA-denoised signals.
+
+%% Forward model
+% You can check which forward model was used by looking at the contents of |D.inv|
+D.inv{1}.forward.voltype
+
+%%
+% If you want to change the forward model, you can do that now
+D = osl_forward_model(D,'forward_meg','Single Shell');
+D.inv{1}.forward.voltype
+
+%% Beamforming
+% Finally, you can run the beamformer. You may want to use a filter at this point as well - 1-45Hz is typical. 
+D = osl_filter(D,[1 45]); 
+p = parcellation(8); 
+D = osl_inverse_model(D,p.template_coordinates,struct('pca_order',150));
+
+%%
+% Notice that there are now online montages associated with the source reconstruction
+has_montage(D)
+
+%%
+% For more information about beamforming, refer to the beamforming example on this website. 
+% Now that the MEEG object has a beamformed montage, it is ready to be used in source space analysis
+% e.g. source space connectivity analysis. 
+
+##### SOURCE END #####
+--></body></html>

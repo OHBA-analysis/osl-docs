@@ -1,0 +1,291 @@
+---
+layout: matlab_wrapper
+title: Beamforming in OSL
+resource: true
+categories: examples
+---
+
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <title>Beamforming in OSL</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-29"><meta name="DC.source" content="osl_example_beamforming.m"></head><body><div class="content"><h1>Beamforming in OSL</h1><!--introduction--><p>This example shows how to perform beamforming</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#6">Filtering</a></li><li><a href="#8">Beamforming</a></li></ul></div><p>This practical will work with a single subject's data from an emotional faces experiment (Elekta Neuromag data).</p><p>First, we will load in two example files, one continuous, and one epoched (to demonstrate that beamformer usage is the same for both types of data)</p><pre class="codeinput">D_continuous = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>,<span class="string">'Aface_meg1'</span>))
+</pre><pre class="codeoutput">SPM M/EEG data object
+Type: continuous
+Transform: time
+1 conditions
+323 channels
+218000 samples/trial
+1 trials
+Sampling frequency: 250 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/Aface_meg1.mat
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+</pre><pre class="codeinput">D_epoched = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>,<span class="string">'eAface_meg1'</span>))
+</pre><pre class="codeoutput">SPM M/EEG data object
+Type: single
+Transform: time
+4 conditions
+323 channels
+751 samples/trial
+360 trials
+Sampling frequency: 250 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/eAface_meg1.mat
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+</pre><p>The MEEG object must be in a sensor-space montage - this could be the raw data (montage 0) or it could be an online montage obtained after running AFRICA</p><pre class="codeinput">D_continuous = D_continuous.montage(<span class="string">'switch'</span>,0);
+D_epoched = D_epoched.montage(<span class="string">'switch'</span>,0);
+</pre><p>It is worth noting here that each MEEG object keeps track of its filename</p><pre class="codeinput">D_epoched.fullfile
+</pre><pre class="codeoutput">
+ans =
+
+    '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/eAface_meg1.mat'
+
+</pre><p>Some of the OSL functions result in the file being copied, and a prefix added. Typically this happens when filtering. You can update your <tt>D</tt> variable in place, and use the <tt>fullfile</tt> property to keep track of the updated filename instead of dealing with the prefixes themselves. The only caveat is that you will end up with a lot of files on disk unless you delete them as you go</p><h2 id="6">Filtering</h2><p>Before beamforming, you may want to filter your data. A frequency range of 1-45Hz is typical. You can do this using the <tt>osl_filter</tt> function:</p><pre class="codeinput">D_continuous = osl_filter(D_continuous,[1 45]);
+D_epoched = osl_filter(D_epoched,[1 45]);
+D_epoched.fullfile
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_filter (v5876)                      14:26:48 - 29/08/2017
+========================================================================
+
+SPM12: spm_eeg_filter (v5876)                      14:26:56 - 29/08/2017
+========================================================================
+
+ans =
+
+    '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/feAface_meg1.mat'
+
+</pre><p>Notice how the filename has automatically been updated. There is only a single variable (<tt>D_continuous</tt>) in Matlab, but there are two files on disk, one filtered and one unfiltered. Effectively, the unfiltered file is no longer loaded in Matlab. If you didn't want to retain the original unfiltered data on disk, you could use</p><pre class="language-matlab">filtered_D_continuous = osl_filter(D_continuous);
+D_continuous.delete()
+</pre><h2 id="8">Beamforming</h2><p>The main entry point for beamforming is <tt>osl_inverse_model</tt>. In order to perform beamforming, the MEEG object needs to have been coregistered and the forward model needs to have been run. You can determine if this is the case by examining the MEEG object's <tt>inv</tt> property</p><pre class="codeinput">D_epoched.inv{1}
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+       mesh: [1&times;1 struct]
+    comment: {''}
+       date: [2&times;11 char]
+    datareg: [1&times;1 struct]
+    forward: [1&times;1 struct]
+
+</pre><p>If the <tt>forward</tt> field is not empty, then you should be fine. Otherwise</p><div><ul><li>If <tt>forward</tt> is empty but <tt>D.inv</tt> is not, then you need to run   <tt>osl_forward_model</tt></li><li>If <tt>D.inv</tt> is empty or missing, then you need to run <tt>osl_headmodel</tt></li></ul></div><p><tt>osl_inverse_model</tt> takes three arguments - an MEEG object, an array of MNI coordinates to compute voxel timecourses at, and an optional settings structure if you would like to override some of the defaults in <tt>osl_inverse_model</tt>. You can get the set of MNI coordinates in two ways. If you are beamforming onto one of the OSL standard masks (i.e. something like 'MNI152_T1_8mm_brain.nii.gz') then you can create a parcellation object at that spatial resolution and use the template coordinates</p><pre class="codeinput">p = parcellation(8);
+mni_coords = p.template_coordinates;
+</pre><p>This syntax might also be appealing if you plan to use a parcellation later in your analysis e.g.</p><pre class="language-matlab">p = parcellation(<span class="string">'my_parcellation.nii.gz'</span>)
+mni_coords = p.template_coordinates;
+</pre><p>Alternatively, you could pass a NIFTI file to <tt>osl_mnimask2mnicoords</tt></p><pre class="codeinput">mni_coords = osl_mnimask2mnicoords(fullfile(osldir,<span class="string">'std_masks'</span>,<span class="string">'MNI152_T1_8mm_brain.nii.gz'</span>));
+size(mni_coords)
+</pre><pre class="codeoutput">
+ans =
+
+        3559           3
+
+</pre><p>Either way, mni_coords should be an <tt>n_voxels x 3</tt> matrix.</p><p>Next, we will set up the setting structure. These fields are all optional but you may of course wish to override the defaults</p><pre class="codeinput">S = struct;
+S.modalities        = {<span class="string">'MEGPLANAR'</span>};
+S.timespan          = [0 Inf];
+S.pca_order         = 50;
+S.type              = <span class="string">'Scalar'</span>;
+S.inverse_method    = <span class="string">'beamform'</span>;
+S.prefix            = <span class="string">''</span>;
+</pre><p>One important option is <tt>S.path</tt> - the beamforming process creates a file 'BF.mat' that is placed in a temporary directory. You can specify a particular directory if you like, but be aware that if you process multiple files in parallel, then you need to ensure that they each save BF.mat in a different location. By default, this will not be a problem because the temporary directory should be different for all processes.</p><p>The PCA order is a form of regularization and can help improve your results. The PCA order limits the rank of the output and thus sets an upper limit on the number of parcels you can compute orthogonal timecourses for e.g. if you set <tt>pca_order=50</tt> you will be unable to orthogonalize the parcel timecourses for a parcellation with 60 ROIs, and the PCA order must be less than or equal to the rank of the input data. For CTF data, a value of 150 is typical. For Elekta data that has been maxfiltered, a value of more like 50 may be appropriate.</p><p>Now we can actually run the beamformer</p><pre class="codeinput">D_continuous = osl_inverse_model(D_continuous,mni_coords,S);
+D_epoched = osl_inverse_model(D_epoched,mni_coords,S);
+</pre><pre class="codeoutput">Warning: fuse specification not recognised or incorrect, assuming fuse='no' for
+now 
+Warning: conditions specification not recognised or incorrect, assuming
+conditions=all for now 
+
+
+------------------------------------------------------------------------
+Running job #2
+------------------------------------------------------------------------
+Running 'Prepare data'
+Done    'Prepare data'
+Running 'Define sources'
+computing surface normals
+Done    'Define sources'
+Running 'Covariance features'
+Done    'Covariance features'
+Running 'Inverse solution'
+Done    'Inverse solution'
+Running 'Output'
+Done    'Output'
+Running 'Write'
+
+SPM12: spm_eeg_montage (v6835)                     14:27:43 - 29/08/2017
+========================================================================
+
+SPM12: spm_eeg_montage (v6835)                     14:27:45 - 29/08/2017
+========================================================================
+Done    'Write'
+Done
+
+Warning: fuse specification not recognised or incorrect, assuming fuse='no' for
+now 
+Warning: conditions specification not recognised or incorrect, assuming
+conditions=all for now 
+
+
+------------------------------------------------------------------------
+Running job #2
+------------------------------------------------------------------------
+Running 'Prepare data'
+Done    'Prepare data'
+Running 'Define sources'
+computing surface normals
+Done    'Define sources'
+Running 'Covariance features'
+Done    'Covariance features'
+Running 'Inverse solution'
+Done    'Inverse solution'
+Running 'Output'
+Done    'Output'
+Running 'Write'
+
+SPM12: spm_eeg_montage (v6835)                     14:28:34 - 29/08/2017
+========================================================================
+
+SPM12: spm_eeg_montage (v6835)                     14:28:37 - 29/08/2017
+========================================================================
+Done    'Write'
+Done
+
+</pre><p>Note that <tt>osl_inverse_model</tt> writes changes to disk and thus will commit any unsaved changes you have made to the MEEG object to disk. This is something to be aware of if you are used to changing the montages in memory (e.g. by parcellation or orthogonalization) without saving to disk.</p><p>The result of running the beamformer is the addition of new online montages corresponding to the beamformed result</p><pre class="codeinput">has_montage(D_epoched)
+</pre><pre class="codeoutput">0 - none (323 channels)
+1 - without weights normalisation, class 1 (3559 channels)
+*2 - with weights normalisation, class 1 (3559 channels)
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Beamforming in OSL
+% This example shows how to perform beamforming
+
+%%
+% This practical will work with a single subject's data from an emotional
+% faces experiment (Elekta Neuromag data).
+% 
+% First, we will load in two example files, one continuous, and one epoched
+% (to demonstrate that beamformer usage is the same for both types of data)
+
+D_continuous = spm_eeg_load(fullfile(osldir,'example_data','faces_singlesubject','spm_files','Aface_meg1'))
+
+%%
+%
+D_epoched = spm_eeg_load(fullfile(osldir,'example_data','faces_singlesubject','spm_files','eAface_meg1'))
+
+%%
+% The MEEG object must be in a sensor-space montage - this could be the raw
+% data (montage 0) or it could be an online montage obtained after running
+% AFRICA
+D_continuous = D_continuous.montage('switch',0);
+D_epoched = D_epoched.montage('switch',0);
+
+%%
+% It is worth noting here that each MEEG object keeps track of its filename
+D_epoched.fullfile
+
+%% 
+% Some of the OSL functions result in the file being copied, and a prefix added. Typically this happens when filtering. You can update your
+% |D| variable in place, and use the |fullfile| property to keep track of the updated filename instead of 
+% dealing with the prefixes themselves. The only caveat is that you will end up with a lot of files on disk unless you delete them as you go
+
+%% Filtering
+% Before beamforming, you may want to filter your data. A frequency range of 1-45Hz is typical. You can do this
+% using the |osl_filter| function:
+D_continuous = osl_filter(D_continuous,[1 45]);
+D_epoched = osl_filter(D_epoched,[1 45]);
+D_epoched.fullfile
+
+%%
+% Notice how the filename has automatically been updated. There is only a single variable (|D_continuous|) in Matlab, but there are two files on disk, one filtered and one unfiltered. Effectively, the unfiltered file is no longer loaded in Matlab. If you 
+% didn't want to retain the original unfiltered data on disk, you could use
+%
+%   filtered_D_continuous = osl_filter(D_continuous);
+%   D_continuous.delete()
+%
+
+%% Beamforming
+%
+% The main entry point for beamforming is |osl_inverse_model|. In order to
+% perform beamforming, the MEEG object needs to have been coregistered and the
+% forward model needs to have been run. You can determine if this is the case
+% by examining the MEEG object's |inv| property
+D_epoched.inv{1}
+
+%%
+% If the |forward| field is not empty, then you should be fine. Otherwise
+%
+% * If |forward| is empty but |D.inv| is not, then you need to run
+%   |osl_forward_model|
+% * If |D.inv| is empty or missing, then you need to run |osl_headmodel|
+%
+% |osl_inverse_model| takes three arguments - an MEEG object, an array of MNI
+% coordinates to compute voxel timecourses at, and an optional settings
+% structure if you would like to override some of the defaults in
+% |osl_inverse_model|. You can get the set of MNI coordinates in two ways. If
+% you are beamforming onto one of the OSL standard masks (i.e. something like
+% 'MNI152_T1_8mm_brain.nii.gz') then you can create a parcellation object at
+% that spatial resolution and use the template coordinates
+p = parcellation(8);
+mni_coords = p.template_coordinates;
+
+%%
+% This syntax might also be appealing if you plan to use a parcellation later
+% in your analysis e.g.
+%
+%   p = parcellation('my_parcellation.nii.gz')
+%   mni_coords = p.template_coordinates;
+%
+% Alternatively, you could pass a NIFTI file to |osl_mnimask2mnicoords|
+mni_coords = osl_mnimask2mnicoords(fullfile(osldir,'std_masks','MNI152_T1_8mm_brain.nii.gz'));
+size(mni_coords)
+
+%%
+% Either way, mni_coords should be an |n_voxels x 3| matrix. 
+%
+% Next, we will set up the setting structure. These fields are all optional
+% but you may of course wish to override the defaults
+S = struct;
+S.modalities        = {'MEGPLANAR'}; 
+S.timespan          = [0 Inf];
+S.pca_order         = 50;
+S.type              = 'Scalar';
+S.inverse_method    = 'beamform';
+S.prefix            = '';
+
+%%
+% One important option is |S.path| - the beamforming process creates a file 
+% 'BF.mat' that is placed in a temporary directory. You can specify a particular
+% directory if you like, but be aware that if you process multiple files in
+% parallel, then you need to ensure that they each save BF.mat in a different
+% location. By default, this will not be a problem because the temporary directory
+% should be different for all processes.
+
+%%
+% The PCA order is a form of regularization and can help improve your results.
+% The PCA order limits the rank of the output and thus sets an upper limit on
+% the number of parcels you can compute orthogonal timecourses for e.g. if you
+% set |pca_order=50| you will be unable to orthogonalize the parcel
+% timecourses for a parcellation with 60 ROIs, and the PCA order must be less
+% than or equal to the rank of the input data. For CTF data, a value of 150 is
+% typical. For Elekta data that has been maxfiltered, a value of more like 50
+% may be appropriate.
+%
+% Now we can actually run the beamformer
+D_continuous = osl_inverse_model(D_continuous,mni_coords,S);
+D_epoched = osl_inverse_model(D_epoched,mni_coords,S);
+
+%%
+% Note that |osl_inverse_model| writes changes to disk and thus will commit
+% any unsaved changes you have made to the MEEG object to disk. This is
+% something to be aware of if you are used to changing the montages in memory
+% (e.g. by parcellation or orthogonalization) without saving to disk.
+%
+% The result of running the beamformer is the addition of new online montages
+% corresponding to the beamformed result
+has_montage(D_epoched)
+
+##### SOURCE END #####
+--></body></html>

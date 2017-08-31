@@ -1,0 +1,129 @@
+---
+layout: matlab_wrapper
+title: Preproc - Standard artefact rejection
+resource: true
+categories: examples
+---
+
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <title>Preproc: Standard artefact rejection</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-31"><meta name="DC.source" content="osl_example_preprocessing_detect_artefacts.m"></head><body><div class="content"><h1>Preproc: Standard artefact rejection</h1><!--introduction--><p>This example script shows how to perform basic artefact detection and rejection. The main input required is an MEEG object.</p><!--/introduction--><p>A key part of most analysis pipelines is some form of artefact detection and rejection. Aside from ICA (and indeed before running ICA) it can be important to identify bad channels, epochs, or trials. This functionality is provided in OSL by <tt>osl_detect_artefacts</tt> - if you are already familiar with OSL, this is essentially the same as <tt>osl_detect_badevent</tt> but a bit cleaner and more versatile.</p><p>There are broadly two kinds of artefacts we might want to identify</p><div><ul><li>Bad channels - where an entire channel should be rejected. Rejection is   performed by setting <tt>D.badchannels</tt></li><li>Bad times - periods of time in the recording that should be rejected. For   continuous recordings, this is performed by setting <tt>D.badsegments</tt>. For   epoched recordings, this is performed by setting <tt>D.badtrials</tt>.</li></ul></div><p>To start with, let's load in an MEEG object. We will remove all existing bad channels</p><pre class="codeinput">D = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'roinets_example'</span>,<span class="string">'subject_1'</span>));
+D = D.badchannels(1:D.nchannels,0);
+</pre><p>First, we can run artefact detection for both bad channels and bad times</p><pre class="codeinput">D2 = osl_detect_artefacts(D);
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_epochs (v6596)                      14:35:14 - 31/08/2017
+========================================================================
+Data type is missing or incorrect, assigning default.
+Warning: There was no baseline specified. The data is not baseline-corrected 
+Warning: Iteration limit reached. 
+Channel 113 (MLT31) is bad
+Channel 161 (MRF14) is bad
+Channel 245 (MRT31) is bad
+Bad epoch from 23.00-25.00
+Bad epoch from 32.00-34.00
+Bad epoch from 37.00-39.00
+</pre><p>Under the hood, the continuous recording is epoched into dummy trials, outliers in those trials are used to identify bad segments, and then those bad segments are marked in the original recording (and the temporary epoched data is deleted). If you pass in an MEEG object that is already epoched, then these epochs/trials will be used instead. This is determined by whether <tt>D.type</tt> is continuous or not.</p><p><tt>osl_detect_artefacts</tt> has a number of different options. Firstly, you may only want to detect bad channels - for example, if you have a set of trial data that hasn't been epoched yet, and want to just mark bad channels first (and reject bad trials later)</p><pre class="codeinput">D2 = osl_detect_artefacts(D,<span class="string">'badtimes'</span>,false);
+</pre><pre class="codeoutput">Channel 113 (MLT31) is bad
+Channel 161 (MRF14) is bad
+Channel 245 (MRT31) is bad
+</pre><p>Alternatively, you may have already marked bad channels and now want to identify only bad times</p><pre class="codeinput">D2 = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,false);
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_epochs (v6596)                      14:35:22 - 31/08/2017
+========================================================================
+Data type is missing or incorrect, assigning default.
+Warning: There was no baseline specified. The data is not baseline-corrected 
+Warning: Iteration limit reached. 
+Bad epoch from 23.00-25.00
+Bad epoch from 32.00-34.00
+Bad epoch from 37.00-39.00
+Bad epoch from 44.00-45.00
+</pre><p>Note that any bad segments, trials, or channels that are already marked will be carried forward in <tt>osl_detect_artefacts</tt> - that is, you will not lose anything that has already been marked.</p><p>Another important parameter you may wish to vary is the artefact rejection threshold, which controls the sensitivity of the artefact detection. The implementation is such that the sensitivity increases with the threshold - if you raise the threshold, you will get more artefacts. You can set thresholds for bad channels (<tt>channel_threshold</tt>) and bad times (<tt>event_threshold</tt>) independently. To demonstrate the effect of the threshold, compare we can run the artefact detection for bad channels with different threshold values.</p><pre class="codeinput">D2 = osl_detect_artefacts(D,<span class="string">'badtimes'</span>,false,<span class="string">'channel_threshold'</span>,0.01);
+</pre><pre class="codeoutput">Channel 113 (MLT31) is bad
+Channel 161 (MRF14) is bad
+Channel 245 (MRT31) is bad
+</pre><p>If we raise the threshold, we find more artefacts</p><pre class="codeinput">D2 = osl_detect_artefacts(D,<span class="string">'badtimes'</span>,false,<span class="string">'channel_threshold'</span>,0.02);
+</pre><pre class="codeoutput">Channel 113 (MLT31) is bad
+Channel 161 (MRF14) is bad
+Channel 238 (MRT21) is bad
+Channel 245 (MRT31) is bad
+</pre><p>And this trend continues</p><pre class="codeinput">D2 = osl_detect_artefacts(D,<span class="string">'badtimes'</span>,false,<span class="string">'channel_threshold'</span>,0.05);
+</pre><pre class="codeoutput">Channel 113 (MLT31) is bad
+Channel 161 (MRF14) is bad
+Channel 238 (MRT21) is bad
+Channel 245 (MRT31) is bad
+Channel 252 (MRT41) is bad
+</pre><p>You can limit the maximum number of channels that are marked bad if you wish</p><pre class="codeinput">D2 = osl_detect_artefacts(D,<span class="string">'badtimes'</span>,false,<span class="string">'channel_threshold'</span>,0.05,<span class="string">'max_bad_channels'</span>,2);
+</pre><pre class="codeoutput">Warning: More than arg.Results.max_bad_channels=2 have been detected. But
+only marking the worst 2 as bad 
+Warning: More than arg.Results.max_bad_channels=2 have been detected. But
+only marking the worst 2 as bad 
+Channel 113 (MLT31) is bad
+Channel 161 (MRF14) is bad
+</pre><p>You can view the results of your artefact detection using <tt>oslview</tt>. Check <tt>osl_detect_artefacts.m</tt> for a full list of options.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Preproc: Standard artefact rejection
+%
+% This example script shows how to perform basic artefact detection and rejection. 
+% The main input required is an MEEG object.
+%
+
+%%
+% A key part of most analysis pipelines is some form of artefact detection and rejection. Aside from ICA (and indeed before running ICA) it can be important
+% to identify bad channels, epochs, or trials. This functionality is provided in OSL by |osl_detect_artefacts| - if you are already familiar with OSL, 
+% this is essentially the same as |osl_detect_badevent| but a bit cleaner and more versatile. 
+%%
+% There are broadly two kinds of artefacts we might want to identify
+%
+% * Bad channels - where an entire channel should be rejected. Rejection is
+%   performed by setting |D.badchannels|
+% * Bad times - periods of time in the recording that should be rejected. For
+%   continuous recordings, this is performed by setting |D.badsegments|. For
+%   epoched recordings, this is performed by setting |D.badtrials|.
+%
+% To start with, let's load in an MEEG object. We will remove all existing bad channels
+D = spm_eeg_load(fullfile(osldir,'example_data','roinets_example','subject_1'));
+D = D.badchannels(1:D.nchannels,0);
+
+%%
+% First, we can run artefact detection for both bad channels and bad times
+D2 = osl_detect_artefacts(D);
+
+%%
+% Under the hood, the continuous recording is epoched into dummy trials, outliers in those trials are used to identify bad segments, and then
+% those bad segments are marked in the original recording (and the temporary epoched data is deleted). If you pass in an MEEG object that is already 
+% epoched, then these epochs/trials will be used instead. This is determined by whether |D.type| is continuous or not. 
+%
+% |osl_detect_artefacts| has a number of different options. Firstly, you may only want to detect bad channels - for example, if you have 
+% a set of trial data that hasn't been epoched yet, and want to just mark bad channels first (and reject bad trials later)
+D2 = osl_detect_artefacts(D,'badtimes',false);
+
+%%
+% Alternatively, you may have already marked bad channels and now want to identify only bad times
+D2 = osl_detect_artefacts(D,'badchannels',false);
+
+%%
+% Note that any bad segments, trials, or channels that are already marked will be carried forward in |osl_detect_artefacts| - that is, you
+% will not lose anything that has already been marked.  
+%
+% Another important parameter you may wish to vary is the artefact rejection threshold, which controls the sensitivity of the artefact detection.
+% The implementation is such that the sensitivity increases with the threshold - if you raise the threshold, you will get more artefacts. You 
+% can set thresholds for bad channels (|channel_threshold|) and bad times (|event_threshold|) independently. To demonstrate the effect of the threshold, compare
+% we can run the artefact detection for bad channels with different threshold values. 
+D2 = osl_detect_artefacts(D,'badtimes',false,'channel_threshold',0.01); 
+
+%%
+% If we raise the threshold, we find more artefacts
+D2 = osl_detect_artefacts(D,'badtimes',false,'channel_threshold',0.02);
+
+%%
+% And this trend continues
+D2 = osl_detect_artefacts(D,'badtimes',false,'channel_threshold',0.05);
+
+%%
+% You can limit the maximum number of channels that are marked bad if you wish
+D2 = osl_detect_artefacts(D,'badtimes',false,'channel_threshold',0.05,'max_bad_channels',2);
+
+%%
+% You can view the results of your artefact detection using |oslview|. Check |osl_detect_artefacts.m| for a full list of options. 
+##### SOURCE END #####
+--></body></html>

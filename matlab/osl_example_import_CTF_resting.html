@@ -1,0 +1,481 @@
+---
+layout: matlab_wrapper
+title: Import - CTF resting state
+resource: true
+categories: examples
+---
+
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <title>Import: CTF resting state</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-31"><meta name="DC.source" content="osl_example_import_CTF_resting.m"></head><body><div class="content"><h1>Import: CTF resting state</h1><!--introduction--><p>This example shows how to read in raw data from CTF scanners</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#13">Coregistration</a></li></ul></div><p>CTF raw data files are contained in a folder with extension <tt>.ds</tt>. This folder contains a number of binary files. For this example, we will use a recording from the UK MEG dataset gathered at the University of Nottingham</p><p><i>Please note that example data for this practical is not included in the public OSL release as it contains individual structural information</i></p><pre class="codeinput">ds_folder = fullfile(osldir,<span class="string">'example_Data'</span>,<span class="string">'ctf_preprocessing'</span>,<span class="string">'3006'</span>,<span class="string">'3006_Eyes_Open_Rest_PROC.ds'</span>);
+</pre><p>In order to perform a source space analysis, we also need a structural MRI scan for the subject</p><pre class="codeinput">mri_scan = fullfile(osldir,<span class="string">'example_Data'</span>,<span class="string">'ctf_preprocessing'</span>,<span class="string">'3006'</span>,<span class="string">'3006_CRG.nii.gz'</span>);
+</pre><p>To begin with, we can read the raw data in at the lowest level using a FieldTrip function</p><pre class="codeinput">d=ft_read_data(ds_folder);
+class(d)
+</pre><pre class="codeoutput">
+readCTFds: You are reading CTF data for use with a software-application tool
+	that is not manufactured by VSM MedTech Ltd. and has not received marketing
+	clearance for clinical applications.  If CTF MEG data are processed by this tool,
+	they should not be later employed for clinical and/or diagnostic purposes.
+
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+
+ans =
+
+    'double'
+
+</pre><p>Note that CTF data may optionally be processed using a synthetic higher-order gradiometer. Some information about this is available <a href="http://www.fieldtriptoolbox.org/faq/how_does_the_ctf_higher-order_gradiometer_work">here</a>. This transformation may have already been applied to the data in the <tt>.ds</tt> folder. By default, FieldTrip will automatically undo this 'balancing' procedure when the data is imported into Matlab. This behaviour can be overriden by disabling this unbalancing in FieldTrip, by overwriting the relevant files. This is done automatically by <tt>initialise_spm</tt> which is called by <tt>osl_startup</tt>. If you want to use the original FieldTrip unbalancing, in <tt>initialise_spm.m</tt> at the top of the file set <tt>disable_undobalancing = false</tt>. You will need to restart Matlab and restart OSL for this to take effect. Matlab will display a warning whenever the custom unbalancing code is run, so that you are always aware when this occurs.</p><p>Without the header information, this data matrix is not very useful. We can read in both the header and the data using <tt>ft_preprocessing</tt></p><p>Secondly, the continuous data in the <tt>.ds</tt> folder is actually stored as a series of 10s epochs.</p><pre class="codeinput">d=ft_preprocessing(struct(<span class="string">'dataset'</span>,ds_folder))
+</pre><pre class="codeoutput">processing channel { 'UPPT002' 'SCLK01' 'BG1' 'BG2' 'BG3' 'BP1' 'BP2' 'BP3' 'BR1' 'BR2' 'BR3' 'G11' 'G12' 'G13' 'G22' 'G23' 'P11' 'P12' 'P13' 'P23' 'Q11' 'Q12' 'Q13' 'Q22' 'Q23' 'R11' 'R12' 'R13' 'R22' 'R23' 'MLC11' 'MLC12' 'MLC13' 'MLC14' 'MLC15' 'MLC16' 'MLC17' 'MLC21' 'MLC22' 'MLC23' 'MLC24' 'MLC25' 'MLC31' 'MLC32' 'MLC41' 'MLC42' 'MLC51' 'MLC52' 'MLC53' 'MLC54' 'MLC55' 'MLC61' 'MLC62' 'MLC63' 'MLF11' 'MLF12' 'MLF13' 'MLF14' 'MLF21' 'MLF22' 'MLF23' 'MLF24' 'MLF25' 'MLF31' 'MLF32' 'MLF33' 'MLF34' 'MLF35' 'MLF41' 'MLF42' 'MLF43' 'MLF44' 'MLF45' 'MLF46' 'MLF51' 'MLF52' 'MLF53' 'MLF54' 'MLF55' 'MLF56' 'MLF61' 'MLF62' 'MLF63' 'MLF64' 'MLF65' 'MLF66' 'MLF67' 'MLO11' 'MLO12' 'MLO13' 'MLO14' 'MLO21' 'MLO22' 'MLO23' 'MLO24' 'MLO31' 'MLO32' 'MLO33' 'MLO34' 'MLO41' 'MLO42' 'MLO43' 'MLO51' 'MLO52' 'MLO53' 'MLP11' 'MLP12' 'MLP21' 'MLP22' 'MLP23' 'MLP31' 'MLP32' 'MLP33' 'MLP34' 'MLP35' 'MLP41' 'MLP42' 'MLP43' 'MLP44' 'MLP45' 'MLP51' 'MLP52' 'MLP53' 'MLP54' 'MLP55' 'MLP56' 'MLP57' 'MLT11' 'MLT12' 'MLT13' 'MLT14' 'MLT15' 'MLT16' 'MLT21' 'MLT22' 'MLT23' 'MLT24' 'MLT25' 'MLT26' 'MLT27' 'MLT31' 'MLT32' 'MLT33' 'MLT34' 'MLT35' 'MLT36' 'MLT37' 'MLT41' 'MLT42' 'MLT43' 'MLT44' 'MLT45' 'MLT46' 'MLT47' 'MLT51' 'MLT52' 'MLT53' 'MLT54' 'MLT55' 'MLT56' 'MLT57' 'MRC11' 'MRC12' 'MRC13' 'MRC14' 'MRC15' 'MRC16' 'MRC17' 'MRC21' 'MRC22' 'MRC23' 'MRC24' 'MRC25' 'MRC31' 'MRC32' 'MRC41' 'MRC42' 'MRC51' 'MRC52' 'MRC53' 'MRC54' 'MRC55' 'MRC61' 'MRC62' 'MRC63' 'MRF11' 'MRF12' 'MRF13' 'MRF14' 'MRF21' 'MRF22' 'MRF23' 'MRF24' 'MRF25' 'MRF31' 'MRF32' 'MRF33' 'MRF34' 'MRF35' 'MRF41' 'MRF42' 'MRF43' 'MRF44' 'MRF45' 'MRF46' 'MRF51' 'MRF52' 'MRF53' 'MRF54' 'MRF55' 'MRF56' 'MRF61' 'MRF62' 'MRF63' 'MRF64' 'MRF65' 'MRF66' 'MRF67' 'MRO11' 'MRO12' 'MRO13' 'MRO14' 'MRO21' 'MRO22' 'MRO23' 'MRO24' 'MRO31' 'MRO32' 'MRO33' 'MRO34' 'MRO41' 'MRO42' 'MRO43' 'MRO44' 'MRO51' 'MRO52' 'MRO53' 'MRP11' 'MRP12' 'MRP21' 'MRP22' 'MRP23' 'MRP31' 'MRP32' 'MRP33' 'MRP34' 'MRP35' 'MRP41' 'MRP42' 'MRP43' 'MRP44' 'MRP45' 'MRP51' 'MRP52' 'MRP53' 'MRP54' 'MRP55' 'MRP56' 'MRP57' 'MRT11' 'MRT12' 'MRT13' 'MRT14' 'MRT15' 'MRT16' 'MRT21' 'MRT22' 'MRT23' 'MRT24' 'MRT25' 'MRT26' 'MRT27' 'MRT31' 'MRT32' 'MRT33' 'MRT34' 'MRT35' 'MRT36' 'MRT37' 'MRT41' 'MRT42' 'MRT43' 'MRT44' 'MRT45' 'MRT46' 'MRT47' 'MRT51' 'MRT52' 'MRT53' 'MRT54' 'MRT55' 'MRT56' 'MRT57' 'MZC01' 'MZC02' 'MZC03' 'MZC04' 'MZF01' 'MZF02' 'MZF03' 'MZO01' 'MZO02' 'MZO03' 'MZP01' 'EEG001' 'EEG002' 'EEG003' 'EEG004' 'EEG005' 'EEG006' 'EEG007' 'EEG008' 'EEG009' 'EEG010' 'EEG011' 'EEG012' 'EEG013' 'EEG014' 'EEG015' 'EEG016' 'EEG017' 'EEG018' 'EEG019' 'EEG020' 'EEG021' 'EEG022' 'EEG023' 'EEG024' 'EEG025' 'EEG026' 'EEG027' 'EEG028' 'EEG029' 'EEG030' 'EEG031' 'EEG032' 'EEG033' 'EEG034' 'EEG035' 'EEG036' 'EEG037' 'EEG038' 'EEG039' 'EEG040' 'EEG041' 'EEG042' 'EEG043' 'EEG044' 'EEG045' 'EEG046' 'EEG047' 'EEG048' 'EEG049' 'EEG050' 'EEG051' 'EEG052' 'EEG053' 'EEG054' 'EEG055' 'EEG056' 'EEG057' 'EEG058' 'EEG059' 'EEG060' 'EEG061' 'EEG062' 'EEG063' 'EEG064' 'HADC001' 'HADC002' 'HADC003' 'HDAC001' 'HDAC002' 'HDAC003' 'UADC001' 'HLC0011' 'HLC0012' 'HLC0013' 'HLC0021' 'HLC0022' 'HLC0023' 'HLC0031' 'HLC0032' 'HLC0033' 'HLC0018' 'HLC0028' 'HLC0038' 'HLC0014' 'HLC0015' 'HLC0016' 'HLC0017' 'HLC0024' 'HLC0025' 'HLC0026' 'HLC0027' 'HLC0034' 'HLC0035' 'HLC0036' 'HLC0037' }
+reading and preprocessing
+reading and preprocessing trial 30 from 30
+
+the call to "ft_preprocessing" took 3 seconds and required the additional allocation of an estimated NaN MB
+
+d = 
+
+  struct with fields:
+
+           hdr: [1&times;1 struct]
+         label: {399&times;1 cell}
+          time: {1&times;30 cell}
+         trial: {1&times;30 cell}
+       fsample: 600
+    sampleinfo: [30&times;2 double]
+          grad: [1&times;1 struct]
+           cfg: [1&times;1 struct]
+
+</pre><p>Notice that even though we have a continous resting state recording, it has been stored as a sequence of trials. Each of these trials is 10s in duration, which is typical for CTF resting state recordings. If you know that you have continuous data you can automatically have these epochs stictched together</p><pre class="codeinput">d=ft_preprocessing(struct(<span class="string">'dataset'</span>,ds_folder,<span class="string">'continuous'</span>,<span class="string">'yes'</span>))
+</pre><pre class="codeoutput">processing channel { 'UPPT002' 'SCLK01' 'BG1' 'BG2' 'BG3' 'BP1' 'BP2' 'BP3' 'BR1' 'BR2' 'BR3' 'G11' 'G12' 'G13' 'G22' 'G23' 'P11' 'P12' 'P13' 'P23' 'Q11' 'Q12' 'Q13' 'Q22' 'Q23' 'R11' 'R12' 'R13' 'R22' 'R23' 'MLC11' 'MLC12' 'MLC13' 'MLC14' 'MLC15' 'MLC16' 'MLC17' 'MLC21' 'MLC22' 'MLC23' 'MLC24' 'MLC25' 'MLC31' 'MLC32' 'MLC41' 'MLC42' 'MLC51' 'MLC52' 'MLC53' 'MLC54' 'MLC55' 'MLC61' 'MLC62' 'MLC63' 'MLF11' 'MLF12' 'MLF13' 'MLF14' 'MLF21' 'MLF22' 'MLF23' 'MLF24' 'MLF25' 'MLF31' 'MLF32' 'MLF33' 'MLF34' 'MLF35' 'MLF41' 'MLF42' 'MLF43' 'MLF44' 'MLF45' 'MLF46' 'MLF51' 'MLF52' 'MLF53' 'MLF54' 'MLF55' 'MLF56' 'MLF61' 'MLF62' 'MLF63' 'MLF64' 'MLF65' 'MLF66' 'MLF67' 'MLO11' 'MLO12' 'MLO13' 'MLO14' 'MLO21' 'MLO22' 'MLO23' 'MLO24' 'MLO31' 'MLO32' 'MLO33' 'MLO34' 'MLO41' 'MLO42' 'MLO43' 'MLO51' 'MLO52' 'MLO53' 'MLP11' 'MLP12' 'MLP21' 'MLP22' 'MLP23' 'MLP31' 'MLP32' 'MLP33' 'MLP34' 'MLP35' 'MLP41' 'MLP42' 'MLP43' 'MLP44' 'MLP45' 'MLP51' 'MLP52' 'MLP53' 'MLP54' 'MLP55' 'MLP56' 'MLP57' 'MLT11' 'MLT12' 'MLT13' 'MLT14' 'MLT15' 'MLT16' 'MLT21' 'MLT22' 'MLT23' 'MLT24' 'MLT25' 'MLT26' 'MLT27' 'MLT31' 'MLT32' 'MLT33' 'MLT34' 'MLT35' 'MLT36' 'MLT37' 'MLT41' 'MLT42' 'MLT43' 'MLT44' 'MLT45' 'MLT46' 'MLT47' 'MLT51' 'MLT52' 'MLT53' 'MLT54' 'MLT55' 'MLT56' 'MLT57' 'MRC11' 'MRC12' 'MRC13' 'MRC14' 'MRC15' 'MRC16' 'MRC17' 'MRC21' 'MRC22' 'MRC23' 'MRC24' 'MRC25' 'MRC31' 'MRC32' 'MRC41' 'MRC42' 'MRC51' 'MRC52' 'MRC53' 'MRC54' 'MRC55' 'MRC61' 'MRC62' 'MRC63' 'MRF11' 'MRF12' 'MRF13' 'MRF14' 'MRF21' 'MRF22' 'MRF23' 'MRF24' 'MRF25' 'MRF31' 'MRF32' 'MRF33' 'MRF34' 'MRF35' 'MRF41' 'MRF42' 'MRF43' 'MRF44' 'MRF45' 'MRF46' 'MRF51' 'MRF52' 'MRF53' 'MRF54' 'MRF55' 'MRF56' 'MRF61' 'MRF62' 'MRF63' 'MRF64' 'MRF65' 'MRF66' 'MRF67' 'MRO11' 'MRO12' 'MRO13' 'MRO14' 'MRO21' 'MRO22' 'MRO23' 'MRO24' 'MRO31' 'MRO32' 'MRO33' 'MRO34' 'MRO41' 'MRO42' 'MRO43' 'MRO44' 'MRO51' 'MRO52' 'MRO53' 'MRP11' 'MRP12' 'MRP21' 'MRP22' 'MRP23' 'MRP31' 'MRP32' 'MRP33' 'MRP34' 'MRP35' 'MRP41' 'MRP42' 'MRP43' 'MRP44' 'MRP45' 'MRP51' 'MRP52' 'MRP53' 'MRP54' 'MRP55' 'MRP56' 'MRP57' 'MRT11' 'MRT12' 'MRT13' 'MRT14' 'MRT15' 'MRT16' 'MRT21' 'MRT22' 'MRT23' 'MRT24' 'MRT25' 'MRT26' 'MRT27' 'MRT31' 'MRT32' 'MRT33' 'MRT34' 'MRT35' 'MRT36' 'MRT37' 'MRT41' 'MRT42' 'MRT43' 'MRT44' 'MRT45' 'MRT46' 'MRT47' 'MRT51' 'MRT52' 'MRT53' 'MRT54' 'MRT55' 'MRT56' 'MRT57' 'MZC01' 'MZC02' 'MZC03' 'MZC04' 'MZF01' 'MZF02' 'MZF03' 'MZO01' 'MZO02' 'MZO03' 'MZP01' 'EEG001' 'EEG002' 'EEG003' 'EEG004' 'EEG005' 'EEG006' 'EEG007' 'EEG008' 'EEG009' 'EEG010' 'EEG011' 'EEG012' 'EEG013' 'EEG014' 'EEG015' 'EEG016' 'EEG017' 'EEG018' 'EEG019' 'EEG020' 'EEG021' 'EEG022' 'EEG023' 'EEG024' 'EEG025' 'EEG026' 'EEG027' 'EEG028' 'EEG029' 'EEG030' 'EEG031' 'EEG032' 'EEG033' 'EEG034' 'EEG035' 'EEG036' 'EEG037' 'EEG038' 'EEG039' 'EEG040' 'EEG041' 'EEG042' 'EEG043' 'EEG044' 'EEG045' 'EEG046' 'EEG047' 'EEG048' 'EEG049' 'EEG050' 'EEG051' 'EEG052' 'EEG053' 'EEG054' 'EEG055' 'EEG056' 'EEG057' 'EEG058' 'EEG059' 'EEG060' 'EEG061' 'EEG062' 'EEG063' 'EEG064' 'HADC001' 'HADC002' 'HADC003' 'HDAC001' 'HDAC002' 'HDAC003' 'UADC001' 'HLC0011' 'HLC0012' 'HLC0013' 'HLC0021' 'HLC0022' 'HLC0023' 'HLC0031' 'HLC0032' 'HLC0033' 'HLC0018' 'HLC0028' 'HLC0038' 'HLC0014' 'HLC0015' 'HLC0016' 'HLC0017' 'HLC0024' 'HLC0025' 'HLC0026' 'HLC0027' 'HLC0034' 'HLC0035' 'HLC0036' 'HLC0037' }
+reading and preprocessing
+reading and preprocessing trial 1 from 1
+
+the call to "ft_preprocessing" took 3 seconds and required the additional allocation of an estimated NaN MB
+
+d = 
+
+  struct with fields:
+
+           hdr: [1&times;1 struct]
+         label: {399&times;1 cell}
+          time: {[1&times;180000 double]}
+         trial: {[399&times;180000 double]}
+       fsample: 600
+    sampleinfo: [1 180000]
+          grad: [1&times;1 struct]
+           cfg: [1&times;1 struct]
+
+</pre><p>Although the above commands will read the data into Matlab, for OSL it is more useful to read the data into an SPM MEEG object. This can be performed using the <tt>osl_convert_script</tt> function. The <tt>.ds</tt> file is passed in as the <tt>fif_file</tt> input and you also need to provide a filename for the MEEG object that will be created on disk. After conversion, the MEEG object is automatically loaded and returned</p><pre class="codeinput">S = struct;
+S.fif_file = ds_folder;
+S.spm_file = fullfile(osldir,<span class="string">'example_Data'</span>,<span class="string">'ctf_preprocessing'</span>,<span class="string">'3006'</span>,<span class="string">'3006'</span>);
+D = osl_convert_script(S)
+</pre><pre class="codeoutput">
+SPM12: spm_eeg_convert_4osl (v6190)                15:18:38 - 31/08/2017
+========================================================================
+
+SPM12: spm_eeg_convert_4osl (v6190)                15:18:38 - 31/08/2017
+========================================================================
+Warning: Could not obtain electrode locations automatically. 
+Data type is missing or incorrect, assigning default.
+creating layout from cfg.grad
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+creating layout for ctf275 system
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+Warning: Could not obtain electrode locations automatically. 
+Data type is missing or incorrect, assigning default.
+creating layout from cfg.grad
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+creating layout for ctf275 system
+Warning: Some events detected with no value available in D.events, so
+setting them to 1 
+SPM M/EEG data object
+Type: continuous
+Transform: time
+1 conditions
+276 channels
+180000 samples/trial
+1 trials
+Sampling frequency: 600 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006.mat
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+</pre><p>By default, only data channels (e.g. MEG, trigger, clock) will be imported. You can optionally specify other channels to retain in the conversion. There are two possibilities</p><div><ul><li><tt>artefact_channels</tt> - these channels will be retained based on their   chantype e.g. <tt>EMG</tt></li><li><tt>other_channels</tt> - these channels will be retained based on their   chanlabel e.g. <tt>EEG060</tt></li></ul></div><p>In this case, we have been told by our collaborators that the following additional channels were recorded</p><div><ul><li><tt>EEG060</tt> - EMG</li><li><tt>EEG059</tt> - ECG</li><li><tt>EEG057</tt> - EOG1</li><li><tt>EEG058</tt> - EOG2</li></ul></div><p>First, we need to make sure these channels are retained in the import. These channels are identified by their label, so we will use <tt>other_channels</tt></p><pre class="codeinput">S.other_channels = {<span class="string">'EEG060'</span>,<span class="string">'EEG059'</span>,<span class="string">'EEG057'</span>,<span class="string">'EEG058'</span>}
+D = osl_convert_script(S)
+</pre><pre class="codeoutput">
+S = 
+
+  struct with fields:
+
+          fif_file: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_Eyes_Open_Rest_PROC.ds'
+          spm_file: '/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006'
+    other_channels: {'EEG060'  'EEG059'  'EEG057'  'EEG058'}
+
+
+SPM12: spm_eeg_convert_4osl (v6190)                15:18:49 - 31/08/2017
+========================================================================
+
+SPM12: spm_eeg_convert_4osl (v6190)                15:18:49 - 31/08/2017
+========================================================================
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+Warning: Could not obtain electrode locations automatically. 
+Data type is missing or incorrect, assigning default.
+creating layout from cfg.grad
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+creating layout for ctf275 system
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+Warning: Could not obtain electrode locations automatically. 
+Data type is missing or incorrect, assigning default.
+creating layout from cfg.grad
+Warning: UndoBalancing is disabled. Your analysis will proceed using the
+third-order gradiometer-corrected signals.
+ 
+creating layout for ctf275 system
+Warning: Some events detected with no value available in D.events, so
+setting them to 1 
+SPM M/EEG data object
+Type: continuous
+Transform: time
+1 conditions
+280 channels
+180000 samples/trial
+1 trials
+Sampling frequency: 600 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006.mat
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+</pre><p>Notice that we now have 280 channels instead of 276, because these 4 channels have now been retained. For convenience and data integrity, we should now also take the opportunity to set the channel type in the MEEG object so that these channels can be readily identified further on in the analysis</p><pre class="codeinput">D = D.chantype(find(strcmp(D.chanlabels,<span class="string">'EEG060'</span>)),<span class="string">'EMG'</span>);
+D = D.chantype(find(strcmp(D.chanlabels,<span class="string">'EEG059'</span>)),<span class="string">'ECG'</span>);
+D = D.chantype(find(strcmp(D.chanlabels,<span class="string">'EEG057'</span>)),<span class="string">'EOG1'</span>);
+D = D.chantype(find(strcmp(D.chanlabels,<span class="string">'EEG058'</span>)),<span class="string">'EOG2'</span>);
+</pre><p>In order to perform coregistration, in addition to the structural MRI scan, we also need headshape points. These are often stored in <tt>.pos</tt> files. You can read these in using the <tt>ft_read_headshape()</tt> function</p><pre class="codeinput">pos_file = fullfile(osldir,<span class="string">'example_Data'</span>,<span class="string">'ctf_preprocessing'</span>,<span class="string">'3006'</span>,<span class="string">'3006.pos'</span>);
+ft_read_headshape(pos_file)
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+     pos: [560&times;3 double]
+     fid: [1&times;1 struct]
+    unit: 'cm'
+
+</pre><p>This struct can be passed straight into the MEEG's <tt>fiducials</tt> method to store it within the SPM object</p><pre class="codeinput">D = D.fiducials(ft_read_headshape(pos_file,<span class="string">'unit'</span>,<span class="string">'mm'</span>));
+D.fiducials
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+     fid: [1&times;1 struct]
+    unit: 'mm'
+     pnt: [560&times;3 double]
+
+</pre><p><i>Note that the headshape points MUST be read in units of 'mm', because this is assumed by RHINO later on in the pipeline</i></p><p>Don't forget to save your updated channel types and fiducials to disk!</p><pre class="codeinput">D.save()
+</pre><pre class="codeoutput">SPM M/EEG data object
+Type: continuous
+Transform: time
+1 conditions
+280 channels
+180000 samples/trial
+1 trials
+Sampling frequency: 600 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006.mat
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+</pre><h2 id="13">Coregistration</h2><p>Finally, we will need to perform the coregistration and forward model computation in order to be able to later do a source space analysis. To do this, we will use the <tt>osl_headmodel</tt> function. This function takes in the MEEG object, the structural scan, and some additional options including which forward model you would like to use (you can always run <tt>osl_forward_model</tt> again later if you want to change the forward model without changing the coregistration)</p><pre class="codeinput">S = struct;
+S.D = D.fullfile;
+S.mri = mri_scan;
+S.useheadshape = true;
+S.forward_meg = <span class="string">'MEG Local Spheres'</span>;
+S.use_rhino = true;
+</pre><p>You can refer to the coregistration example on this site for more information about RHINO and other coregistration options.</p><p>Note that the MEEG object <b>must</b> be passed in a filename. So you need to make sure that you have commited any pending changes to disk (by running <tt>D.save()</tt>) before using <tt>osl_headmodel</tt>. Lastly, you might need to rename your fiducials, depending on what their labels are in the <tt>.pos</tt> file. You can check what the labels are by looking at <tt>D.fiducials</tt>:</p><pre class="codeinput">D.fiducials.fid.label
+</pre><pre class="codeoutput">
+ans =
+
+  3&times;1 cell array
+
+    'lpa'
+    'nas'
+    'rpa'
+
+</pre><p>And then you should set these labels - notice for example that the 'nasion' point has been imported as 'nas'</p><pre class="codeinput">S.fid.label.nasion=<span class="string">'nas'</span>;
+S.fid.label.lpa=<span class="string">'lpa'</span>;
+S.fid.label.rpa=<span class="string">'rpa'</span>;
+</pre><p>We can then go ahead and run <tt>osl_headmodel</tt> to do the coregistration and forward model.</p><pre class="codeinput">osl_headmodel(S);
+</pre><pre class="codeoutput">*** RUNNING RHINO COREGISTRATION ***
+Running BET...
+Running BETSURF...
+rm: /Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRG*.off: No such file or directory
+Running scalp extraction
+Computing SPM meshes
+
+SPM12: spm_preproc_run (v6365)                     15:19:54 - 31/08/2017
+========================================================================
+Segment &lt;a href="matlab:spm_image('display','/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRG.nii');"&gt;/Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006_CRG.nii&lt;/a&gt;
+Warning: Using 'state' to set RANDN's internal state causes RAND, RANDI, and
+RANDN to use legacy random number generators.  This syntax is not
+recommended.  See &lt;a href="matlab:helpview([docroot
+'\techdoc\math\math.map'],'update_random_number_generator')"&gt;Replace
+Discouraged Syntaxes of rand and randn&lt;/a&gt; to use RNG to replace the old
+syntax. 
+Completed                               :          15:24:43 - 31/08/2017
+Coregistering
+Warning: Neither sform or qform codes are valid... Trying anyway: Please
+check the registration carefully for errors.\n 
+***  RHINO COREGISTRATION COMPLETE ***
+the input is mesh data with 2562 vertices and 5120 triangles
+single sphere,    2562 surface points, center = [ 0.0 -0.0  0.0], radius =  0.1
+channel = MLC11,   345 surface points, center = [ 0.0 -0.0  0.0], radius =  0.1
+channel = MLC12,   336 surface points, center = [ 0.0 -0.0  0.0], radius =  0.1
+...
+...
+...
+channel = Q22, not enough surface points, using all points
+channel = Q23, not enough surface points, using all points
+SPM M/EEG data object
+Type: continuous
+Transform: time
+1 conditions
+280 channels
+180000 samples/trial
+1 trials
+Sampling frequency: 600 Hz
+Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_Data/ctf_preprocessing/3006/3006.mat
+
+Use the syntax D(channels, samples, trials) to access the data
+Type "methods('meeg')" for the list of methods performing other operations with the object
+Type "help meeg/method_name" to get help about methods
+
+</pre><img vspace="5" hspace="5" src="osl_example_import_CTF_resting_01.png" style="width:560px;height:420px;" alt=""> <p>Don't forget to reload the MEEG object to read in the new data that was saved on disk.</p><pre class="codeinput">D = spm_eeg_load(D.fullfile);
+</pre><p>You can verify that the coregistration was done by checking that <tt>D.inv</tt> now exists</p><pre class="codeinput">D.inv
+</pre><pre class="codeoutput">
+ans =
+
+  cell
+
+    [1&times;1 struct]
+
+</pre><p>and you can verify that the forward model was run by checking that D.inv{1}.forward is not empty</p><pre class="codeinput">D.inv{1}
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+       mesh: [1&times;1 struct]
+    comment: 'rhino'
+       date: [2&times;11 char]
+    datareg: [1&times;1 struct]
+    forward: [1&times;1 struct]
+
+</pre><p>And it's always worth verifying the quality of the coregistration</p><pre class="codeinput">rhino_display(D)
+</pre><img vspace="5" hspace="5" src="osl_example_import_CTF_resting_02.png" style="width:560px;height:420px;" alt=""> <p>Now you have a fully imported MEEG file that is ready for preprocessing and beamforming.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Import: CTF resting state
+%
+% This example shows how to read in raw data from CTF scanners
+
+%%
+% CTF raw data files are contained in a folder with extension |.ds|. This
+% folder contains a number of binary files. For this example, we will use a
+% recording from the UK MEG dataset gathered at the University of Nottingham
+%
+% _Please note that example data for this practical is not included in the
+% public OSL release as it contains individual structural information_
+%
+ds_folder = fullfile(osldir,'example_Data','ctf_preprocessing','3006','3006_Eyes_Open_Rest_PROC.ds');
+
+%% 
+% In order to perform a source space analysis, we also need a structural MRI
+% scan for the subject
+mri_scan = fullfile(osldir,'example_Data','ctf_preprocessing','3006','3006_CRG.nii.gz');
+
+%%
+% To begin with, we can read the raw data in at the lowest level using a
+% FieldTrip function
+d=ft_read_data(ds_folder);
+class(d)
+
+%%
+% Note that CTF data may optionally be processed using a synthetic higher-
+% order gradiometer. Some information about this is available here:
+% <http://www.fieldtriptoolbox.org/faq/how_does_the_ctf_higher-
+% order_gradiometer_work>. This transformation may have already been applied
+% to the data in the |.ds| folder. By default, FieldTrip will automatically
+% undo this 'balancing' procedure when the data is imported into Matlab. This
+% behaviour can be overriden by disabling this unbalancing in FieldTrip, by
+% overwriting the relevant files. This is done automatically by
+% |initialise_spm| which is called by |osl_startup|. If you want to use the
+% original FieldTrip unbalancing, in |initialise_spm.m| at the top of the file
+% set |disable_undobalancing = false|. You will need to restart Matlab and
+% restart OSL for this to take effect. Matlab will display a warning whenever
+% the custom unbalancing code is run, so that you are always aware when this
+% occurs.
+
+%%
+% Without the header information, this data matrix is not very useful. We can
+% read in both the header and the data using |ft_preprocessing|
+%
+% Secondly, the continuous data in the |.ds| folder is actually stored as a
+% series of 10s epochs.
+d=ft_preprocessing(struct('dataset',ds_folder))
+
+%%
+% Notice that even though we have a continous resting state recording, it has
+% been stored as a sequence of trials. Each of these trials is 10s in
+% duration, which is typical for CTF resting state recordings. If you know
+% that you have continuous data you can automatically have these epochs
+% stictched together
+d=ft_preprocessing(struct('dataset',ds_folder,'continuous','yes'))
+
+%%
+% Although the above commands will read the data into Matlab, for OSL it is
+% more useful to read the data into an SPM MEEG object. This can be performed
+% using the |osl_convert_script| function. The |.ds| file is passed in as the
+% |fif_file| input and you also need to provide a filename for the MEEG object
+% that will be created on disk. After conversion, the MEEG object is
+% automatically loaded and returned
+S = struct;
+S.fif_file = ds_folder;
+S.spm_file = fullfile(osldir,'example_Data','ctf_preprocessing','3006','3006');
+D = osl_convert_script(S)
+
+%%
+% By default, only data channels (e.g. MEG, trigger, clock) will be imported.
+% You can optionally specify other channels to retain in the conversion. There
+% are two possibilities
+%
+% * |artefact_channels| - these channels will be retained based on their
+%   chantype e.g. |EMG|
+% * |other_channels| - these channels will be retained based on their
+%   chanlabel e.g. |EEG060|
+%
+% In this case, we have been told by our collaborators that the following
+% additional channels were recorded
+%
+% * |EEG060| - EMG
+% * |EEG059| - ECG
+% * |EEG057| - EOG1
+% * |EEG058| - EOG2
+%
+% First, we need to make sure these channels are retained in the import. These
+% channels are identified by their label, so we will use |other_channels|
+S.other_channels = {'EEG060','EEG059','EEG057','EEG058'}
+D = osl_convert_script(S)
+
+%%
+% Notice that we now have 280 channels instead of 276, because these 4
+% channels have now been retained. For convenience and data integrity, we
+% should now also take the opportunity to set the channel type in the MEEG
+% object so that these channels can be readily identified further on in the
+% analysis
+D = D.chantype(find(strcmp(D.chanlabels,'EEG060')),'EMG');
+D = D.chantype(find(strcmp(D.chanlabels,'EEG059')),'ECG');
+D = D.chantype(find(strcmp(D.chanlabels,'EEG057')),'EOG1');
+D = D.chantype(find(strcmp(D.chanlabels,'EEG058')),'EOG2');
+
+%%
+% In order to perform coregistration, in addition to the structural MRI scan,
+% we also need headshape points. These are often stored in |.pos| files. You
+% can read these in using the |ft_read_headshape()| function
+pos_file = fullfile(osldir,'example_Data','ctf_preprocessing','3006','3006.pos');
+ft_read_headshape(pos_file)
+
+%%
+% This struct can be passed straight into the MEEG's |fiducials| method to
+% store it within the SPM object
+D = D.fiducials(ft_read_headshape(pos_file,'unit','mm'));
+D.fiducials
+
+%%
+% _Note that the headshape points MUST be read in units of 'mm', because this
+% is assumed by RHINO later on in the pipeline_
+%
+% Don't forget to save your updated channel types and fiducials to disk!
+D.save()
+
+%% Coregistration
+%
+% Finally, we will need to perform the coregistration and forward model
+% computation in order to be able to later do a source space analysis. To do
+% this, we will use the |osl_headmodel| function. This function takes in the
+% MEEG object, the structural scan, and some additional options including
+% which forward model you would like to use (you can always run
+% |osl_forward_model| again later if you want to change the forward model
+% without changing the coregistration)
+S = struct;
+S.D = D.fullfile;
+S.mri = mri_scan;
+S.useheadshape = true;
+S.forward_meg = 'MEG Local Spheres';
+S.use_rhino = true;
+
+%%
+% You can refer to the coregistration example on this site for more
+% information about RHINO and other coregistration options.
+% 
+% Note that the MEEG object *must* be passed in a filename. So you need to
+% make sure that you have commited any pending changes to disk (by running
+% |D.save()|) before using |osl_headmodel|. Lastly, you might need to rename
+% your fiducials, depending on what their labels are in the |.pos| file. You
+% can check what the labels are by looking at |D.fiducials|:
+D.fiducials.fid.label
+
+%%
+% And then you should set these labels - notice for example that the 'nasion'
+% point has been imported as 'nas'
+S.fid.label.nasion='nas';
+S.fid.label.lpa='lpa';
+S.fid.label.rpa='rpa';
+
+%%
+% We can then go ahead and run |osl_headmodel| to do the coregistration and
+% forward model.
+osl_headmodel(S);
+
+%%
+% Don't forget to reload the MEEG object to read in the new data that was
+% saved on disk.
+D = spm_eeg_load(D.fullfile);
+
+%% 
+% You can verify that the coregistration was done by checking that |D.inv| now
+% exists
+D.inv
+
+%%
+% and you can verify that the forward model was run by checking that
+% D.inv{1}.forward is not empty
+D.inv{1}
+
+%%
+% And it's always worth verifying the quality of the coregistration
+rhino_display(D)
+
+%%
+% Now you have a fully imported MEEG file that is ready for preprocessing and
+% beamforming. See <{{ site.baseurl }}/matlab/osl_example_preprocessing_simple.html)>
+
+
+
+##### SOURCE END #####
+--></body></html>
