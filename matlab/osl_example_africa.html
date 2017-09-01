@@ -8,7 +8,8 @@ categories: examples
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <title>osl_example_africa</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-09-01"><meta name="DC.source" content="osl_example_africa.m"></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Preproc - AFRICA (ICA artefact removal)</a></li><li><a href="#12">Automatic component removal</a></li><li><a href="#15">Effect of including artefacts in the data</a></li><li><a href="#20">Description of method in publications</a></li></ul></div><h2 id="1">Preproc - AFRICA (ICA artefact removal)</h2><p>OSL provides a framework for employing Independent Component Analysis (ICA) to remove certain artefacts from MEG data. Using this framework, sources of interference, such as eye-blinks, ECG and line noise, can be separated from the genuine MEG data and removed.</p><p>To use ICA denoising, you will use the function osl_africa.m. osl_africa can currently be applied to Elekta Neuromag and CTF data.</p><p>The de-noising process has three stages:</p><p><b>1. Decomposition of data into independent components.</b></p><div><ul><li>Here, the MEG data is extracted from the SPM object.</li><li>Each sensor type is normalised by its smallest eigenvalue.</li><li>Bad epochs (as defined by OSLview), bad trials and bad channels are   removed.</li><li>fastica is used to decompose the data into a set of independent time   courses and associated topographies.</li><li>The default parameters are recommended.</li></ul></div><p><b>2. Classification of artefact components</b></p><div><ul><li>This stage will require user-input.</li></ul></div><p><b>3. Subtraction of artefact components from data to yield denoised data.</b></p><div><ul><li>This final stage is automated and should not require any user input.</li><li>The independent time courses are subtracted from the MEG data. This is   implemented via the spm_eeg_montage function which means that subsequent   leadfields will be corrected.</li></ul></div><p>To start, load an MEEG object</p><pre class="codeinput">D = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_example'</span>,<span class="string">'manual'</span>,<span class="string">'subject1_spm_meeg.mat'</span>))
-</pre><pre class="codeoutput">SPM M/EEG data object
+</pre><pre class="codeoutput">Warning: assuming that planar MEG channel units are T/mm 
+SPM M/EEG data object
 Type: continuous
 Transform: time
 1 conditions
@@ -39,11 +40,13 @@ Used nonlinearity [ tanh ].
 Using stabilized algorithm.
 Starting ICA calculation...
 Step no. 1
-Step no. 2, change in value of estimate: 0.445 
+Step no. 2, change in value of estimate: 0.431 
 ...
 ...
-Step no. 102, change in value of estimate: 0.000102 
-Convergence after 103 steps
+...
+Step no. 64, change in value of estimate: 0.000114 
+Step no. 65, change in value of estimate: 0.000107 
+Convergence after 66 steps
 Adding the mean back to the data.
 Precomputing sensor topographies for modality MEGMAG
 Precomputing sensor topographies for modality MEGPLANAR
@@ -103,10 +106,10 @@ Type "help meeg/method_name" to get help about methods
 <span class="comment">% has_montage(D)</span>
 </pre><h2 id="12">Automatic component removal</h2><p>Set the <tt>ident_func</tt> option to use automatic artefact removal</p><pre class="codeinput">D_automatic = osl_africa(D,<span class="string">'used_maxfilter'</span>,1,<span class="string">'artefact_channels'</span>,{<span class="string">'EOG'</span>,<span class="string">'ECG'</span>},<span class="string">'ident_func'</span>,@identify_artefactual_components_auto)
 </pre><pre class="codeoutput">Using existing ICA decomposition
-Rejecting IC 50 due to ECG (correlation = 0.55)
-Rejecting IC 16 due to EOG (correlation = 0.18)
-Rejecting IC 17 due to EOG (correlation = 0.53)
-Rejecting IC 20 due to EOG (correlation = 0.21)
+Rejecting IC 37 due to ECG (correlation = 0.55)
+Rejecting IC 9 due to EOG (correlation = 0.53)
+Rejecting IC 33 due to EOG (correlation = 0.19)
+Rejecting IC 60 due to EOG (correlation = 0.19)
 SPM M/EEG data object
 Type: continuous
 Transform: time
@@ -164,41 +167,38 @@ Type "help meeg/method_name" to get help about methods
 D2 = D_automatic.montage(<span class="string">'switch'</span>,D_automatic.montage(<span class="string">'getnumber'</span>)); <span class="comment">% Result after AFRICA</span>
 figure
 plot(D1.time,[D1(1,:).',D2(1,:)']);
-</pre><img vspace="5" hspace="5" src="osl_example_africa_01.png" style="width:560px;height:420px;" alt=""> <p>As you can see, there are large artefacts in the middle and especially towards the end of the recording. Now we will zoom in to see what the ICA removal has done</p><pre class="codeinput">set(gca,<span class="string">'XLim'</span>,[120 125],<span class="string">'YLim'</span>,[-1 1]*1e-10)
-</pre><img vspace="5" hspace="5" src="osl_example_africa_02.png" style="width:560px;height:420px;" alt=""> <p>The artefact removal is completely wrong - the ECG component has been <i>introduced</i> into the sensor data even more strongly than it was originally present! It's critical that the artefacts are removed completely. We can do this by excluding the bad times. Normally you would do this with either <tt>oslview</tt> or <tt>osl_detect_artefacts</tt>. For this tutorial, we will just add these artefact times in directly</p><pre class="codeinput">ev(1) = struct(<span class="string">'type'</span>,<span class="string">'artefact_OSL'</span>,<span class="string">'value'</span>,<span class="string">'all'</span>,<span class="string">'duration'</span>,81.7271,<span class="string">'time'</span>,310.0822,<span class="string">'offset'</span>,0);
+</pre><img vspace="5" hspace="5" src="osl_example_africa_01.png" alt=""> <p>As you can see, there are large artefacts in the middle and especially towards the end of the recording. Now we will zoom in to see what the ICA removal has done</p><pre class="codeinput">set(gca,<span class="string">'XLim'</span>,[120 125],<span class="string">'YLim'</span>,[-1 1]*1e-10)
+</pre><img vspace="5" hspace="5" src="osl_example_africa_02.png" alt=""> <p>The artefact removal is completely wrong - the ECG component has been <i>introduced</i> into the sensor data even more strongly than it was originally present! It's critical that the artefacts are removed completely. We can do this by excluding the bad times. Normally you would do this with either <tt>oslview</tt> or <tt>osl_detect_artefacts</tt>. For this tutorial, we will just add these artefact times in directly</p><pre class="codeinput">ev(1) = struct(<span class="string">'type'</span>,<span class="string">'artefact_OSL'</span>,<span class="string">'value'</span>,<span class="string">'all'</span>,<span class="string">'duration'</span>,81.7271,<span class="string">'time'</span>,310.0822,<span class="string">'offset'</span>,0);
 ev(2) = struct(<span class="string">'type'</span>,<span class="string">'artefact_OSL'</span>,<span class="string">'value'</span>,<span class="string">'all'</span>,<span class="string">'duration'</span>,334.6752,<span class="string">'time'</span>,593.3288,<span class="string">'offset'</span>,0);
 D_automatic = events(D_automatic,1,ev);
-</pre><p>Now we will rerun the ICA by setting `do_ica=true`</p><pre class="codeinput">D_automatic = osl_africa(D,<span class="string">'do_ica'</span>,true,<span class="string">'used_maxfilter'</span>,1,<span class="string">'artefact_channels'</span>,{<span class="string">'EOG'</span>,<span class="string">'ECG'</span>},<span class="string">'ident_func'</span>,@identify_artefactual_components_auto)
+</pre><p>Now we will rerun the ICA by setting `do_ica=true`</p><pre class="codeinput">D_automatic = osl_africa(D_automatic,<span class="string">'do_ica'</span>,true,<span class="string">'used_maxfilter'</span>,1,<span class="string">'artefact_channels'</span>,{<span class="string">'EOG'</span>,<span class="string">'ECG'</span>},<span class="string">'ident_func'</span>,@identify_artefactual_components_auto)
 </pre><pre class="codeoutput">Number of signals: 306
-Number of samples: 232000
+Number of samples: 127899
 Calculating covariance...
 Reducing dimension...
 Selected [ 62 ] dimensions.
-Smallest remaining (non-zero) eigenvalue [ 2.20908 ]
-Largest remaining (non-zero) eigenvalue [ 8.5077e+08 ]
-Sum of removed eigenvalues [ 7.04886 ]
-[ 100 ] % of (non-zero) eigenvalues retained.
+Smallest remaining (non-zero) eigenvalue [ 2.12928 ]
+Largest remaining (non-zero) eigenvalue [ 33857.7 ]
+Sum of removed eigenvalues [ 7.7227 ]
+[ 99.989 ] % of (non-zero) eigenvalues retained.
 Whitening...
-Check: covariance differs from identity by [ 1.63557e-09 ].
+Check: covariance differs from identity by [ 9.83275e-13 ].
 Used approach [ symm ].
 Used nonlinearity [ tanh ].
 Using stabilized algorithm.
 Starting ICA calculation...
 Step no. 1
-Step no. 2, change in value of estimate: 0.451 
-Step no. 3, change in value of estimate: 0.415 
+Step no. 2, change in value of estimate: 0.821 
 ...
 ...
-Step no. 46, change in value of estimate: 0.00202 
-Step no. 47, change in value of estimate: 0.000572 
-Convergence after 48 steps
+...
+Step no. 80, change in value of estimate: 0.0001 
+Convergence after 81 steps
 Adding the mean back to the data.
 Precomputing sensor topographies for modality MEGMAG
 Precomputing sensor topographies for modality MEGPLANAR
-Rejecting IC 42 due to ECG (correlation = 0.55)
-Rejecting IC 4 due to EOG (correlation = 0.19)
-Rejecting IC 7 due to EOG (correlation = 0.53)
-Rejecting IC 36 due to EOG (correlation = 0.18)
+Rejecting IC 12 due to ECG (correlation = 0.58)
+Rejecting IC 38 due to EOG (correlation = 0.66)
 SPM M/EEG data object
 Type: continuous
 Transform: time
@@ -209,8 +209,8 @@ Transform: time
 Sampling frequency: 250 Hz
 Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_example/manual/subject1_spm_meeg.mat
 
-2 online montage(s) setup
-Current montage applied (0=none): 2 ,named: "AFRICA denoised data"
+3 online montage(s) setup
+Current montage applied (0=none): 3 ,named: "AFRICA denoised data"
 
 Use the syntax D(channels, samples, trials) to access the data
 Type "methods('meeg')" for the list of methods performing other operations with the object
@@ -226,8 +226,8 @@ Transform: time
 Sampling frequency: 250 Hz
 Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/preproc_example/manual/subject1_spm_meeg.mat
 
-2 online montage(s) setup
-Current montage applied (0=none): 2 ,named: "AFRICA denoised data"
+3 online montage(s) setup
+Current montage applied (0=none): 3 ,named: "AFRICA denoised data"
 
 Use the syntax D(channels, samples, trials) to access the data
 Type "methods('meeg')" for the list of methods performing other operations with the object
@@ -236,7 +236,7 @@ Type "help meeg/method_name" to get help about methods
 </pre><p>Now we can go back to the time series and verify that the ICA component is now correctly removed</p><pre class="codeinput">figure
 plot(D1.time,[D1(1,:).',D_automatic(1,:)']);
 set(gca,<span class="string">'XLim'</span>,[120 125],<span class="string">'YLim'</span>,[-1 1]*1e-10)
-</pre><img vspace="5" hspace="5" src="osl_example_africa_03.png" style="width:560px;height:420px;" alt=""> <h2 id="20">Description of method in publications</h2><p>Independent component analysis (ICA) was used to decompose the sensor data for each session into 150 temporally independent components (tICs) and associated sensor topographies using FastICA (<a href="http://research.ics.aalto.fi/ica/fastica">http://research.ics.aalto.fi/ica/fastica</a>). Artifact components were classified via the following procedure. Eye-blink, cardiac and mains interference components were manually identified by the combined inspection of the spatial topography, time course, kurtosis of the time course and frequency spectrum for all components. Eye-blink artifacts typically exhibited high kurtosis (&gt;20), a repeated blink structure in the time course and very structured spatial topographies. Cardiac component time courses strongly resembled the typical ECG signals, as well as having high kurtosis (&gt;20). Mains interference had extremely low kurtosis (typically &lt;&acirc;&#136;&#146;1) and a frequency spectrum dominated by 50 Hz line noise. Artefacts were then rejected by subtracting them out of the data.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="osl_example_africa_03.png" alt=""> <h2 id="20">Description of method in publications</h2><p>Independent component analysis (ICA) was used to decompose the sensor data for each session into 150 temporally independent components (tICs) and associated sensor topographies using FastICA (<a href="http://research.ics.aalto.fi/ica/fastica">http://research.ics.aalto.fi/ica/fastica</a>). Artifact components were classified via the following procedure. Eye-blink, cardiac and mains interference components were manually identified by the combined inspection of the spatial topography, time course, kurtosis of the time course and frequency spectrum for all components. Eye-blink artifacts typically exhibited high kurtosis (&gt;20), a repeated blink structure in the time course and very structured spatial topographies. Cardiac component time courses strongly resembled the typical ECG signals, as well as having high kurtosis (&gt;20). Mains interference had extremely low kurtosis (typically &lt;&acirc;&#136;&#146;1) and a frequency spectrum dominated by 50 Hz line noise. Artefacts were then rejected by subtracting them out of the data.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Preproc - AFRICA (ICA artefact removal)
 % OSL provides a framework for employing Independent Component Analysis (ICA)
@@ -422,7 +422,7 @@ D_automatic = events(D_automatic,1,ev);
 
 %%
 % Now we will rerun the ICA by setting `do_ica=true`
-D_automatic = osl_africa(D,'do_ica',true,'used_maxfilter',1,'artefact_channels',{'EOG','ECG'},'ident_func',@identify_artefactual_components_auto)
+D_automatic = osl_africa(D_automatic,'do_ica',true,'used_maxfilter',1,'artefact_channels',{'EOG','ECG'},'ident_func',@identify_artefactual_components_auto)
 
 %%
 % Now we can go back to the time series and verify that the ICA component is now correctly removed
