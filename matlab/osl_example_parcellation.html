@@ -277,102 +277,15 @@ ans =
 
 </pre><p>this will create a file 'filename.nii.gz'. The weight mask is written directly into the .nii file, so it may only make sense if you pass in a volume. For example, to make a .nii file with the XYZ x 1 representation of the parcellation (value indices parcel membership) you could use</p><pre class="codeinput">p.savenii(p.to_vol(1:38),<span class="string">'filename'</span>);
 </pre><pre class="codeoutput">Warning - parcellation is being binarized
-</pre><p>which will first expand the parcel assignments to each voxel.</p><p>Importantly, the <tt>savenii()</tt> method also copies the qform/xform portion of the header from the template mask into the newly saved file. This is important, partly because it specifies whether not the .nii file is saved in radiological orientation or not. Note that if the .nii file is missing  this information, it may not be usable for some purposes.</p><h2 id="36">Making surface plots</h2><p>You can also use the <tt>parcellation</tt> class to render surface plots. This is performed via a call to Workbench. In order to use this functionality, you need to</p><div><ul><li>Download Workbench (<a href="https://www.humanconnectome.org/software/connectome-workbench">https://www.humanconnectome.org/software/connectome-workbench</a>)</li><li>Specify the path where you installed Workbench in <tt>osl.conf</tt></li></ul></div><p>If you have done both steps and run <tt>osl_startup</tt>, you should be able to type <tt>!wb_command</tt> in the command window, and see the usage information for the program. If not, you will need to fix your configuration before proceeding to make surface plots.</p><p>Making a surface plot is done using the <tt>plot_surface</tt> method of the <tt>parcellation</tt> object. Allowed inputs are the same as for <tt>osleyes</tt>, <tt>fsleyes</tt>, <tt>savenii</tt> etc. which means you can pass in voxel or parcel data in any supported matrix size. The data is automatically projected onto the cortical surface and rendered.</p><pre class="codeinput">fig = p.plot_surface(1:38)
+</pre><p>which will first expand the parcel assignments to each voxel.</p><p>Importantly, the <tt>savenii()</tt> method also copies the qform/xform portion of the header from the template mask into the newly saved file. This is important, partly because it specifies whether not the .nii file is saved in radiological orientation or not. Note that if the .nii file is missing  this information, it may not be usable for some purposes.</p><h2 id="36">Making surface plots</h2><p>You can also use the <tt>parcellation</tt> class to render surface plots. This is performed via a call to Workbench. In order to use this functionality, you need to</p><div><ul><li>Download Workbench (<a href="https://www.humanconnectome.org/software/connectome-workbench">https://www.humanconnectome.org/software/connectome-workbench</a>)</li><li>Specify the path where you installed Workbench in <tt>osl.conf</tt></li></ul></div><p>If you have done both steps and run <tt>osl_startup</tt>, you should be able to type <tt>!wb_command</tt> in the command window, and see the usage information for the program. If not, you will need to fix your configuration before proceeding to make surface plots.</p><p>Making a surface plot is done using the <tt>plot_surface</tt> method of the <tt>parcellation</tt> object. Allowed inputs are the same as for <tt>osleyes</tt>, <tt>fsleyes</tt>, <tt>savenii</tt> etc. which means you can pass in voxel or parcel data in any supported matrix size. The data is automatically projected onto the cortical surface and rendered.</p><pre class="codeinput">fig = p.plot_surface(1:38);
 </pre><pre class="codeoutput">Warning - parcellation is being binarized
-
-t = 
-
-  Text ( ) with properties:
-
-                 String: ' '
-               FontSize: 11
-             FontWeight: 'bold'
-               FontName: 'Helvetica'
-                  Color: [0 0 0]
-    HorizontalAlignment: 'center'
-               Position: [-29.9999 81.6082 9.0949e-13]
-                  Units: 'data'
-
-  Use GET to show all properties
-
-
-fig = 
-
-  Figure (10) with properties:
-
-      Number: 10
-        Name: ''
-       Color: [0.9400 0.9400 0.9400]
-    Position: [680 539 1120 420]
-       Units: 'pixels'
-
-  Use GET to show all properties
-
-</pre><img vspace="5" hspace="5" src="osl_example_parcellation_14.png" alt=""> <p>Note that the <tt>plot_surface</tt> method returns a handle to the figure. By default, the cortical surface is not inflated. You can select the inflation level by setting the second argument of <tt>plot_surface</tt>. The default value, 0, corresponds to no inflation. Otherwise, 1 corresponds to inflated, and 2 corresponds to very inflated.</p><pre class="codeinput">p.plot_surface(1:38,2)
+</pre><img vspace="5" hspace="5" src="osl_example_parcellation_14.png" alt=""> <p>Note that the <tt>plot_surface</tt> method returns a handle to the figure. By default, the cortical surface is not inflated. You can select the inflation level by setting the second argument of <tt>plot_surface</tt>. The default value, 0, corresponds to no inflation. Otherwise, 1 corresponds to inflated, and 2 corresponds to very inflated.</p><pre class="codeinput">p.plot_surface(1:38,2);
 </pre><pre class="codeoutput">Warning - parcellation is being binarized
-
-t = 
-
-  Text ( ) with properties:
-
-                 String: ' '
-               FontSize: 11
-             FontWeight: 'bold'
-               FontName: 'Helvetica'
-                  Color: [0 0 0]
-    HorizontalAlignment: 'center'
-               Position: [8.5168e-05 152.4123 0]
-                  Units: 'data'
-
-  Use GET to show all properties
-
-
-ans = 
-
-  Figure (11) with properties:
-
-      Number: 11
-        Name: ''
-       Color: [0.9400 0.9400 0.9400]
-    Position: [680 539 1120 420]
-       Units: 'pixels'
-
-  Use GET to show all properties
-
-</pre><img vspace="5" hspace="5" src="osl_example_parcellation_15.png" alt=""> <p>By default, the two hemispheres are shown separately. You can combine them into a single brain by setting the third option to true</p><pre class="codeinput">p.plot_surface(1:38,[],true)
+</pre><img vspace="5" hspace="5" src="osl_example_parcellation_15.png" alt=""> <p>By default, the two hemispheres are shown separately. You can combine them into a single brain by setting the third option to true</p><pre class="codeinput">p.plot_surface(1:38,[],true);
 set(gca,<span class="string">'View'</span>,[-135 20]);
 </pre><pre class="codeoutput">Warning - parcellation is being binarized
-
-ans = 
-
-  Figure (12) with properties:
-
-      Number: 12
-        Name: ''
-       Color: [0.9400 0.9400 0.9400]
-    Position: [680 539 560 420]
-       Units: 'pixels'
-
-  Use GET to show all properties
-
 </pre><img vspace="5" hspace="5" src="osl_example_parcellation_16.png" alt=""> <p>It's also possible to display multiple volumes. If your image contains an extra dimension (if you pass in a 2D or 4D matrix, such that <tt>to_vol</tt> would return a 4D matrix) then the plot will be generated with all volumes on the surface.</p><pre class="codeinput">fig = p.plot_surface(randn(38,5));
 </pre><pre class="codeoutput">Warning - parcellation is being binarized
-
-t = 
-
-  Text ( ) with properties:
-
-                 String: ' '
-               FontSize: 11
-             FontWeight: 'bold'
-               FontName: 'Helvetica'
-                  Color: [0 0 0]
-    HorizontalAlignment: 'center'
-               Position: [-29.9999 81.6082 9.0949e-13]
-                  Units: 'data'
-
-  Use GET to show all properties
-
 </pre><img vspace="5" hspace="5" src="osl_example_parcellation_17.png" alt=""> <p>Notice that the count on the bottom left shows how many volumes are present. You can change the volume by using the buttons at the top of the window, or by setting the 'current_vol' property of the figure</p><pre class="codeinput">fig.current_vol = 2;
 </pre><img vspace="5" hspace="5" src="osl_example_parcellation_18.png" alt=""> <p>Let's put it together by rendering a time-varying tstat on the cortical surface. First, we need will take our voxelwise tstat and compute it at the parcel level.</p><pre class="language-matlab">nii_tstat = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'osleyes_example'</span>,<span class="string">'tstat1_gc1_8mm.nii.gz'</span>);
 d = nii.load(nii_tstat); <span class="comment">% Load the data</span>
@@ -722,19 +635,19 @@ p.savenii(p.to_vol(1:38),'filename');
 % Allowed inputs are the same as for |osleyes|, |fsleyes|, |savenii| etc. which means
 % you can pass in voxel or parcel data in any supported matrix size. The data is automatically
 % projected onto the cortical surface and rendered.
-fig = p.plot_surface(1:38)
+fig = p.plot_surface(1:38);
 
 %%
 % Note that the |plot_surface| method returns a handle to the figure.
 % By default, the cortical surface is not inflated. You can select the inflation level by 
 % setting the second argument of |plot_surface|. The default value, 0, corresponds to no inflation. Otherwise,
 % 1 corresponds to inflated, and 2 corresponds to very inflated.
-p.plot_surface(1:38,2)
+p.plot_surface(1:38,2);
 
 %%
 % By default, the two hemispheres are shown separately. You can combine them into a single brain by setting the 
 % third option to true
-p.plot_surface(1:38,[],true)
+p.plot_surface(1:38,[],true);
 set(gca,'View',[-135 20]);
 
 %%
