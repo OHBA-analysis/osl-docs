@@ -47,7 +47,7 @@ ans =
 
   Use GET to show all properties
 
-</pre><h2 id="11">Displaying variables</h2><p>You can also plot variables directly without first saving them to a nii file. There are two ways to specify the inputs:</p><div><ul><li>A matrix</li><li>A struct</li></ul></div><p>To specify input as a matrix, you can provide either</p><div><ul><li>A 1D vector with number of rows equal to voxels in a standard mask (e.g.   3559x1)</li><li>A 2D vector as per above (e.g. 3559x5 would have 5 volumes)</li><li>A 3D matrix with resolution the same as one of the standard masks (e.g.   23&Atilde;&#151;27&Atilde;&#151;23)</li><li>A 4D matrix as per above (e.g. 23&Atilde;&#151;27&Atilde;&#151;23x5 would have 5 volumes)</li></ul></div><p>In this case, a standard mask is guessed based on the size of the matrix, and the xform data for that standard mask is automatically attached. A warning will be displayed to indicate that this has occurred - in general, you should always keep track of your xform matrix.</p><pre class="codeinput">o = osleyes(randn(3559,1));
+</pre><h2 id="11">Displaying variables</h2><p>You can also plot variables directly without first saving them to a nii file. There are two ways to specify the inputs:</p><div><ul><li>A matrix</li><li>A struct</li></ul></div><p>To specify input as a matrix, you can provide either</p><div><ul><li>A 1D vector with number of rows equal to voxels in a standard mask (e.g.   3559x1)</li><li>A 2D matrix as per above (e.g. 3559x5 would have 5 volumes)</li><li>A 3D matrix with resolution the same as one of the standard masks (e.g.   23x27x23)</li><li>A 4D matrix as per above (e.g. 23x27x23x5 would have 5 volumes)</li></ul></div><p>In this case, a standard mask is guessed based on the size of the matrix, and the xform data for that standard mask is automatically attached. A warning will be displayed to indicate that this has occurred - in general, you should always keep track of your xform matrix.</p><pre class="codeinput">o = osleyes(randn(3559,1));
 </pre><pre class="codeoutput">Guessing template: /Users/romesh/oxford_postdoc/toolboxes/osl/std_masks/MNI152_T1_8mm_brain.nii.gz
 Guessing template: /Users/romesh/oxford_postdoc/toolboxes/osl/std_masks/MNI152_T1_8mm_brain.nii.gz
 </pre><img vspace="5" hspace="5" src="osl_example_osleyes_03.png" alt=""> <p>Alternative, you can specify the xform matrix by using a struct, with fields <tt>img</tt> and <tt>xform</tt>. Note that in this case, <tt>img</tt> must be 3D or 4D, because without a standard mask, you cannot reshape a matrix into a volume.</p><pre class="codeinput">[nii_data,~,nii_xform] = nii.load(nii_tstat);
@@ -239,10 +239,10 @@ o.fig
 %
 % * A 1D vector with number of rows equal to voxels in a standard mask (e.g.
 %   3559x1)
-% * A 2D vector as per above (e.g. 3559x5 would have 5 volumes)
+% * A 2D matrix as per above (e.g. 3559x5 would have 5 volumes)
 % * A 3D matrix with resolution the same as one of the standard masks (e.g.
-%   23Ã27Ã23)
-% * A 4D matrix as per above (e.g. 23Ã27Ã23x5 would have 5 volumes)
+%   23x27x23)
+% * A 4D matrix as per above (e.g. 23x27x23x5 would have 5 volumes)
 %
 % In this case, a standard mask is guessed based on the size of the matrix,
 % and the xform data for that standard mask is automatically attached. A
