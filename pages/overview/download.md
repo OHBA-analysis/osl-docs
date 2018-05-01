@@ -12,7 +12,7 @@ The best way to get started with is to take the following steps:
 2. Run through some of the example scripts (listed on this website, and available in the `examples` folder in OSL)
 3. Copy and then adapt a template script to the analysis you want to do.
 
-Issues? Contact us at [analysis@ohba.ox.ac.uk](mailto:analysis@ohba.ox.ac.uk). Please note that we only have limited capacity to provide technical assistance at this stage, so OSL is publicly distributed as-is and we provide support on a best-effort basis. 
+Please note that we only have limited capacity to provide technical assistance, so OSL is publicly distributed as-is and we provide support on a best-effort basis. 
 
 * TOC
 {:toc}
