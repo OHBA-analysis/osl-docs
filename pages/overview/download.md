@@ -28,7 +28,7 @@ Matlab R2014b and newer are fully supported. Matlab R2012b-R2014a have basic tes
 ## Installation instructions
 
 1. Make sure your Matlab version is R2014b or newer, and that FSL is installed
-2. [Download OSL](http://users.fmrib.ox.ac.uk/~woolrich/osl/osl.tar.gz)
+2. [Download OSL](https://www.dropbox.com/s/428klwuwo7j96tx/osl.tar.gz?dl=0)
 3. Once downloaded, extract the contents somewhere convenient. This will create a folder called `osl`
 4. Open Matlab and go into the `osl` folder. Within that folder, go into `osl-core`
 5. Type `osl_startup` to initialize OSL
