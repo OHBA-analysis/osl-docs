@@ -34,7 +34,9 @@ For this to work, the key is keep the following oat settings fixed over each cal
 - the `oat.source_recon.dirname`, and 
 - the list of input files, other than those concatenated on the end (e.g. any new sessions).
 
-To run OAT on different sessions in different calls to `osl_run_oat`, simple change the `oat.sessions_to_do` for each run. 
+To run OAT on different sessions in different calls to `osl_run_oat`, simple change the `oat.source_recon.sessions_to_do` & `oat.first_level.sessions_to_do` etc for each run. These are set using the indexes of each sessions - so if you appended 3 new sessions to input files this would be something like:
+    
+    oat.first_level.sessions_to_do = len(input_files)-3:len(input_files);
 
 When all sessions have been run, you can then use a call to:
 
