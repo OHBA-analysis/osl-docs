@@ -2,9 +2,9 @@
 
 When developing the tutorial pages, it can be helpful to view the pages locally. First make sure you have all the dependencies 
 
-	gem install bundler
+	sudo gem install bundler
     brew install libxml2 libxslt
-    sudo gem install nokogiri -v 1.6.8.1 -- --use-system-libraries=true --with-xml2-include=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/usr/include/libxml2
+    sudo gem install nokogiri -- --with-xml2-include=/usr/local/opt/libxml2/include
 
 Then install the GitHub jekyll dependencies
 
