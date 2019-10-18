@@ -54,7 +54,7 @@
         <li class="nav-li">
           <a href="#!">{{cat | capitalize}}</a>
           <ul class="nav-dropdown">
-              {% assign sorted_pages =  site.pages | sort:"title" %}
+              {% assign sorted_pages = site.pages | sort:"title" %}
               {% for page in sorted_pages %}
                 {% if page.resource == true %}
                   {% for pc in page.categories %}
