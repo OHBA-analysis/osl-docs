@@ -20,7 +20,7 @@ fif_files{2}=fullfile(datadir,<span class="string">'fifs'</span>,<span class="st
 
 spm_files{1}=fullfile(datadir,<span class="string">'spm_files'</span>,<span class="string">'loc_S01'</span>);
 spm_files{2}=fullfile(datadir,<span class="string">'spm_files'</span>,<span class="string">'loc_S02'</span>);
-</pre><h2 id="4">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</h2><p>OPT takes in SPM MEEG objects, so we first need to convert the fif file for each subject into this format using <tt>osl_import</tt>.</p><p>The fif file that we are working with is, e.g. loc_S02_sss1.fif. This has already been max-filtered for you and downsampled to 250Hz. The SPM M/EEG object is the data structure used to store and manipulate MEG and EEG data in SPM.</p><p>Calling <tt>osl_import</tt> will also produce a histogram plot showing the number of events detected for each code on the trigger channel. The codes used on the trigger channel for this experiment were:</p><pre class="codeinput"><span class="keyword">if</span>(~isempty(fif_files))
+</pre><h2 id="4">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</h2><p>OPT takes in SPM MEEG objects, so we first need to convert the fif file for each subject into this format using <tt>osl_import</tt>.</p><p>The fif files that we are working with, e.g. loc_S02_sss1.fif, have already been max-filtered and downsampled to 250Hz.</p><p>The SPM M/EEG object is the data structure used to store and manipulate MEG and EEG data in SPM.</p><p>Calling <tt>osl_import</tt> will also produce a histogram plot showing the number of events detected for each code on the trigger channel. The codes used on the trigger channel for this experiment were:</p><pre class="codeinput"><span class="keyword">if</span>(~isempty(fif_files))
     S2=[];
     <span class="keyword">for</span> i=1:length(fif_files) <span class="comment">% loops over subjects</span>
         S2.outfile = spm_files{i};
@@ -188,8 +188,9 @@ spm_files{2}=fullfile(datadir,'spm_files','loc_S02');
 % OPT takes in SPM MEEG objects, so we first need to convert the fif file
 % for each subject into this format using |osl_import|.
 %    
-% The fif file that we are working with is, e.g. loc_S02_sss1.fif. This has
-% already been max-filtered for you and downsampled to 250Hz.
+% The fif files that we are working with, e.g. loc_S02_sss1.fif, have
+% already been max-filtered and downsampled to 250Hz.
+%
 % The SPM M/EEG object is the data structure used to store and manipulate
 % MEG and EEG data in SPM.
 % 
