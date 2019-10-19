@@ -1,19 +1,13 @@
 ---
 layout: matlab_wrapper
-title: osl_example_preprocessing_manual
+title: Preproc - Manual
 resource: true
 categories: examples
 ---
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>osl_example_preprocessing_manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-19"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Preproc - Manual</a></li><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#75">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#78">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#106">EXERCISES</a></li></ul></div><h2 id="1">Preproc - Manual</h2><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m .</p><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><pre class="codeinput"><span class="comment">%</span>
-<span class="comment">% Note that this contains the fif file: fifs/sub1_face_sss.fif that has</span>
-<span class="comment">% already been SSS Maxfiltered and downsampled to 250 Hz.</span>
-<span class="comment">%</span>
-<span class="comment">% We will now run it through a manual preprocessing</span>
-<span class="comment">% pipeline as outlined above.</span>
-</pre><h2 id="2">SET UP ANALYSIS</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <i>cd /somedirectory/osl-core</i> ) and then run the following.</p><pre class="codeinput">osl_startup;
+   <title>Preproc - Manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-19"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h1>Preproc - Manual</h1><!--introduction--><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#75">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#78">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#106">EXERCISES</a></li></ul></div><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><p>Note that this contains the fif file: fifs/sub1_face_sss.fif that has already been SSS Maxfiltered and downsampled to 250 Hz.</p><p>We will now run it through a manual preprocessing pipeline as outlined above.</p><h2 id="2">SET UP ANALYSIS</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <i>cd /somedirectory/osl-core</i> ) and then run the following.</p><pre class="codeinput">osl_startup;
 </pre><p>This will not be necessary after you have done this once, i.e. no need to repeat during one of the follow-up practicals.</p><p><b>SPECIFY DIRECTORIES FOR THIS ANALYSIS</b></p><p>Next, the <tt>datadir</tt> needs to be setup to point to the right folder, where the example data are stored.</p><pre class="codeinput">datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_example'</span>,<span class="string">'manual'</span>);
 </pre><p>The working directory will be same as the data directory. This is where the files from the preprocessing we run will be stored.</p><pre class="codeinput">workingdir=datadir;
 </pre><p>We now need to specify a list of the fif files that we want to work on. We also need to specify a list of SPM file names, which will be used to name the resulting SPM data files after the fif files have been imported into SPM. It is important to make sure that the order of these lists is consistent. Note that we only work with one subject here, but more generally there would be more than one, e.g.:</p><pre class="codeinput"><span class="comment">% fif_files{1}=[testdir '/fifs/sub1_face_sss.fif'];</span>
@@ -371,26 +365,24 @@ topo2=squeeze(mean(D_africa(:,188,good_motorbike_trls),3));
 sensors_topoplot(D_africa,topo2,{<span class="string">'MEGPLANAR'</span> <span class="string">'MEGMAG'</span>},1);
 </pre><p>They should look like this. Have a look at how different these topographies look. Here, AFRICA is not making a huge amount of difference to the ERFs and topographies; however, that is not always the case</p><p><img vspace="5" hspace="5" src="osl_example_preproc_TOPO_CLEANED_AVG_ALL_SENSORS_AFRICA.png" alt=""> </p><h2 id="106">EXERCISES</h2><p>If you want to play around with the data and the cleaning approaches presented here, have a look at what happens when you remove more independent components during AFRICA. Also you can have a look at the interaction of oslview and AFRICA. For example, if you do not cut out the bad segments during oslview rejection, can you still get decent ERFs in the end? How many independent components would you need to remove to get some ERFs and are they still comparable to the ones generated earlier? Also, keep in mind that the data used here was meant to demonstrate the effect of artefacts in the data. Have a look at the other data sets presented during the following practical and see whether you can get similar success with even cleaner data, following the pipeline demonstrate in this practical here.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Preproc - Manual 
+%% Preproc - Manual
 % This an example for running a manual preprocessing pipeline in OSL. 
 % For today's workshop we will copy and paste directly from this practical
 % on the website. You can also do the same with the Matlab script found
-% under /osl-core/examples/osl_example_preprocessing_manual.m .
+% under /osl-core/examples/osl_example_preprocessing_manual.m.
 %
+
+%%
 % We will work with a single subject's data from an emotional faces task. 
 % 
 % We will take an approach here which is run step-by-step and requires
 % manual intervention. This will go through the following steps:
-
-
-
-% 
+%
 % Note that this contains the fif file: fifs/sub1_face_sss.fif that has
 % already been SSS Maxfiltered and downsampled to 250 Hz.
 % 
 % We will now run it through a manual preprocessing
 % pipeline as outlined above.
-
 
 %% SET UP ANALYSIS
 % The only thing you need to do is to go into your OSL directory (i.e. type _cd /somedirectory/osl-core_ ) and then run the following.
