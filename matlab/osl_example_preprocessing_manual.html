@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>osl_example_preprocessing_manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-18"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Preproc - Manual</a></li><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#75">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#78">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#106">EXERCISES</a></li></ul></div><h2 id="1">Preproc - Manual</h2><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m .</p><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><pre class="codeinput"><span class="comment">%</span>
+   <title>osl_example_preprocessing_manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-19"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Preproc - Manual</a></li><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#75">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#78">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#106">EXERCISES</a></li></ul></div><h2 id="1">Preproc - Manual</h2><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m .</p><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><pre class="codeinput"><span class="comment">%</span>
 <span class="comment">% Note that this contains the fif file: fifs/sub1_face_sss.fif that has</span>
 <span class="comment">% already been SSS Maxfiltered and downsampled to 250 Hz.</span>
 <span class="comment">%</span>
@@ -122,7 +122,13 @@ D = spm_eeg_load(spm_files{subnum});
     D=spm_eeg_copy(S); <span class="comment">% copy D object and add B prefix</span>
 
     modalities = {<span class="string">'MEGMAG'</span>,<span class="string">'MEGPLANAR'</span>};
-    D = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,true,<span class="string">'badtimes'</span>,true,<span class="string">'modalities'</span>,modalities);
+
+    <span class="comment">% look for bad channels</span>
+    D = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,true,<span class="string">'badtimes'</span>,false,<span class="string">'modalities'</span>,modalities);
+
+    <span class="comment">% then look for bad segments</span>
+    D = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,false,<span class="string">'badtimes'</span>,true,<span class="string">'modalities'</span>,modalities);
+
     D.save;
 <span class="keyword">end</span>
 </pre><p>Note that the bad segments/channels are not actually removed from the data, they are instead marked as bad, so that they can be optionally excluded from future parts of the analysis.</p><p>We now view the automatically marked segments/channels using oslview.</p><pre class="codeinput">D=oslview(D);
@@ -248,7 +254,7 @@ report.bad_channels(D, modalities);
 
 <span class="comment">% We will now perform outlier/bad trial detection directly on the epoched</span>
 <span class="comment">% data to refine the marking of bad trials further.</span>
-</pre><h2 id="72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</h2><p>We can either perform manual or automated bad trial detection.</p><p>We will first do this manually using the function <tt>osl_detect_artefacts</tt>. This can also find bad channels.</p><p>Note that in the code below we first create a copy of the <tt>D</tt> objects using <tt>spm_eeg_copy</tt>. This will be the new SPM MEEG objects that will eventually have the bad trials indicated in them. Here we represent bad epoch detection in the filename using the prefix 'R':</p><pre class="codeinput">clear <span class="string">spm_files</span>;
+</pre><h2 id="72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</h2><p>We can either perform manual or automated bad trial detection.</p><p>We will first do this automatically using the function <tt>osl_detect_artefacts</tt>. This can also find bad channels.</p><p>Note that in the code below we first create a copy of the <tt>D</tt> objects using <tt>spm_eeg_copy</tt>. This will be the new SPM MEEG objects that will eventually have the bad trials indicated in them. Here we represent bad epoch detection in the filename using the prefix 'R':</p><pre class="codeinput">clear <span class="string">spm_files</span>;
 <span class="keyword">for</span> subnum = 1:length(spm_files_basenames) <span class="comment">% iterates over subjects</span>
     spm_files{subnum}=fullfile(workingdir,[<span class="string">'eABdff'</span> spm_files_basenames{subnum}]);
 
@@ -258,7 +264,11 @@ report.bad_channels(D, modalities);
     D=spm_eeg_copy(S); <span class="comment">% copy D object and add R prefix</span>
 
     modalities = {<span class="string">'MEGMAG'</span>,<span class="string">'MEGPLANAR'</span>};
-    D = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,true,<span class="string">'badtimes'</span>,true,<span class="string">'modalities'</span>,modalities);
+    <span class="comment">% look for bad channels</span>
+    D = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,true,<span class="string">'badtimes'</span>,false,<span class="string">'modalities'</span>,modalities);
+
+    <span class="comment">% then look for bad segments</span>
+    D = osl_detect_artefacts(D,<span class="string">'badchannels'</span>,false,<span class="string">'badtimes'</span>,true,<span class="string">'modalities'</span>,modalities);
     D.save;
 <span class="keyword">end</span>
 </pre><p>Note that the bad trials/channels are not actually removed from the data, they are instead marked as bad, so that they can be optionally excluded from future parts of the analysis.</p><p>As before, we can now see the indices for any bad trials and channels. This will be a combination of those trials that overlapped with bad epochs on the continuous data, and trials that have just now been identified as bad using the automated bad trial detection on the epoched data.</p><pre class="codeinput">disp(<span class="string">'Bad trial indices:'</span>);
@@ -729,7 +739,13 @@ for subnum = 1:length(spm_files_basenames) % iterates over subjects
     D=spm_eeg_copy(S); % copy D object and add B prefix
 
     modalities = {'MEGMAG','MEGPLANAR'};
-    D = osl_detect_artefacts(D,'badchannels',true,'badtimes',true,'modalities',modalities);
+    
+    % look for bad channels
+    D = osl_detect_artefacts(D,'badchannels',true,'badtimes',false,'modalities',modalities);
+    
+    % then look for bad segments
+    D = osl_detect_artefacts(D,'badchannels',false,'badtimes',true,'modalities',modalities);
+    
     D.save;
 end
 
@@ -1135,7 +1151,7 @@ report.bad_channels(D, modalities);
 %% AUTOMATED BAD TRIAL/CHANNEL DETECTION 
 % We can either perform manual or automated bad trial detection.
 %
-% We will first do this manually using the function |osl_detect_artefacts|. 
+% We will first do this automatically using the function |osl_detect_artefacts|. 
 % This can also find bad channels.
 %
 % Note that in the code below we first create a copy of the |D| objects using |spm_eeg_copy|. This will be 
@@ -1151,7 +1167,11 @@ for subnum = 1:length(spm_files_basenames) % iterates over subjects
     D=spm_eeg_copy(S); % copy D object and add R prefix
 
     modalities = {'MEGMAG','MEGPLANAR'};
-    D = osl_detect_artefacts(D,'badchannels',true,'badtimes',true,'modalities',modalities);
+    % look for bad channels
+    D = osl_detect_artefacts(D,'badchannels',true,'badtimes',false,'modalities',modalities);
+    
+    % then look for bad segments
+    D = osl_detect_artefacts(D,'badchannels',false,'badtimes',true,'modalities',modalities);
     D.save;
 end
 
