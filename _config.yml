@@ -35,7 +35,7 @@ tipue_search:
     pages: true
     collections: [overview,examples,documentation,archive]
     
-gems:
+plugins:
   - jekyll-feed
 
 exclude:
