@@ -50,41 +50,9 @@ show_maps_osleyes = true;
 
 conditions = {<span class="string">'Famous face'</span>,<span class="string">'Unfamiliar face'</span>,<span class="string">'Scrambled face'</span>};
 </pre><pre class="codeoutput">/Applications/MATLAB_R2019a.app/toolbox/stats/stats/pca.m
-</pre><pre class="codeinput"><span class="comment">% We load the continuous data, for one subject</span>
-<span class="comment">% This 50 min of MEG data, 38 ROIs.</span>
-<span class="comment">% The variables are:</span>
-<span class="comment">% - X is (time by regions)</span>
-<span class="comment">% - T is a vector containing the length of each</span>
-<span class="comment">% data segment; we have various data segments because during preprocessing</span>
-<span class="comment">% we remove some bad parts</span>
-<span class="comment">% - stimulus is (time by 1), containing the stimulus shown at each time</span>
-<span class="comment">% point</span>
-</pre><pre class="codeinput">subj_str = <span class="string">'subj_2.mat'</span>;
+</pre><p>We load the continuous data, for one subject This 50 min of MEG data, 38 ROIs. The variables are: - X is (time by regions) - T is a vector containing the length of each data segment; we have various data segments because during preprocessing we remove some bad parts - stimulus is (time by 1), containing the stimulus shown at each time point</p><pre class="codeinput">subj_str = <span class="string">'subj_2.mat'</span>;
 load([data_dir subj_str]);
-</pre><pre class="codeinput"><span class="comment">% For the HMM-Gaussian, states reflect</span>
-<span class="comment">% distinct, recurrent patterns of power</span>
-<span class="comment">% and functional connectivity (in terms of power correlation).</span>
-<span class="comment">%</span>
-<span class="comment">% For this, perform the following steps, which are all implemented in the</span>
-<span class="comment">% HMM toolbox</span>
-<span class="comment">%</span>
-<span class="comment">% 1. Bandpass-filtering: we would be discarding very slow and very fast frequencies,</span>
-<span class="comment">%   although we also could use it to focus on a particular band of interest.</span>
-<span class="comment">%</span>
-<span class="comment">% 2. Getting power time courses: using the Hilbert transform we will get rid of the phase,</span>
-<span class="comment">%   information, producing time series that reflect only the changes on power.</span>
-<span class="comment">%</span>
-<span class="comment">% 3. Subsampling: because power changes are slow, we can afford downsampling the data to reduce</span>
-<span class="comment">%   the computational load without losing statistical power on the estimation.</span>
-<span class="comment">%   Also, downsampling will enhance the estimates of functional connectivity.</span>
-<span class="comment">%</span>
-<span class="comment">% This is the method established in Baker et al. (2014), but here applied on task data</span>
-<span class="comment">%</span>
-<span class="comment">% Again, note that, although this uses the hmmmar() function,</span>
-<span class="comment">% the model that it estimates for the states is *not* a MAR model,</span>
-<span class="comment">% but a Gaussian model. That is, even though is called HMM-MAR, the toolbox can</span>
-<span class="comment">% actually be used to estimate other models.</span>
-</pre><pre class="codeinput">options = struct();
+</pre><p>For the HMM-Gaussian, states reflect distinct, recurrent patterns of power and functional connectivity (in terms of power correlation).</p><p>For this, perform the following steps, which are all implemented in the HMM toolbox</p><p>1. Bandpass-filtering: we would be discarding very slow and very fast frequencies,   although we also could use it to focus on a particular band of interest.</p><p>2. Getting power time courses: using the Hilbert transform we will get rid of the phase,   information, producing time series that reflect only the changes on power.</p><p>3. Subsampling: because power changes are slow, we can afford downsampling the data to reduce   the computational load without losing statistical power on the estimation.   Also, downsampling will enhance the estimates of functional connectivity.</p><p>This is the method established in Baker et al. (2014), but here applied on task data</p><p>Again, note that, although this uses the hmmmar() function, the model that it estimates for the states is <b>not</b> a MAR model, but a Gaussian model. That is, even though is called HMM-MAR, the toolbox can actually be used to estimate other models.</p><pre class="codeinput">options = struct();
 <span class="comment">% number of states: in general, the higher this number, the more "detailed" will be the segmentation.</span>
 <span class="comment">% (By running the model with different number of states, we could get some sense of "state hierarchy").</span>
 options.K = 6;
@@ -115,10 +83,7 @@ options.verbose = 1;
 options.initrep = 1; <span class="comment">% to make it quicker - leave by default otherwise</span>
 options.initcyc = 1; <span class="comment">% to make it quicker - leave by default otherwise</span>
 options.cyc = 30; <span class="comment">% to make it quicker - leave by default otherwise</span>
-</pre><pre class="codeinput"><span class="comment">% We run the HMM, which takes a few minutes on one subject</span>
-<span class="comment">% Note that we often do this at the group level; here is done only</span>
-<span class="comment">% on one subject for practical reasons</span>
-</pre><pre class="codeinput"><span class="keyword">if</span> precomputed_results
+</pre><p>We run the HMM, which takes a few minutes on one subject Note that we often do this at the group level; here is done only on one subject for practical reasons</p><pre class="codeinput"><span class="keyword">if</span> precomputed_results
     load(results0,<span class="string">'hmm_env'</span>,<span class="string">'Gamma_env'</span>)
 <span class="keyword">else</span>
     tic
@@ -137,22 +102,7 @@ options.cyc = 30; <span class="comment">% to make it quicker - leave by default 
 <span class="keyword">end</span>
 </pre><pre class="codeoutput">Parcellation is being clipped to template
 Warning - parcellation is being binarized
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_01.png" alt=""> <pre class="codeinput"><span class="comment">% Now that we have the HMM model, we shall compute the spectral information of the states (power, coherence, etc).</span>
-<span class="comment">% In the case of the HMM-MAR, as we will see below, the MAR parameters themselves contain this spectral information.</span>
-<span class="comment">% Here, because we are using a Gaussian distribution on wideband power,</span>
-<span class="comment">% we don't know what is happening in the frequency</span>
-<span class="comment">% domain when each state is active, above and beyond gross changes in wideband power.</span>
-<span class="comment">% For example, in our current HMM estimation there is no information about phase coupling.</span>
-<span class="comment">% Hence, we need to estimate this frequency information (including phase coupling),</span>
-<span class="comment">% looking back at the data and using the state time courses we inferred.</span>
-<span class="comment">% For this, we will be using a weighted version (state-wise) of the multitaper, proposed in (Vidaurre et al. 2016).</span>
-<span class="comment">% In brief, this basically weights the data with the state time course for each state,</span>
-<span class="comment">% such that segments of the data where a given state has a higher probability of being active will</span>
-<span class="comment">% contribute more to the final spectral estimation.</span>
-<span class="comment">% Although not done here, we could get intervals of confidence</span>
-<span class="comment">% by setting options.p &gt; 0 (for example options.p=0.01 for a 99%</span>
-<span class="comment">% interval of confidence).</span>
-</pre><pre class="codeinput"><span class="comment">% We set the options for the spectral estimation:</span>
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_01.png" alt=""> <p>Now that we have the HMM model, we shall compute the spectral information of the states (power, coherence, etc). In the case of the HMM-MAR, as we will see below, the MAR parameters themselves contain this spectral information. Here, because we are using a Gaussian distribution on wideband power, we don't know what is happening in the frequency domain when each state is active, above and beyond gross changes in wideband power. For example, in our current HMM estimation there is no information about phase coupling. Hence, we need to estimate this frequency information (including phase coupling), looking back at the data and using the state time courses we inferred. For this, we will be using a weighted version (state-wise) of the multitaper, proposed in (Vidaurre et al. 2016). In brief, this basically weights the data with the state time course for each state, such that segments of the data where a given state has a higher probability of being active will contribute more to the final spectral estimation. Although not done here, we could get intervals of confidence by setting options.p &gt; 0 (for example options.p=0.01 for a 99% interval of confidence).</p><pre class="codeinput"><span class="comment">% We set the options for the spectral estimation:</span>
 options = struct();
 options.fpass = [1 40]; <span class="comment">% frequency range we want to look at, in this case between 1 and 40 Hertzs.</span>
 options.tapers = [4 7]; <span class="comment">% internal multitaper parameter</span>
@@ -174,25 +124,7 @@ options.embeddedlags = 0;
 
 <span class="comment">% We keep spectra_env for now, and will inspect it in comparison to the</span>
 <span class="comment">% HMM-MAR spectral estimation later on in the script.</span>
-</pre><pre class="codeinput"><span class="comment">% For the actual HMM-MAR approach, these states are based on autoregressive models,</span>
-<span class="comment">% i.e. linear functions that predict each time point as a function</span>
-<span class="comment">% of its previous data points. Remember that, as opposed to that, the HMM-Gaussian</span>
-<span class="comment">% just uses the mean and the covariance of the data, without looking</span>
-<span class="comment">% to any temporal or spectral relationships in the data.</span>
-<span class="comment">% Thus, the states of the HMM-MAR:</span>
-<span class="comment">%</span>
-<span class="comment">% (i) are spectrally defined, i.e. the characteristics of interest are defined as a function of frequency,</span>
-<span class="comment">%</span>
-<span class="comment">% (ii) are based on the raw time series, i.e. we do not need to bandpass filter or compute power envelopes,</span>
-<span class="comment">%</span>
-<span class="comment">% (iii) are not only sensitive to power differences but also to phase coupling.</span>
-<span class="comment">%</span>
-<span class="comment">% In particular, this script will estimate a group (spectrally-defined) HMM from MEG task data,</span>
-<span class="comment">% using two source-reconstructed regions in the primary visual cortex (left and right),</span>
-<span class="comment">% band-pass filtered between 1 and 45 Hz.</span>
-<span class="comment">%</span>
-<span class="comment">% The script follows the paper Vidaurre et al. (2016), which used data from the motor cortex</span>
-</pre><pre class="codeinput">options = struct();
+</pre><p>For the actual HMM-MAR approach, these states are based on autoregressive models, i.e. linear functions that predict each time point as a function of its previous data points. Remember that, as opposed to that, the HMM-Gaussian just uses the mean and the covariance of the data, without looking to any temporal or spectral relationships in the data. Thus, the states of the HMM-MAR:</p><p>(i) are spectrally defined, i.e. the characteristics of interest are defined as a function of frequency,</p><p>(ii) are based on the raw time series, i.e. we do not need to bandpass filter or compute power envelopes,</p><p>(iii) are not only sensitive to power differences but also to phase coupling.</p><p>In particular, this script will estimate a group (spectrally-defined) HMM from MEG task data, using two source-reconstructed regions in the primary visual cortex (left and right), band-pass filtered between 1 and 45 Hz.</p><p>The script follows the paper Vidaurre et al. (2016), which used data from the motor cortex</p><pre class="codeinput">options = struct();
 <span class="comment">% Given that we will be looking to 2 regions only, we set it to 3 states instead of 6</span>
 options.K = 3;
 <span class="comment">% order=0 corresponds to a Gaussian distribution (adequate for power time series).</span>
@@ -249,23 +181,7 @@ options.order = 15;
     toc <span class="comment">% 0min,5seg</span>
     save(results,<span class="string">'spectra_mar'</span>,<span class="string">'-append'</span>)
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="comment">% The HMM with a MAR observation model works well to model spectral changes</span>
-<span class="comment">% in just a few regions with a rich spectral profile.</span>
-<span class="comment">% If we wish to model the entire brain, this model does not work that well</span>
-<span class="comment">% because it has too many parameters.</span>
-<span class="comment">% Instead, we can use a simplification of the MAR model; here, each state</span>
-<span class="comment">% is defined by a cross-covariance matrix across time and regions</span>
-<span class="comment">% (technically a type of Gaussian process).</span>
-<span class="comment">% More precisely, it is a low-rank cross-covariance matrix, because we work</span>
-<span class="comment">% on PCA space.</span>
-<span class="comment">% We call this the TDE-HMM (time-delay embedded HMM).</span>
-<span class="comment">% At the expense to lose some spectral information that the MAR contains,</span>
-<span class="comment">% the TDE-HMM is able to model spectral changes across many regions, and,</span>
-<span class="comment">% like the MAR, is also run on raw data.</span>
-<span class="comment">%</span>
-<span class="comment">% The script follows the paper Vidaurre et al. (2018) Nat Comms, which used</span>
-<span class="comment">% pure resting-state data</span>
-</pre><pre class="codeinput">options = struct();
+</pre><p>The HMM with a MAR observation model works well to model spectral changes in just a few regions with a rich spectral profile. If we wish to model the entire brain, this model does not work that well because it has too many parameters. Instead, we can use a simplification of the MAR model; here, each state is defined by a cross-covariance matrix across time and regions (technically a type of Gaussian process). More precisely, it is a low-rank cross-covariance matrix, because we work on PCA space. We call this the TDE-HMM (time-delay embedded HMM). At the expense to lose some spectral information that the MAR contains, the TDE-HMM is able to model spectral changes across many regions, and, like the MAR, is also run on raw data.</p><p>The script follows the paper Vidaurre et al. (2018) Nat Comms, which used pure resting-state data</p><pre class="codeinput">options = struct();
 <span class="comment">% We go back to 6 states</span>
 options.K = 6;
 <span class="comment">% The TDE model is set up with the following parameters:</span>
@@ -298,10 +214,7 @@ options.cyc = 30; <span class="comment">% to make it quicker - leave by default 
     toc <span class="comment">% 13min</span>
     save(results,<span class="string">'hmm_tde'</span>,<span class="string">'Gamma_tde'</span>,<span class="string">'-append'</span>)
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="comment">% As we did before with the HMM-Gaussian on power, we are going to use the</span>
-<span class="comment">% multitaper to estimate the frequency content of the states.</span>
-<span class="comment">% This one might take a bit longer to run.</span>
-</pre><pre class="codeinput"><span class="comment">% We set the options for the spectral estimation:</span>
+</pre><p>As we did before with the HMM-Gaussian on power, we are going to use the multitaper to estimate the frequency content of the states. This one might take a bit longer to run.</p><pre class="codeinput"><span class="comment">% We set the options for the spectral estimation:</span>
 options = struct();
 options.fpass = [1 40]; <span class="comment">% frequency range we want to look at, in this case between 1 and 40 Hertzs.</span>
 options.tapers = [4 7]; <span class="comment">% internal multitaper parameter</span>
@@ -319,19 +232,7 @@ options.embeddedlags = -7:7;
     toc <span class="comment">% 9min</span>
     save(results,<span class="string">'spectra_tde'</span>,<span class="string">'-append'</span>)
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="comment">% With this method, we have a spectrally-defined description of each state;</span>
-<span class="comment">% for example, we have an estimation of power for each frequency bin,</span>
-<span class="comment">% region and state. Therefore, we can construct brain maps for each frequency.</span>
-<span class="comment">% Here, instead, we will show wideband maps by aggregating the estimation across frequencies.</span>
-<span class="comment">% For this, we use spectdecompose(), which is configured here to pull out</span>
-<span class="comment">% two frequency components: one will be a high frequency and the other will be a</span>
-<span class="comment">% slow-to-middle frequency. We will next get descriptions of the states for</span>
-<span class="comment">% these two frequency modes.</span>
-<span class="comment">% We will show the latter.</span>
-<span class="comment">%</span>
-<span class="comment">% Note that this function can be used to pull out more frequency modes, as in</span>
-<span class="comment">% Vidaurre et al. (2018), Nature Communications.</span>
-</pre><pre class="codeinput">params_fac = struct();
+</pre><p>With this method, we have a spectrally-defined description of each state; for example, we have an estimation of power for each frequency bin, region and state. Therefore, we can construct brain maps for each frequency. Here, instead, we will show wideband maps by aggregating the estimation across frequencies. For this, we use spectdecompose(), which is configured here to pull out two frequency components: one will be a high frequency and the other will be a slow-to-middle frequency. We will next get descriptions of the states for these two frequency modes. We will show the latter.</p><p>Note that this function can be used to pull out more frequency modes, as in Vidaurre et al. (2018), Nature Communications.</p><pre class="codeinput">params_fac = struct();
 params_fac.Base = <span class="string">'coh'</span>;
 params_fac.Method = <span class="string">'NNMF'</span>;
 params_fac.Ncomp = 2; <span class="comment">% set to a higher value (4) to pull out more detailed frequency modes</span>
@@ -350,10 +251,7 @@ params_fac.Ncomp = 2; <span class="comment">% set to a higher value (4) to pull 
 figure
 plot(spectra_tde.state(1).f,spectral_profiles,<span class="string">'LineWidth'</span>,3)
 ylabel(<span class="string">'Power'</span>); xlabel(<span class="string">'Frequency (Hz)'</span>)
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_02.png" alt=""> <pre class="codeinput"><span class="comment">% Show states in osleyes for the slow-to-middle frequency mode</span>
-<span class="comment">% We see different states for visual, temporal, frontal and parietal regions</span>
-
-<span class="keyword">if</span> show_maps_osleyes
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_02.png" alt=""> <p>Show states in osleyes for the slow-to-middle frequency mode We see different states for visual, temporal, frontal and parietal regions</p><pre class="codeinput"><span class="keyword">if</span> show_maps_osleyes
 
     p = parcellation(atlasfile); <span class="comment">% load the parcellation</span>
 
@@ -367,12 +265,7 @@ ylabel(<span class="string">'Power'</span>); xlabel(<span class="string">'Freque
 <span class="keyword">end</span>
 </pre><pre class="codeoutput">Parcellation is being clipped to template
 Warning - parcellation is being binarized
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_03.png" alt=""> <pre class="codeinput"><span class="comment">% We now look at the temporal information of the states. Given that this is</span>
-<span class="comment">% task data, we will later look at how the states get modulated by the task.</span>
-<span class="comment">% But first we will have a look at an arbitrary segment of the states time</span>
-<span class="comment">% courses to have a feel of the time scales at which the states change.</span>
-<span class="comment">% In the plots here, each colour represent one state.</span>
-</pre><pre class="codeinput">t = 3001:5001; <span class="comment">% some arbitrary time segment</span>
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_03.png" alt=""> <p>We now look at the temporal information of the states. Given that this is task data, we will later look at how the states get modulated by the task. But first we will have a look at an arbitrary segment of the states time courses to have a feel of the time scales at which the states change. In the plots here, each colour represent one state.</p><pre class="codeinput">t = 3001:5001; <span class="comment">% some arbitrary time segment</span>
 
 figure
 
@@ -390,19 +283,7 @@ subplot(3,1,3)
 area(t/250,Gamma_tde(t,:),<span class="string">'LineWidth'</span>,2);  xlim([t(1)/250 t(end)/250])
 xlabel(<span class="string">'Time'</span>); ylabel(<span class="string">'State probability'</span>)
 title(<span class="string">'TDE-HMM'</span> )
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_04.png" alt=""> <pre class="codeinput"><span class="comment">% The HMM is based on the Markovian assumption. That means that, as far as</span>
-<span class="comment">% the model is concerned, what state is active at each time point depends</span>
-<span class="comment">% on what state was active in the previous time point.</span>
-<span class="comment">% (Strictly speaking, this is a conditional dependency; that is, if you</span>
-<span class="comment">% knew what state was active in the previous time point for sure, then you</span>
-<span class="comment">% the state 'now' would be completely independent of all the time points</span>
-<span class="comment">% before that).</span>
-<span class="comment">% Given such Markovian assumption, a useful thing to look at is the</span>
-<span class="comment">% probability of transitioning from one state to another, which is</span>
-<span class="comment">% contained in the transition probability matrix.</span>
-<span class="comment">%</span>
-<span class="comment">% Note that the order of the states is arbitrary for each run.</span>
-</pre><pre class="codeinput">figure
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_04.png" alt=""> <p>The HMM is based on the Markovian assumption. That means that, as far as the model is concerned, what state is active at each time point depends on what state was active in the previous time point. (Strictly speaking, this is a conditional dependency; that is, if you knew what state was active in the previous time point for sure, then you the state 'now' would be completely independent of all the time points before that). Given such Markovian assumption, a useful thing to look at is the probability of transitioning from one state to another, which is contained in the transition probability matrix.</p><p>Note that the order of the states is arbitrary for each run.</p><pre class="codeinput">figure
 
 subplot(1,3,1)
 imagesc(getTransProbs(hmm_env)); colorbar
@@ -418,12 +299,7 @@ subplot(1,3,3)
 imagesc(getTransProbs(hmm_tde)); colorbar
 xlabel(<span class="string">'From state'</span>); ylabel(<span class="string">'To state'</span>)
 title(<span class="string">'TDE-HMM'</span> )
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_05.png" alt=""> <pre class="codeinput"><span class="comment">% Other informative statistics about the states is for how long the states</span>
-<span class="comment">% remain active before switching to a different state (state life times),</span>
-<span class="comment">% or how often you switch between states (switching rate).</span>
-<span class="comment">% Obviously, these two measures are closely related.</span>
-<span class="comment">% We show these here for each HMM modality,</span>
-</pre><pre class="codeinput">lifetimes_env = getStateLifeTimes (Gamma_env,T,hmm_env.train,[],[],false);
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_05.png" alt=""> <p>Other informative statistics about the states is for how long the states remain active before switching to a different state (state life times), or how often you switch between states (switching rate). Obviously, these two measures are closely related. We show these here for each HMM modality,</p><pre class="codeinput">lifetimes_env = getStateLifeTimes (Gamma_env,T,hmm_env.train,[],[],false);
 lifetimes_mar = getStateLifeTimes (Gamma_mar,T,hmm_mar.train,[],[],false);
 lifetimes_tde = getStateLifeTimes (Gamma_tde,T,hmm_tde.train,[],[],false);
 
@@ -443,11 +319,7 @@ probabilistic time courses (Gamma)
 Switching rate for HMM-Gaussian on envelopes is 0.070786
 Switching rate for HMM-MAR is 0.064479
 Switching rate for TDE-HMM is 0.042314
-</pre><pre class="codeinput"><span class="comment">% We see that the HMM-Gauss is the one showing the quickest state</span>
-<span class="comment">% switching. The TDE-HMM, which has a tendency to</span>
-<span class="comment">% focus on slower frequencies, has the longest life times.</span>
-
-<span class="comment">% We next show the life times</span>
+</pre><p>We see that the HMM-Gauss is the one showing the quickest state switching. The TDE-HMM, which has a tendency to focus on slower frequencies, has the longest life times.</p><pre class="codeinput"><span class="comment">% We next show the life times</span>
 </pre><pre class="codeinput">figure
 <span class="keyword">for</span> k = 1:hmm_env.train.K
    subplot(2,hmm_env.train.K/2, k)
@@ -471,12 +343,7 @@ figure
    xlabel(<span class="string">'Life times'</span>); ylabel(<span class="string">'No. of visits'</span>)
    title([<span class="string">'TDE-HMM; state '</span> num2str(k)])
 <span class="keyword">end</span>
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_06.png" alt=""> <img vspace="5" hspace="5" src="osl_example_hmmmar_07.png" alt=""> <img vspace="5" hspace="5" src="osl_example_hmmmar_08.png" alt=""> <pre class="codeinput"><span class="comment">% In resting-state data, one can validate the states against, for example,</span>
-<span class="comment">% separate behavioural information (phenotypes, clinical variability, etc).</span>
-<span class="comment">% Here, given that this is task data we are going to look at how the state</span>
-<span class="comment">% activations get modulated by the stimulus presentation.</span>
-
-<span class="comment">% We compute the state evoked response (locked to stimulus presentation)</span>
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_06.png" alt=""> <img vspace="5" hspace="5" src="osl_example_hmmmar_07.png" alt=""> <img vspace="5" hspace="5" src="osl_example_hmmmar_08.png" alt=""> <p>In resting-state data, one can validate the states against, for example, separate behavioural information (phenotypes, clinical variability, etc). Here, given that this is task data we are going to look at how the state activations get modulated by the stimulus presentation.</p><pre class="codeinput"><span class="comment">% We compute the state evoked response (locked to stimulus presentation)</span>
 <span class="comment">% for each variety of the HMM, as well as for the raw signal in the primary visual cortex.</span>
 </pre><pre class="codeinput">evokedGamma_env = cell(3,1);
 evokedGamma_mar = cell(3,1);
@@ -521,13 +388,7 @@ figure
     xlabel(<span class="string">'Time'</span>)
     title([<span class="string">'TDE-HMM: '</span> conditions{c}])
 <span class="keyword">end</span>
-</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_09.png" alt=""> <pre class="codeinput"><span class="comment">% We saw that the stimulus modulates the state probabilities for all</span>
-<span class="comment">% conditions and all models. Now we will test how the activation of the</span>
-<span class="comment">% states differ between conditions</span>
-<span class="comment">%</span>
-<span class="comment">% We first run some code to put the state time courses into an epoched</span>
-<span class="comment">% format, and to build up the appropriate design matrix</span>
-</pre><pre class="codeinput">window_test = [-0.2 0.5]; <span class="comment">% in seconds</span>
+</pre><img vspace="5" hspace="5" src="osl_example_hmmmar_09.png" alt=""> <p>We saw that the stimulus modulates the state probabilities for all conditions and all models. Now we will test how the activation of the states differ between conditions</p><p>We first run some code to put the state time courses into an epoched format, and to build up the appropriate design matrix</p><pre class="codeinput">window_test = [-0.2 0.5]; <span class="comment">% in seconds</span>
 window_test = round(window_test * 250);  <span class="comment">% in time points</span>
 
 K_env = size(Gamma_env,2);
@@ -572,10 +433,7 @@ Gamma_epoched_tde = Gamma_epoched_tde(:,good_trials,:);
 
 design_mat = design_mat(good_trials,:);
 design_mat = [ones(size(design_mat,1),1) design_mat];
-</pre><pre class="codeinput"><span class="comment">% We then run the testing for each time point, for faces vs. scrambled</span>
-<span class="comment">% faces. We use the function hmmtest_epoched, which implements permutation</span>
-<span class="comment">% testing for this purpose.</span>
-</pre><pre class="codeinput">contrast = [0 1 1 -2]';
+</pre><p>We then run the testing for each time point, for faces vs. scrambled faces. We use the function hmmtest_epoched, which implements permutation testing for this purpose.</p><pre class="codeinput">contrast = [0 1 1 -2]';
 Nperm = 5000;
 Y = design_mat * contrast;
 
@@ -589,9 +447,7 @@ Y = design_mat * contrast;
     toc <span class="comment">% 2min</span>
     save(results,<span class="string">'pvals_env'</span>,<span class="string">'pvals_mar'</span>,<span class="string">'pvals_tde'</span>,<span class="string">'-append'</span>)
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="comment">% We plot the p-values for each HMM modality as a function of time</span>
-
-figure
+</pre><p>We plot the p-values for each HMM modality as a function of time</p><pre class="codeinput">figure
 
 P = [pvals_env pvals_mar pvals_tde]';
 plot(t,log(P),<span class="string">'LineWidth'</span>,3); <span class="comment">%ylim([])</span>
@@ -666,7 +522,6 @@ end
 conditions = {'Famous face','Unfamiliar face','Scrambled face'};
 
 %%
-
 % We load the continuous data, for one subject
 % This 50 min of MEG data, 38 ROIs. 
 % The variables are: 
@@ -684,7 +539,6 @@ load([data_dir subj_str]);
 
 
 %%
-
 % For the HMM-Gaussian, states reflect 
 % distinct, recurrent patterns of power
 % and functional connectivity (in terms of power correlation).
@@ -744,7 +598,6 @@ options.initcyc = 1; % to make it quicker - leave by default otherwise
 options.cyc = 30; % to make it quicker - leave by default otherwise
 
 %%
-
 % We run the HMM, which takes a few minutes on one subject
 % Note that we often do this at the group level; here is done only
 % on one subject for practical reasons
@@ -774,7 +627,6 @@ if show_maps_osleyes
 end
 
 %% 
-
 % Now that we have the HMM model, we shall compute the spectral information of the states (power, coherence, etc).
 % In the case of the HMM-MAR, as we will see below, the MAR parameters themselves contain this spectral information.
 % Here, because we are using a Gaussian distribution on wideband power, 
@@ -818,8 +670,6 @@ end
 % HMM-MAR spectral estimation later on in the script. 
 
 %%
-
-
 % For the actual HMM-MAR approach, these states are based on autoregressive models, 
 % i.e. linear functions that predict each time point as a function
 % of its previous data points. Remember that, as opposed to that, the HMM-Gaussian 
@@ -911,7 +761,6 @@ else % load a precomputed results
 end
 
 %%
-
 % The HMM with a MAR observation model works well to model spectral changes
 % in just a few regions with a rich spectral profile. 
 % If we wish to model the entire brain, this model does not work that well
@@ -966,7 +815,6 @@ else
 end
 
 %%
-
 % As we did before with the HMM-Gaussian on power, we are going to use the
 % multitaper to estimate the frequency content of the states.
 % This one might take a bit longer to run. 
@@ -994,7 +842,6 @@ end
 
 
 %%
-
 % With this method, we have a spectrally-defined description of each state;
 % for example, we have an estimation of power for each frequency bin, 
 % region and state. Therefore, we can construct brain maps for each frequency. 
@@ -1031,9 +878,10 @@ plot(spectra_tde.state(1).f,spectral_profiles,'LineWidth',3)
 ylabel('Power'); xlabel('Frequency (Hz)')
 
 %%
-
 % Show states in osleyes for the slow-to-middle frequency mode
 % We see different states for visual, temporal, frontal and parietal regions
+
+%%
 
 if show_maps_osleyes
     
@@ -1049,7 +897,6 @@ if show_maps_osleyes
 end
 
 %% 
-
 % We now look at the temporal information of the states. Given that this is
 % task data, we will later look at how the states get modulated by the task.
 % But first we will have a look at an arbitrary segment of the states time
@@ -1078,7 +925,6 @@ xlabel('Time'); ylabel('State probability')
 title('TDE-HMM' )
 
 %% 
-
 % The HMM is based on the Markovian assumption. That means that, as far as
 % the model is concerned, what state is active at each time point depends
 % on what state was active in the previous time point. 
@@ -1112,7 +958,6 @@ xlabel('From state'); ylabel('To state')
 title('TDE-HMM' )
 
 %% 
-
 % Other informative statistics about the states is for how long the states
 % remain active before switching to a different state (state life times),
 % or how often you switch between states (switching rate). 
@@ -1134,7 +979,6 @@ disp(['Switching rate for HMM-MAR is ' num2str(switchingRate_mar)])
 disp(['Switching rate for TDE-HMM is ' num2str(switchingRate_tde)])
 
 %%
-
 % We see that the HMM-Gauss is the one showing the quickest state
 % switching. The TDE-HMM, which has a tendency to
 % focus on slower frequencies, has the longest life times. 
@@ -1168,7 +1012,6 @@ for k = 1:hmm_tde.train.K
 end
 
 %%
-
 % In resting-state data, one can validate the states against, for example,
 % separate behavioural information (phenotypes, clinical variability, etc).
 % Here, given that this is task data we are going to look at how the state 
@@ -1225,7 +1068,6 @@ end
 
 
 %% 
-
 % We saw that the stimulus modulates the state probabilities for all
 % conditions and all models. Now we will test how the activation of the
 % states differ between conditions
@@ -1282,7 +1124,6 @@ design_mat = design_mat(good_trials,:);
 design_mat = [ones(size(design_mat,1),1) design_mat];
 
 %%
-
 % We then run the testing for each time point, for faces vs. scrambled
 % faces. We use the function hmmtest_epoched, which implements permutation
 % testing for this purpose. 
@@ -1306,8 +1147,9 @@ end
 
 
 %%
-
 % We plot the p-values for each HMM modality as a function of time
+
+%%
 
 figure
 
