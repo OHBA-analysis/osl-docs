@@ -152,8 +152,7 @@ Warning - parcellation is being binarized
 <span class="comment">% Although not done here, we could get intervals of confidence</span>
 <span class="comment">% by setting options.p &gt; 0 (for example options.p=0.01 for a 99%</span>
 <span class="comment">% interval of confidence).</span>
-
-<span class="comment">% We set the options for the spectral estimation:</span>
+</pre><pre class="codeinput"><span class="comment">% We set the options for the spectral estimation:</span>
 options = struct();
 options.fpass = [1 40]; <span class="comment">% frequency range we want to look at, in this case between 1 and 40 Hertzs.</span>
 options.tapers = [4 7]; <span class="comment">% internal multitaper parameter</span>
@@ -193,8 +192,7 @@ options.embeddedlags = 0;
 <span class="comment">% band-pass filtered between 1 and 45 Hz.</span>
 <span class="comment">%</span>
 <span class="comment">% The script follows the paper Vidaurre et al. (2016), which used data from the motor cortex</span>
-
-options = struct();
+</pre><pre class="codeinput">options = struct();
 <span class="comment">% Given that we will be looking to 2 regions only, we set it to 3 states instead of 6</span>
 options.K = 3;
 <span class="comment">% order=0 corresponds to a Gaussian distribution (adequate for power time series).</span>
@@ -267,9 +265,7 @@ options.order = 15;
 <span class="comment">%</span>
 <span class="comment">% The script follows the paper Vidaurre et al. (2018) Nat Comms, which used</span>
 <span class="comment">% pure resting-state data</span>
-
-
-options = struct();
+</pre><pre class="codeinput">options = struct();
 <span class="comment">% We go back to 6 states</span>
 options.K = 6;
 <span class="comment">% The TDE model is set up with the following parameters:</span>
@@ -305,8 +301,7 @@ options.cyc = 30; <span class="comment">% to make it quicker - leave by default 
 </pre><pre class="codeinput"><span class="comment">% As we did before with the HMM-Gaussian on power, we are going to use the</span>
 <span class="comment">% multitaper to estimate the frequency content of the states.</span>
 <span class="comment">% This one might take a bit longer to run.</span>
-
-<span class="comment">% We set the options for the spectral estimation:</span>
+</pre><pre class="codeinput"><span class="comment">% We set the options for the spectral estimation:</span>
 options = struct();
 options.fpass = [1 40]; <span class="comment">% frequency range we want to look at, in this case between 1 and 40 Hertzs.</span>
 options.tapers = [4 7]; <span class="comment">% internal multitaper parameter</span>
@@ -336,8 +331,7 @@ options.embeddedlags = -7:7;
 <span class="comment">%</span>
 <span class="comment">% Note that this function can be used to pull out more frequency modes, as in</span>
 <span class="comment">% Vidaurre et al. (2018), Nature Communications.</span>
-
-params_fac = struct();
+</pre><pre class="codeinput">params_fac = struct();
 params_fac.Base = <span class="string">'coh'</span>;
 params_fac.Method = <span class="string">'NNMF'</span>;
 params_fac.Ncomp = 2; <span class="comment">% set to a higher value (4) to pull out more detailed frequency modes</span>
@@ -378,8 +372,7 @@ Warning - parcellation is being binarized
 <span class="comment">% But first we will have a look at an arbitrary segment of the states time</span>
 <span class="comment">% courses to have a feel of the time scales at which the states change.</span>
 <span class="comment">% In the plots here, each colour represent one state.</span>
-
-t = 3001:5001; <span class="comment">% some arbitrary time segment</span>
+</pre><pre class="codeinput">t = 3001:5001; <span class="comment">% some arbitrary time segment</span>
 
 figure
 
@@ -409,8 +402,7 @@ title(<span class="string">'TDE-HMM'</span> )
 <span class="comment">% contained in the transition probability matrix.</span>
 <span class="comment">%</span>
 <span class="comment">% Note that the order of the states is arbitrary for each run.</span>
-
-figure
+</pre><pre class="codeinput">figure
 
 subplot(1,3,1)
 imagesc(getTransProbs(hmm_env)); colorbar
@@ -431,8 +423,7 @@ title(<span class="string">'TDE-HMM'</span> )
 <span class="comment">% or how often you switch between states (switching rate).</span>
 <span class="comment">% Obviously, these two measures are closely related.</span>
 <span class="comment">% We show these here for each HMM modality,</span>
-
-lifetimes_env = getStateLifeTimes (Gamma_env,T,hmm_env.train,[],[],false);
+</pre><pre class="codeinput">lifetimes_env = getStateLifeTimes (Gamma_env,T,hmm_env.train,[],[],false);
 lifetimes_mar = getStateLifeTimes (Gamma_mar,T,hmm_mar.train,[],[],false);
 lifetimes_tde = getStateLifeTimes (Gamma_tde,T,hmm_tde.train,[],[],false);
 
@@ -443,13 +434,21 @@ switchingRate_tde = getSwitchingRate(Gamma_tde,T,hmm_tde.train); switchingRate_t
 disp([<span class="string">'Switching rate for HMM-Gaussian on envelopes is '</span> num2str(switchingRate_env)])
 disp([<span class="string">'Switching rate for HMM-MAR is '</span> num2str(switchingRate_mar)])
 disp([<span class="string">'Switching rate for TDE-HMM is '</span> num2str(switchingRate_tde)])
-
-<span class="comment">% We see that the HMM-Gauss is the one showing the quickest state</span>
+</pre><pre class="codeoutput">Warning: Using the Viterbi path is here recommended instead of the state
+probabilistic time courses (Gamma) 
+Warning: Using the Viterbi path is here recommended instead of the state
+probabilistic time courses (Gamma) 
+Warning: Using the Viterbi path is here recommended instead of the state
+probabilistic time courses (Gamma) 
+Switching rate for HMM-Gaussian on envelopes is 0.070786
+Switching rate for HMM-MAR is 0.064479
+Switching rate for TDE-HMM is 0.042314
+</pre><pre class="codeinput"><span class="comment">% We see that the HMM-Gauss is the one showing the quickest state</span>
 <span class="comment">% switching. The TDE-HMM, which has a tendency to</span>
 <span class="comment">% focus on slower frequencies, has the longest life times.</span>
 
-<span class="comment">% we next show the life times</span>
-figure
+<span class="comment">% We next show the life times</span>
+</pre><pre class="codeinput">figure
 <span class="keyword">for</span> k = 1:hmm_env.train.K
    subplot(2,hmm_env.train.K/2, k)
    hist(lifetimes_env{k}/250,100); xlim([0 200/250])
@@ -472,15 +471,6 @@ figure
    xlabel(<span class="string">'Life times'</span>); ylabel(<span class="string">'No. of visits'</span>)
    title([<span class="string">'TDE-HMM; state '</span> num2str(k)])
 <span class="keyword">end</span>
-</pre><pre class="codeoutput">Warning: Using the Viterbi path is here recommended instead of the state
-probabilistic time courses (Gamma) 
-Warning: Using the Viterbi path is here recommended instead of the state
-probabilistic time courses (Gamma) 
-Warning: Using the Viterbi path is here recommended instead of the state
-probabilistic time courses (Gamma) 
-Switching rate for HMM-Gaussian on envelopes is 0.070786
-Switching rate for HMM-MAR is 0.064479
-Switching rate for TDE-HMM is 0.042314
 </pre><img vspace="5" hspace="5" src="osl_example_hmmmar_06.png" alt=""> <img vspace="5" hspace="5" src="osl_example_hmmmar_07.png" alt=""> <img vspace="5" hspace="5" src="osl_example_hmmmar_08.png" alt=""> <pre class="codeinput"><span class="comment">% In resting-state data, one can validate the states against, for example,</span>
 <span class="comment">% separate behavioural information (phenotypes, clinical variability, etc).</span>
 <span class="comment">% Here, given that this is task data we are going to look at how the state</span>
@@ -488,7 +478,7 @@ Switching rate for TDE-HMM is 0.042314
 
 <span class="comment">% We compute the state evoked response (locked to stimulus presentation)</span>
 <span class="comment">% for each variety of the HMM, as well as for the raw signal in the primary visual cortex.</span>
-evokedGamma_env = cell(3,1);
+</pre><pre class="codeinput">evokedGamma_env = cell(3,1);
 evokedGamma_mar = cell(3,1);
 evokedGamma_tde = cell(3,1);
 
@@ -537,8 +527,7 @@ figure
 <span class="comment">%</span>
 <span class="comment">% We first run some code to put the state time courses into an epoched</span>
 <span class="comment">% format, and to build up the appropriate design matrix</span>
-
-window_test = [-0.2 0.5]; <span class="comment">% in seconds</span>
+</pre><pre class="codeinput">window_test = [-0.2 0.5]; <span class="comment">% in seconds</span>
 window_test = round(window_test * 250);  <span class="comment">% in time points</span>
 
 K_env = size(Gamma_env,2);
@@ -586,8 +575,7 @@ design_mat = [ones(size(design_mat,1),1) design_mat];
 </pre><pre class="codeinput"><span class="comment">% We then run the testing for each time point, for faces vs. scrambled</span>
 <span class="comment">% faces. We use the function hmmtest_epoched, which implements permutation</span>
 <span class="comment">% testing for this purpose.</span>
-
-contrast = [0 1 1 -2]';
+</pre><pre class="codeinput">contrast = [0 1 1 -2]';
 Nperm = 5000;
 Y = design_mat * contrast;
 
@@ -803,6 +791,9 @@ end
 % by setting options.p > 0 (for example options.p=0.01 for a 99%
 % interval of confidence).
 
+%%
+
+
 % We set the options for the spectral estimation:
 options = struct();
 options.fpass = [1 40]; % frequency range we want to look at, in this case between 1 and 40 Hertzs.
@@ -826,8 +817,6 @@ end
 % We keep spectra_env for now, and will inspect it in comparison to the
 % HMM-MAR spectral estimation later on in the script. 
 
-
-
 %%
 
 
@@ -849,6 +838,8 @@ end
 % band-pass filtered between 1 and 45 Hz.
 %
 % The script follows the paper Vidaurre et al. (2016), which used data from the motor cortex
+
+%%
 
 options = struct();
 % Given that we will be looking to 2 regions only, we set it to 3 states instead of 6
@@ -899,6 +890,8 @@ end
 % which are defined in the temporal domain, into the spectral domain.
 % This way, we will have, for each state, estimates of power, coherence, phase relations, etc. 
 
+%%
+
 % We set the options to get the spectral estimation from the MAR parameters
 options = struct();
 options.fpass = [1 40]; % frequency range we want to look at
@@ -936,6 +929,7 @@ end
 % The script follows the paper Vidaurre et al. (2018) Nat Comms, which used
 % pure resting-state data
 
+%%
 
 options = struct();
 % We go back to 6 states
@@ -977,6 +971,8 @@ end
 % multitaper to estimate the frequency content of the states.
 % This one might take a bit longer to run. 
 
+%%
+
 % We set the options for the spectral estimation:
 options = struct();
 options.fpass = [1 40]; % frequency range we want to look at, in this case between 1 and 40 Hertzs.
@@ -1010,7 +1006,9 @@ end
 % We will show the latter. 
 %
 % Note that this function can be used to pull out more frequency modes, as in
-% Vidaurre et al. (2018), Nature Communications. 
+% Vidaurre et al. (2018), Nature Communications.
+
+%%
 
 params_fac = struct();
 params_fac.Base = 'coh';
@@ -1058,6 +1056,8 @@ end
 % courses to have a feel of the time scales at which the states change.
 % In the plots here, each colour represent one state.
 
+%%
+
 t = 3001:5001; % some arbitrary time segment
 
 figure
@@ -1092,6 +1092,8 @@ title('TDE-HMM' )
 % 
 % Note that the order of the states is arbitrary for each run.
 
+%%
+
 figure
 
 subplot(1,3,1)
@@ -1117,6 +1119,8 @@ title('TDE-HMM' )
 % Obviously, these two measures are closely related. 
 % We show these here for each HMM modality,
 
+%%
+
 lifetimes_env = getStateLifeTimes (Gamma_env,T,hmm_env.train,[],[],false);
 lifetimes_mar = getStateLifeTimes (Gamma_mar,T,hmm_mar.train,[],[],false);
 lifetimes_tde = getStateLifeTimes (Gamma_tde,T,hmm_tde.train,[],[],false);
@@ -1129,11 +1133,16 @@ disp(['Switching rate for HMM-Gaussian on envelopes is ' num2str(switchingRate_e
 disp(['Switching rate for HMM-MAR is ' num2str(switchingRate_mar)])
 disp(['Switching rate for TDE-HMM is ' num2str(switchingRate_tde)])
 
+%%
+
 % We see that the HMM-Gauss is the one showing the quickest state
 % switching. The TDE-HMM, which has a tendency to
 % focus on slower frequencies, has the longest life times. 
 
-% we next show the life times
+% We next show the life times
+
+%%
+
 figure
 for k = 1:hmm_env.train.K
    subplot(2,hmm_env.train.K/2, k)
@@ -1167,6 +1176,9 @@ end
 
 % We compute the state evoked response (locked to stimulus presentation)
 % for each variety of the HMM, as well as for the raw signal in the primary visual cortex. 
+
+%%
+
 evokedGamma_env = cell(3,1); 
 evokedGamma_mar = cell(3,1);
 evokedGamma_tde = cell(3,1);
@@ -1221,6 +1233,8 @@ end
 % We first run some code to put the state time courses into an epoched
 % format, and to build up the appropriate design matrix
 
+%%
+
 window_test = [-0.2 0.5]; % in seconds
 window_test = round(window_test * 250);  % in time points
 
@@ -1272,6 +1286,8 @@ design_mat = [ones(size(design_mat,1),1) design_mat];
 % We then run the testing for each time point, for faces vs. scrambled
 % faces. We use the function hmmtest_epoched, which implements permutation
 % testing for this purpose. 
+
+%%
 
 contrast = [0 1 1 -2]';
 Nperm = 5000; 
