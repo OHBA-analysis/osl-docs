@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>ROInets 1 - Introduction to orthogonalization</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_roinets_1_synthetic.m"></head><body><div class="content"><h1>ROInets 1 - Introduction to orthogonalization</h1><!--introduction--><p>This example uses synthetic signals to illustrate the effect of orthogonalization.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#9">EXERCISES</a></li></ul></div><p>Spatial leakage in the beamformer results in correlations between adjacent/nearby voxels being introduced, that are not the result of correlations in neural activity. As an approximation, this can be corrected for by removing all zero-lag correlations. Note that this does not eliminate correlations in the amplitude envelopes (although it does decrease them somewhat). By doing this, the remaining correlation is assumed to reflect genuine functional connectivity.</p><p>To demonstrate orthogonalization in practice, this example illustrates the use of the low-level <tt>ROInets</tt> function <tt>remove_source_leakage()</tt> which implements the core orthogonalization algorithms.</p><p>First, we generate a synthetic signal and plot it</p><pre class="codeinput">Fs       = 100; <span class="comment">%Hz</span>
+   <title>ROInets 1 - Introduction to orthogonalization</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_roinets_1_synthetic.m"></head><body><div class="content"><h1>ROInets 1 - Introduction to orthogonalization</h1><!--introduction--><p>This example uses synthetic signals to illustrate the effect of orthogonalization.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">TUTORIAL</a></li><li><a href="#9">EXERCISES</a></li></ul></div><h2 id="1">TUTORIAL</h2><p>Spatial leakage in the beamformer results in correlations between adjacent/nearby voxels being introduced, that are not the result of correlations in neural activity. As an approximation, this can be corrected for by removing all zero-lag correlations. Note that this does not eliminate correlations in the amplitude envelopes (although it does decrease them somewhat). By doing this, the remaining correlation is assumed to reflect genuine functional connectivity.</p><p>To demonstrate orthogonalization in practice, this example illustrates the use of the low-level <tt>ROInets</tt> function <tt>remove_source_leakage()</tt> which implements the core orthogonalization algorithms.</p><p>First, we generate a synthetic signal and plot it</p><pre class="codeinput">Fs       = 100; <span class="comment">%Hz</span>
 duration = 36000; <span class="comment">%s</span>
 time     = 0:1.0/Fs:duration;
 nSamples = length(time);
@@ -29,28 +29,28 @@ ylabel(<span class="string">'Signal value'</span>)
 </pre><pre class="codeoutput">
 ans =
 
-    1.0000   -0.0983    0.6006
-   -0.0983    1.0000    0.3002
-    0.6006    0.3002    1.0000
+    1.0000   -0.1006    0.5995
+   -0.1006    1.0000    0.3003
+    0.5995    0.3003    1.0000
 
 </pre><p>The <tt>remove_source_leakage()</tt> function takes in the data matrix, as well as the orthogonalization method. To apply symmetric orthogonalization, we can simply call:</p><pre class="codeinput">tic
 data_orthog = ROInets.remove_source_leakage(data, <span class="string">'closest'</span>);
 toc
-</pre><pre class="codeoutput">Elapsed time is 1.599581 seconds.
+</pre><pre class="codeoutput">Elapsed time is 1.452186 seconds.
 </pre><p>Now, the channels have no static zero-lag correlation</p><pre class="codeinput">corr(data_orthog')
 </pre><pre class="codeoutput">
 ans =
 
-    1.0000    0.0000   -0.0000
-    0.0000    1.0000    0.0000
-   -0.0000    0.0000    1.0000
+    1.0000   -0.0000    0.0000
+   -0.0000    1.0000    0.0000
+    0.0000    0.0000    1.0000
 
 </pre><p>However, the amplitude of the orthogonalized signals is quite different to the original signals</p><pre class="codeinput">std(data')
 std(data_orthog')
 </pre><pre class="codeoutput">
 ans =
 
-    0.0221    0.0220    0.0221
+    0.0221    0.0221    0.0221
 
 
 ans =
@@ -63,9 +63,9 @@ std(data_orthog_closest')
 </pre><pre class="codeoutput">
 ans =
 
-    1.0000    0.0000   -0.0000
-    0.0000    1.0000    0.0000
-   -0.0000    0.0000    1.0000
+    1.0000   -0.0000    0.0000
+   -0.0000    1.0000    0.0000
+    0.0000    0.0000    1.0000
 
 
 ans =
@@ -78,7 +78,7 @@ ans =
 %
 % This example uses synthetic signals to illustrate the effect of orthogonalization.
 %
-%%
+%% TUTORIAL
 % Spatial leakage in the beamformer results in correlations between adjacent/nearby voxels being
 % introduced, that are not the result of correlations in neural activity. As an approximation, this
 % can be corrected for by removing all zero-lag correlations. Note that this does not eliminate correlations

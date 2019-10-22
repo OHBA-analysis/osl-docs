@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>ROInets 2 - Amplitude envelope connectivity analysis</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_roinets_2_manual.m"></head><body><div class="content"><h1>ROInets 2 - Amplitude envelope connectivity analysis</h1><!--introduction--><p>This example shows how to examine functional connectivity using amplitude envelope correlations for a single subject.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#22">EXERCISES</a></li></ul></div><p>First, we will load an SPM object containing our data, and select a parcellation for the analysis</p><pre class="codeinput">D = spm_eeg_load(osldir(<span class="string">'example_data'</span>,<span class="string">'roinets_example'</span>,<span class="string">'subject_1'</span>));
+   <title>ROInets 2 - Amplitude envelope connectivity analysis</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_roinets_2_manual.m"></head><body><div class="content"><h1>ROInets 2 - Amplitude envelope connectivity analysis</h1><!--introduction--><p>This example shows how to examine functional connectivity using amplitude envelope correlations for a single subject.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">TUTORIAL</a></li><li><a href="#22">EXERCISES</a></li></ul></div><h2 id="1">TUTORIAL</h2><p>First, we will load an SPM object containing our data, and select a parcellation for the analysis</p><pre class="codeinput">D = spm_eeg_load(osldir(<span class="string">'example_data'</span>,<span class="string">'roinets_example'</span>,<span class="string">'subject_1'</span>));
 spatial_basis_file = osldir(<span class="string">'parcellations'</span>,<span class="string">'fmri_d100_parcellation_with_PCC_reduced_2mm_ss5mm_ds8mm.nii.gz'</span>);
 </pre><p>In general, an SPM MEEG object may have multiple online montages corresponding to sensor space, source space, parcellated data, and orthogonalized data (refer to the Preprocessing tutorial for more information about online montages). When an MEEG object is passed to ROInets, the active montage must be in source space i.e. with the same number of channels as there are voxels in the parcellation. You can print a list of the montages stored in the MEEG object using the <tt>has_montage()</tt> function</p><pre class="codeinput">has_montage(D)
 </pre><pre class="codeoutput">*0 - none (276 channels)
@@ -179,14 +179,14 @@ imagesc(corr(resample(Hen_lc',1,D.fsample))+diag(nan(38,1)))
 axis <span class="string">square</span>
 colorbar
 title(<span class="string">'Envelope correlation after leakage correction and downsampling to 1Hz'</span>)
-</pre><img vspace="5" hspace="5" src="osl_example_roinets_2_manual_13.png" alt=""> <img vspace="5" hspace="5" src="osl_example_roinets_2_manual_14.png" alt=""> <p>Note how the correlations become stronger as the sampling frequency is reduced. The extent to which you can downsample your data depends on the quantity of data. Because the recording is only 45 seconds long, downsampling to 1Hz means that the correlation is computed using only 45 samples, which is not enough to robustly estimate connectivity.</p><p>A procedure for quantitatively estimating the optimal sampling rate is provided in Luckhoo et al. (2012). As a point of comparison, we would typically use a sampling rate of 1Hz for resting state recordings around 500s in length.</p><h2 id="22">EXERCISES</h2><p>Try out different subjects to get an idea of the subject variability here with respect to the outcome in connectivity. You can also try to see how the choice of frequency bands affects the resulting connectivity.</p><p>With regard to the dowsampling step before correlation, try even lower sampling rates (e.g. replace  'resample(Hen_lc',1,D.fsample)' by 'resample(Hen_lc',1,D.fsample*10)' to set the sample rate to 0.1 Hz). What do you see? What would this mean for this dataset in terms of used samples that go into the correlation? Does it makes sense?</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="osl_example_roinets_2_manual_13.png" alt=""> <img vspace="5" hspace="5" src="osl_example_roinets_2_manual_14.png" alt=""> <p>Note how the correlations become stronger as the sampling frequency is reduced. The extent to which you can downsample your data depends on the quantity of data. Because the recording is only 45 seconds long, downsampling to 1Hz means that the correlation is computed using only 45 samples, which is not enough to robustly estimate connectivity.</p><p>A procedure for quantitatively estimating the optimal sampling rate is provided in Luckhoo et al. (2012). As a point of comparison, we would typically use a sampling rate of 1Hz for resting state recordings around 500s in length.</p><h2 id="22">EXERCISES</h2><p>Try out different subjects to get an idea of the subject variability here with respect to the outcome in connectivity. You can also try to see how the choice of frequency bands affects the resulting connectivity.</p><p>With regard to the dowsampling step before correlation, try even lower sampling rates (e.g. replace  <tt>resample(Hen_lc',1,D.fsample)</tt> by <tt>resample(Hen_lc',1,D.fsample*10)</tt> to set the sample rate to 0.1 Hz). What do you see? What would this mean for this dataset in terms of used samples that go into the correlation? Does it makes sense?</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% ROInets 2 - Amplitude envelope connectivity analysis
 %
 % This example shows how to examine functional connectivity using amplitude 
 % envelope correlations for a single subject.
 %
-%%
+%% TUTORIAL
 % First, we will load an SPM object containing our data, and select a parcellation 
 % for the analysis 
 D = spm_eeg_load(osldir('example_data','roinets_example','subject_1'));
@@ -412,8 +412,8 @@ title('Envelope correlation after leakage correction and downsampling to 1Hz')
 % see how the choice of frequency bands affects the resulting connectivity.
 %
 % With regard to the dowsampling step before correlation, try even lower
-% sampling rates (e.g. replace  'resample(Hen_lc',1,D.fsample)' by
-% 'resample(Hen_lc',1,D.fsample*10)' to set the sample rate to 0.1 Hz).
+% sampling rates (e.g. replace  |resample(Hen_lc',1,D.fsample)| by
+% |resample(Hen_lc',1,D.fsample*10)| to set the sample rate to 0.1 Hz).
 % What do you see? What would this mean for this dataset in terms of used
 % samples that go into the correlation? Does it makes sense?
 
