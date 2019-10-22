@@ -21,7 +21,7 @@ D_epoched = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</sp
 S.D = D_epoched;
 S.timewin = [-4 4]*1000; <span class="comment">% in msecs</span>
 D_epoched = spm_eeg_crop(S);
-</pre><p>Note that we can visualise the timings of the trials, in continuous time, before the epoching was done. This shows the different trial types (alongside the samples that have been marked as bad - if there are any) The start of a trial is marked with an 'o', and the end is marked with an 'x'.</p><p>You can see that this choice of window width (i.e. -4 to 4secs) avoids overlapping between trials of the same type. Note that there were no bad samples marked in continuous space in this data.</p><pre class="codeinput">report.trial_timings(D_epoched);
+</pre><p>Note that we can visualise the timing of different trials, in continuous time, before the epoching was done. This shows the different trial types (alongside the samples that have been marked as bad - if there are any) The start of a trial is marked with an 'o', and the end is marked with an 'x'.</p><p>You can see that this choice of window width (i.e. -4 to 4secs) avoids overlapping between trials of the same type. Note that there were no bad samples marked in continuous space in this data.</p><pre class="codeinput">report.trial_timings(D_epoched);
 </pre><p>The MEEG object must be in a sensor-space montage - this could be the raw data (montage 0), or it could be an online montage obtained after running AFRICA</p><pre class="codeinput">D_epoched = D_epoched.montage(<span class="string">'switch'</span>,0);
 </pre><p>It is worth noting here that each MEEG object keeps track of its filename</p><pre class="codeinput">D_epoched.fullfile
 </pre><p>Some of the OSL functions result in the file being copied, and a prefix added. Typically this happens when filtering. You can update your <tt>D</tt> variable in place, and use the <tt>fullfile</tt> property to keep track of the updated filename instead of dealing with the prefixes themselves. The only caveat is that you will end up with a lot of files on disk unless you delete them as you go</p><h2 id="9">Temporal Filtering</h2><p>It is typical that we want the beamforming to focus on a particular frequency band. A frequency range of 1-45Hz is fairly typical for a standard ERF or induced response analysis, although you could beamform to more specific bands (e.g. alpha, beta). Here we will beamform the 1-45Hz band. You can do this using the <tt>osl_filter</tt> function</p><pre class="codeinput">D_epoched = osl_filter(D_epoched,[1 45]);
@@ -123,6 +123,7 @@ title(<span class="string">'Induced Response'</span>,<span class="string">'FontS
 ##### SOURCE BEGIN #####
 %% Beamforming in OSL
 % This example shows how to perform beamforming
+%
 
 %%
 % This practical will work with a single subject's data from an emotional
@@ -157,7 +158,7 @@ S.timewin = [-4 4]*1000; % in msecs
 D_epoched = spm_eeg_crop(S);
 
 %%
-% Note that we can visualise the timings of the trials, in continuous time, before the epoching was done. This
+% Note that we can visualise the timing of different trials, in continuous time, before the epoching was done. This
 % shows the different trial types (alongside the
 % samples that have been marked as bad - if there are any)
 % The start of a trial is marked with an 'o', and the end is marked with an
@@ -165,7 +166,7 @@ D_epoched = spm_eeg_crop(S);
 % 
 % You can see that this choice of window width (i.e. -4 to 4secs) avoids overlapping
 % between trials of the same type. Note that there were no bad samples marked in
-% continuous space in this data.
+% continuous space in this data. 
 
 report.trial_timings(D_epoched);
 
