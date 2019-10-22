@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Preproc - Manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-19"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h1>Preproc - Manual</h1><!--introduction--><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#75">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#78">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#106">EXERCISES</a></li></ul></div><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><p>Note that this contains the fif file: fifs/sub1_face_sss.fif that has already been SSS Maxfiltered and downsampled to 250 Hz.</p><p>We will now run it through a manual preprocessing pipeline as outlined above.</p><h2 id="2">SET UP ANALYSIS</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <i>cd /somedirectory/osl-core</i> ) and then run the following.</p><pre class="codeinput">osl_startup;
+   <title>Preproc - Manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h1>Preproc - Manual</h1><!--introduction--><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#76">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#79">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#107">EXERCISES</a></li></ul></div><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><p>Note that this contains the fif file: fifs/sub1_face_sss.fif that has already been SSS Maxfiltered and downsampled to 250 Hz.</p><p>We will now run it through a manual preprocessing pipeline as outlined above.</p><h2 id="2">SET UP ANALYSIS</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <i>cd /somedirectory/osl-core</i> ) and then run the following.</p><pre class="codeinput">osl_startup;
 </pre><p>This will not be necessary after you have done this once, i.e. no need to repeat during one of the follow-up practicals.</p><p><b>SPECIFY DIRECTORIES FOR THIS ANALYSIS</b></p><p>Next, the <tt>datadir</tt> needs to be setup to point to the right folder, where the example data are stored.</p><pre class="codeinput">datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_example'</span>,<span class="string">'manual'</span>);
 </pre><p>The working directory will be same as the data directory. This is where the files from the preprocessing we run will be stored.</p><pre class="codeinput">workingdir=datadir;
 </pre><p>We now need to specify a list of the fif files that we want to work on. We also need to specify a list of SPM file names, which will be used to name the resulting SPM data files after the fif files have been imported into SPM. It is important to make sure that the order of these lists is consistent. Note that we only work with one subject here, but more generally there would be more than one, e.g.:</p><pre class="codeinput"><span class="comment">% fif_files{1}=[testdir '/fifs/sub1_face_sss.fif'];</span>
@@ -221,7 +221,7 @@ clear <span class="string">epochinfo</span>;
 
     [epochinfo{i}.trl, epochinfo{i}.conditionlabels] = spm_eeg_definetrial(S2);
 <span class="keyword">end</span>
-</pre><p>We can visualise the timings of the information in <tt>epochinfo</tt>. This shows the different trial types alongside the samples that have been marked as bad, in continuous time. The start of a trial is marked with an 'o', and the end is marked with an 'x'.</p><pre class="codeinput">subnum=1;
+</pre><p>We can visualise the timings of the information in <tt>epochinfo</tt>. This shows the different trial types alongside the samples that have been marked as bad, in continuous time. The start of a trial is marked with an 'o', and the end is marked with an 'x'. Bad trials are shown in black.</p><pre class="codeinput">subnum=1;
 report.trial_timings(spm_files{subnum}, epochinfo{subnum});
 </pre><p>The following code now actually uses the 360 trials defined in <tt>epochinfo</tt> to do the epoching using a call to <tt>osl_epoch</tt>. Note that any trials that overlapped at all with any bad segments in the continuous data, will be marked as bad in the epoched data.</p><pre class="codeinput"><span class="keyword">for</span> i=1:length(spm_files) <span class="comment">% Iterating over subjects</span>
     S3 = epochinfo{i};
@@ -271,7 +271,8 @@ disp(D.badtrials);
 disp(<span class="string">'Bad trial indices:'</span>);
 disp(D.badchannels);
 </pre><p>Again, can also view summary plots of the bad trials</p><pre class="codeinput">report.bad_trials(D);
-</pre><h2 id="75">MANUAL BAD TRIAL/CHANNEL DETECTION</h2><p>Generally, automated bad trial/channel detection is sufficient. However, there is also the option to run manual bad trial/channel detection using a Fieldtrip interactive tool. We can do this as an alternative, or in addition, to the automated bad trial/channel detection done above.</p><p>Here we will run the manual dection on the data that has already had the automated bad trial/channel detection done (i.e. using the data with the 'ReABdff' prefix as input).</p><pre class="codeinput">clear <span class="string">spm_files</span>;
+</pre><p>And we can view the different trial types alongside the samples that have been marked as bad, in continuous time. The start of a trial is marked with an 'o', and the end is marked with an 'x'. Bad trials are shown in black.</p><pre class="codeinput">report.trial_timings(D);
+</pre><h2 id="76">MANUAL BAD TRIAL/CHANNEL DETECTION</h2><p>Generally, automated bad trial/channel detection is sufficient. However, there is also the option to run manual bad trial/channel detection using a Fieldtrip interactive tool. We can do this as an alternative, or in addition, to the automated bad trial/channel detection done above.</p><p>Here we will run the manual dection on the data that has already had the automated bad trial/channel detection done (i.e. using the data with the 'ReABdff' prefix as input).</p><pre class="codeinput">clear <span class="string">spm_files</span>
 <span class="keyword">for</span> subnum = 1:length(spm_files_basenames) <span class="comment">% iterates over subjects</span>
     spm_files{subnum}=fullfile(workingdir,[<span class="string">'ReABdff'</span> spm_files_basenames{subnum}]);
 
@@ -284,7 +285,7 @@ disp(D.badchannels);
     D.save();
 <span class="keyword">end</span>
 </pre><p>The first channel type that is loaded up is the 'EOG' channel, so you will need to pass over this - so just press the "quit" button. This will bring up the next figure which will show the magnetometers. You can choose the metric to display - it is best to stick to the default, which is variance. This metric is then displayed for the different trials (bottom left), the different channels (top right), and for the combination of the two (top left). You need to use this information to identify those trials and channels with high variance and remove them.</p><div><ol><li>Remove the worst channel (with highest variance) by drawing a box around it in the top right plot with the mouse.</li><li>Now remove the trials with high variance by drawing a box around them in the bottom left plot.</li><li>Repeat this until you are happy that there are no more outliers.</li><li>Press "quit" and repeat the process for the gradiometers.</li></ol></div><p>Again, we can visualise the bad trial information:</p><pre class="codeinput">report.bad_trials(D);
-</pre><h2 id="78">EXAMINE AND VISUALISE EPOCHED DATA</h2><p>The pre-processing is now completed.</p><p>We will finish by looking at the benefits of bad trial/segment/channel detection and AFRICA by computing a rudimentary event related field (ERF) for the motorbike trials</p><p>First, we set the new SPM M/EEG object filenames for epoched data to be used in visualisation of ERFs</p><pre class="codeinput">spm_files=[];
+</pre><h2 id="79">EXAMINE AND VISUALISE EPOCHED DATA</h2><p>The pre-processing is now completed.</p><p>We will finish by looking at the benefits of bad trial/segment/channel detection and AFRICA by computing a rudimentary event related field (ERF) for the motorbike trials</p><p>First, we set the new SPM M/EEG object filenames for epoched data to be used in visualisation of ERFs</p><pre class="codeinput">spm_files=[];
 <span class="keyword">for</span> subnum = 1:length(spm_files_basenames) <span class="comment">% iterates over subjects</span>
     spm_files{subnum}=fullfile(workingdir,[<span class="string">'RReABdff'</span> spm_files_basenames{subnum}]);
 <span class="keyword">end</span>
@@ -363,7 +364,7 @@ sensors_topoplot(D_pre_africa,topo,{<span class="string">'MEGPLANAR'</span> <spa
 </pre><p>They should look like this:</p><p><img vspace="5" hspace="5" src="osl_example_preproc_TOPO_CLEANED_AVG_ALL_SENSORS.png" alt=""> </p><p>Now we do the same procedures for the AFRICA denoised online montage:</p><pre class="codeinput">figure(<span class="string">'units'</span>,<span class="string">'normalized'</span>,<span class="string">'outerposition'</span>,[0 0 0.4 0.4],<span class="string">'name'</span>,<span class="string">'With AFRICA denoising'</span>);
 topo2=squeeze(mean(D_africa(:,188,good_motorbike_trls),3));
 sensors_topoplot(D_africa,topo2,{<span class="string">'MEGPLANAR'</span> <span class="string">'MEGMAG'</span>},1);
-</pre><p>They should look like this. Have a look at how different these topographies look. Here, AFRICA is not making a huge amount of difference to the ERFs and topographies; however, that is not always the case</p><p><img vspace="5" hspace="5" src="osl_example_preproc_TOPO_CLEANED_AVG_ALL_SENSORS_AFRICA.png" alt=""> </p><h2 id="106">EXERCISES</h2><p>If you want to play around with the data and the cleaning approaches presented here, have a look at what happens when you remove more independent components during AFRICA. Also you can have a look at the interaction of oslview and AFRICA. For example, if you do not cut out the bad segments during oslview rejection, can you still get decent ERFs in the end? How many independent components would you need to remove to get some ERFs and are they still comparable to the ones generated earlier? Also, keep in mind that the data used here was meant to demonstrate the effect of artefacts in the data. Have a look at the other data sets presented during the following practical and see whether you can get similar success with even cleaner data, following the pipeline demonstrate in this practical here.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
+</pre><p>They should look like this. Have a look at how different these topographies look. Here, AFRICA is not making a huge amount of difference to the ERFs and topographies; however, that is not always the case</p><p><img vspace="5" hspace="5" src="osl_example_preproc_TOPO_CLEANED_AVG_ALL_SENSORS_AFRICA.png" alt=""> </p><h2 id="107">EXERCISES</h2><p>If you want to play around with the data and the cleaning approaches presented here, have a look at what happens when you remove more independent components during AFRICA. Also you can have a look at the interaction of oslview and AFRICA. For example, if you do not cut out the bad segments during oslview rejection, can you still get decent ERFs in the end? How many independent components would you need to remove to get some ERFs and are they still comparable to the ones generated earlier? Also, keep in mind that the data used here was meant to demonstrate the effect of artefacts in the data. Have a look at the other data sets presented during the following practical and see whether you can get similar success with even cleaner data, following the pipeline demonstrate in this practical here.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Preproc - Manual
 % This an example for running a manual preprocessing pipeline in OSL. 
@@ -1045,7 +1046,7 @@ end
 % shows the different trial types alongside the
 % samples that have been marked as bad, in continuous time.
 % The start of a trial is marked with an 'o', and the end is marked with an
-% 'x'.
+% 'x'. Bad trials are shown in black.
 
 subnum=1;
 report.trial_timings(spm_files{subnum}, epochinfo{subnum});
@@ -1188,6 +1189,14 @@ disp(D.badchannels);
 
 report.bad_trials(D);
 
+%%
+% And we can view the different trial types alongside the
+% samples that have been marked as bad, in continuous time.
+% The start of a trial is marked with an 'o', and the end is marked with an
+% 'x'. Bad trials are shown in black.
+
+report.trial_timings(D);
+
 %% MANUAL BAD TRIAL/CHANNEL DETECTION 
 % Generally, automated bad trial/channel detection is sufficient. 
 % However, there is also the option to run manual bad trial/channel detection using a Fieldtrip interactive tool.
@@ -1196,7 +1205,7 @@ report.bad_trials(D);
 %
 % Here we will run the manual dection on the data that has already had the automated bad
 % trial/channel detection done (i.e. using the data with the 'ReABdff' prefix as input).
-clear spm_files;
+clear spm_files
 for subnum = 1:length(spm_files_basenames) % iterates over subjects
     spm_files{subnum}=fullfile(workingdir,['ReABdff' spm_files_basenames{subnum}]);
 
