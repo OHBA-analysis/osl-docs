@@ -1,13 +1,13 @@
 ---
 layout: matlab_wrapper
-title: osl_example_roinets_2_manual
+title: ROInets 2 - Amplitude envelope connectivity analysis
 resource: true
 categories: examples
 ---
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>osl_example_roinets_2_manual</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_roinets_2_manual.m"></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">ROInets 2 - Amplitude envelope connectivity analysis</a></li><li><a href="#22">EXERCISES</a></li></ul></div><h2 id="1">ROInets 2 - Amplitude envelope connectivity analysis</h2><p>This example shows how to examine functional connectivity using amplitude envelope correlations for a signal subject.</p><p>This example shows how to use low-level ROInets functionality to compute parcel timecourses and perform orthogonalization using SPM objects</p><p>First, we will load an SPM object containing our data, and select a parcellation for the analysis</p><pre class="codeinput">D = spm_eeg_load(osldir(<span class="string">'example_data'</span>,<span class="string">'roinets_example'</span>,<span class="string">'subject_1'</span>));
+   <title>ROInets 2 - Amplitude envelope connectivity analysis</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_roinets_2_manual.m"></head><body><div class="content"><h1>ROInets 2 - Amplitude envelope connectivity analysis</h1><!--introduction--><p>This example shows how to examine functional connectivity using amplitude envelope correlations for a single subject.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#22">EXERCISES</a></li></ul></div><p>First, we will load an SPM object containing our data, and select a parcellation for the analysis</p><pre class="codeinput">D = spm_eeg_load(osldir(<span class="string">'example_data'</span>,<span class="string">'roinets_example'</span>,<span class="string">'subject_1'</span>));
 spatial_basis_file = osldir(<span class="string">'parcellations'</span>,<span class="string">'fmri_d100_parcellation_with_PCC_reduced_2mm_ss5mm_ds8mm.nii.gz'</span>);
 </pre><p>In general, an SPM MEEG object may have multiple online montages corresponding to sensor space, source space, parcellated data, and orthogonalized data (refer to the Preprocessing tutorial for more information about online montages). When an MEEG object is passed to ROInets, the active montage must be in source space i.e. with the same number of channels as there are voxels in the parcellation. You can print a list of the montages stored in the MEEG object using the <tt>has_montage()</tt> function</p><pre class="codeinput">has_montage(D)
 </pre><pre class="codeoutput">*0 - none (276 channels)
@@ -184,12 +184,9 @@ title(<span class="string">'Envelope correlation after leakage correction and do
 %% ROInets 2 - Amplitude envelope connectivity analysis
 %
 % This example shows how to examine functional connectivity using amplitude 
-% envelope correlations for a signal subject.
+% envelope correlations for a single subject.
 %
-% This example shows how to use low-level ROInets functionality to 
-% compute parcel timecourses and perform orthogonalization using
-% SPM objects
-%
+%%
 % First, we will load an SPM object containing our data, and select a parcellation 
 % for the analysis 
 D = spm_eeg_load(osldir('example_data','roinets_example','subject_1'));
