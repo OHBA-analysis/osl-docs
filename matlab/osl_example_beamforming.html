@@ -7,285 +7,550 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Beamforming in OSL</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-29"><meta name="DC.source" content="osl_example_beamforming.m"></head><body><div class="content"><h1>Beamforming in OSL</h1><!--introduction--><p>This example shows how to perform beamforming</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#6">Filtering</a></li><li><a href="#8">Beamforming</a></li></ul></div><p>This practical will work with a single subject's data from an emotional faces experiment (Elekta Neuromag data).</p><p>First, we will load in two example files, one continuous, and one epoched (to demonstrate that beamformer usage is the same for both types of data)</p><pre class="codeinput">D_continuous = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>,<span class="string">'Aface_meg1'</span>))
-</pre><pre class="codeoutput">SPM M/EEG data object
-Type: continuous
-Transform: time
-1 conditions
-323 channels
-218000 samples/trial
-1 trials
-Sampling frequency: 250 Hz
-Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/Aface_meg1.mat
+   <title>Beamforming in OSL</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_beamforming.m"></head><body><div class="content"><h1>Beamforming in OSL</h1><!--introduction--><p>This example shows how to perform beamforming</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Setup the analysis</a></li><li><a href="#9">Temporal Filtering</a></li><li><a href="#11">Sensor-type normalisation</a></li><li><a href="#12">Check coregistration and forward model</a></li><li><a href="#14">Calling <tt>osl_inverse_model</tt></a></li><li><a href="#22">Beamformer output</a></li><li><a href="#25">Source space ERFs</a></li><li><a href="#32">Source space time-frequency plots</a></li></ul></div><p>This practical will work with a single subject's data from an emotional faces experiment (MEGIN Neuromag data).</p><h2 id="2">Setup the analysis</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <tt>cd /somedirectory/osl/osl-core</tt> ) and then run the following.</p><pre class="codeinput">osl_startup;
+</pre><pre class="codeinput"><span class="comment">%This only needs to be run once, each time you re-start MATLAB</span>
 
-Use the syntax D(channels, samples, trials) to access the data
-Type "methods('meeg')" for the list of methods performing other operations with the object
-Type "help meeg/method_name" to get help about methods
+<span class="comment">% First, we will load in an SPM MEEG object that has been preprocessed,</span>
+<span class="comment">% including epoching. This is from a subject doing two tasks interleaved</span>
+<span class="comment">% together:</span>
+<span class="comment">% * a simple finger tapping</span>
+<span class="comment">% * viewing a simple visual stimulus</span>
 
-</pre><pre class="codeinput">D_epoched = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>,<span class="string">'eAface_meg1'</span>))
-</pre><pre class="codeoutput">SPM M/EEG data object
-Type: single
-Transform: time
-4 conditions
-323 channels
-751 samples/trial
-360 trials
-Sampling frequency: 250 Hz
-Loaded from file  /Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/eAface_meg1.mat
-
-Use the syntax D(channels, samples, trials) to access the data
-Type "methods('meeg')" for the list of methods performing other operations with the object
-Type "help meeg/method_name" to get help about methods
-
-</pre><p>The MEEG object must be in a sensor-space montage - this could be the raw data (montage 0) or it could be an online montage obtained after running AFRICA</p><pre class="codeinput">D_continuous = D_continuous.montage(<span class="string">'switch'</span>,0);
-D_epoched = D_epoched.montage(<span class="string">'switch'</span>,0);
+D_epoched = spm_eeg_load(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'beamforming_example'</span>,<span class="string">'sept2019_vml_session1_epoched'</span>));
+</pre><p>We start by cropping the data in time to the time window we are interested in (this will speed things up too). We're expecting to see quite a long-lived response post stimulus in the frequency domain, that's why we use such a large window.</p><pre class="codeinput">S = struct;
+S.D = D_epoched;
+S.timewin = [-4 4]*1000; <span class="comment">% in msecs</span>
+D_epoched = spm_eeg_crop(S);
+</pre><p>Note that we can visualise the timings of the trials, in continuous time, before the epoching was done. This shows the different trial types (alongside the samples that have been marked as bad - if there are any) The start of a trial is marked with an 'o', and the end is marked with an 'x'.</p><p>You can see that this choice of window width (i.e. -4 to 4secs) avoids overlapping between trials of the same type. Note that there were no bad samples marked in continuous space in this data.</p><pre class="codeinput">report.trial_timings(D_epoched);
+</pre><p>The MEEG object must be in a sensor-space montage - this could be the raw data (montage 0), or it could be an online montage obtained after running AFRICA</p><pre class="codeinput">D_epoched = D_epoched.montage(<span class="string">'switch'</span>,0);
 </pre><p>It is worth noting here that each MEEG object keeps track of its filename</p><pre class="codeinput">D_epoched.fullfile
-</pre><pre class="codeoutput">
-ans =
-
-    '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/eAface_meg1.mat'
-
-</pre><p>Some of the OSL functions result in the file being copied, and a prefix added. Typically this happens when filtering. You can update your <tt>D</tt> variable in place, and use the <tt>fullfile</tt> property to keep track of the updated filename instead of dealing with the prefixes themselves. The only caveat is that you will end up with a lot of files on disk unless you delete them as you go</p><h2 id="6">Filtering</h2><p>Before beamforming, you may want to filter your data. A frequency range of 1-45Hz is typical. You can do this using the <tt>osl_filter</tt> function:</p><pre class="codeinput">D_continuous = osl_filter(D_continuous,[1 45]);
-D_epoched = osl_filter(D_epoched,[1 45]);
+</pre><p>Some of the OSL functions result in the file being copied, and a prefix added. Typically this happens when filtering. You can update your <tt>D</tt> variable in place, and use the <tt>fullfile</tt> property to keep track of the updated filename instead of dealing with the prefixes themselves. The only caveat is that you will end up with a lot of files on disk unless you delete them as you go</p><h2 id="9">Temporal Filtering</h2><p>It is typical that we want the beamforming to focus on a particular frequency band. A frequency range of 1-45Hz is fairly typical for a standard ERF or induced response analysis, although you could beamform to more specific bands (e.g. alpha, beta). Here we will beamform the 1-45Hz band. You can do this using the <tt>osl_filter</tt> function</p><pre class="codeinput">D_epoched = osl_filter(D_epoched,[1 45]);
 D_epoched.fullfile
-</pre><pre class="codeoutput">
-SPM12: spm_eeg_filter (v5876)                      14:26:48 - 29/08/2017
-========================================================================
-
-SPM12: spm_eeg_filter (v5876)                      14:26:56 - 29/08/2017
-========================================================================
-
-ans =
-
-    '/Users/romesh/oxford_postdoc/toolboxes/osl/example_data/faces_singlesubject/spm_files/feAface_meg1.mat'
-
-</pre><p>Notice how the filename has automatically been updated. There is only a single variable (<tt>D_continuous</tt>) in Matlab, but there are two files on disk, one filtered and one unfiltered. Effectively, the unfiltered file is no longer loaded in Matlab. If you didn't want to retain the original unfiltered data on disk, you could use</p><pre class="language-matlab">filtered_D_continuous = osl_filter(D_continuous);
-D_continuous.delete()
-</pre><h2 id="8">Beamforming</h2><p>The main entry point for beamforming is <tt>osl_inverse_model</tt>. In order to perform beamforming, the MEEG object needs to have been coregistered and the forward model needs to have been run. You can determine if this is the case by examining the MEEG object's <tt>inv</tt> property</p><pre class="codeinput">D_epoched.inv{1}
-</pre><pre class="codeoutput">
-ans = 
-
-  struct with fields:
-
-       mesh: [1&times;1 struct]
-    comment: {''}
-       date: [2&times;11 char]
-    datareg: [1&times;1 struct]
-    forward: [1&times;1 struct]
-
-</pre><p>If the <tt>forward</tt> field is not empty, then you should be fine. Otherwise</p><div><ul><li>If <tt>forward</tt> is empty but <tt>D.inv</tt> is not, then you need to run   <tt>osl_forward_model</tt></li><li>If <tt>D.inv</tt> is empty or missing, then you need to run <tt>osl_headmodel</tt></li></ul></div><p><tt>osl_inverse_model</tt> takes three arguments - an MEEG object, an array of MNI coordinates to compute voxel timecourses at, and an optional settings structure if you would like to override some of the defaults in <tt>osl_inverse_model</tt>. You can get the set of MNI coordinates in two ways. If you are beamforming onto one of the OSL standard masks (i.e. something like 'MNI152_T1_8mm_brain.nii.gz') then you can create a parcellation object at that spatial resolution and use the template coordinates</p><pre class="codeinput">p = parcellation(8);
+</pre><p>Notice how the filename has automatically been updated. There is only a single variable (<tt>D_epoched</tt>) in Matlab, but there are two files on disk, one filtered and one unfiltered. Effectively, the unfiltered file is no longer loaded in Matlab. If you didn't want to retain the original unfiltered data on disk, you could use</p><pre class="language-matlab">filtered_D_epoched = osl_filter(D_epoched); D_epoched.delete()
+</pre><h2 id="11">Sensor-type normalisation</h2><p>If we were working with MEGIN Neuromag data then we would have two sensor types, planar gradiometers and magnetometers. Before beamforming, we would need to normalise these two sensor types so that they can contribute equally to the beamformer calculation. Briefly, this is done by scaling the different sensor types to so that their variances over time are equal.</p><p>Here, we are working with CTF data, where there is one sensor type - so this step is not strictly necessary:</p><pre class="codeinput">S=[];
+S.D=D_epoched;
+<span class="comment">%S.datatype='neuromag';</span>
+S.datatype=<span class="string">'ctf'</span>;
+S.do_plots=true;
+[D_epoched pcadim] = osl_normalise_sensor_data(S);
+</pre><h2 id="12">Check coregistration and forward model</h2><p>The function used for beamforming is <tt>osl_inverse_model</tt>. The MEEG object passed to <tt>osl_inverse_model</tt> needs to have been coregistered and the forward model needs to have been run. You can determine if this is the case by examining the MEEG object's <tt>inv</tt> property</p><pre class="codeinput">D_epoched.inv{1}
+</pre><p>If the <tt>forward</tt> field is not empty, then you should be fine. Otherwise:</p><div><ul><li>If <tt>forward</tt> is empty but <tt>D.inv</tt> is not, then you need to run   <tt>osl_forward_model</tt></li><li>If <tt>D.inv</tt> is empty or missing, then you need to run <tt>osl_headmodel</tt>.</li></ul></div><p>Note that <tt>osl_headmodel</tt> runs coregistration (e.g. <tt>rhino</tt> or the SPM coregistration), and <tt>osl_forward_model</tt>.</p><p>See the coregistration practical for more on coregistration: <a href="https://ohba-analysis.github.io/osl-docs/matlab/osl_example_coregistration.html">https://ohba-analysis.github.io/osl-docs/matlab/osl_example_coregistration.html</a></p><h2 id="14">Calling <tt>osl_inverse_model</tt></h2><p>The function that does the actual beamforming is called <tt>osl_inverse_model</tt>.</p><p>This takes three arguments: 1) an MEEG object, 2) a set of MNI coordinates to compute voxel timecourses at, and 3) an optional settings structure, used to override the default settings in <tt>osl_inverse_model</tt>.</p><p>You can get the set of MNI coordinates in two ways. If you are beamforming onto one of the OSL standard masks (i.e. something like 'MNI152_T1_8mm_brain.nii.gz') then you can create a parcellation object at that spatial resolution and use the template coordinates</p><pre class="codeinput">spatial_res=10; <span class="comment">% Spatial resolution of the voxel grid to beamform to, in mm</span>
+p = parcellation(spatial_res);
 mni_coords = p.template_coordinates;
-</pre><p>This syntax might also be appealing if you plan to use a parcellation later in your analysis e.g.</p><pre class="language-matlab">p = parcellation(<span class="string">'my_parcellation.nii.gz'</span>)
-mni_coords = p.template_coordinates;
-</pre><p>Alternatively, you could pass a NIFTI file to <tt>osl_mnimask2mnicoords</tt></p><pre class="codeinput">mni_coords = osl_mnimask2mnicoords(fullfile(osldir,<span class="string">'std_masks'</span>,<span class="string">'MNI152_T1_8mm_brain.nii.gz'</span>));
+</pre><p>This syntax might also be appealing if you plan to use a parcellation later in your analysis e.g.</p><pre class="language-matlab">p = parcellation(<span class="string">'my_parcellation.nii.gz'</span>) mni_coords =
+p.template_coordinates;
+</pre><p>Alternatively, you can get the set of MNI coordinates by passing a NIFTI file to <tt>osl_mnimask2mnicoords</tt></p><p>OSL comes with a set of pre-computed MNI-aligned masks at various resolutions (from 1 to 15mm, in 1mm steps). Below we select a 10mm grid. Note that this coarse grid is selected to keep the practical speedy - the spatial resolution of MEG is on the order of 3-5mm.</p><pre class="codeinput">spatial_res=10; <span class="comment">% Spatial resolution of voxel grid to beamform to, in mm</span>
+mni_coords = osl_mnimask2mnicoords(fullfile(osldir,<span class="string">'std_masks'</span>,[<span class="string">'MNI152_T1_'</span>, num2str(spatial_res), <span class="string">'mm_brain.nii.gz'</span>]));
 size(mni_coords)
-</pre><pre class="codeoutput">
-ans =
-
-        3559           3
-
 </pre><p>Either way, mni_coords should be an <tt>n_voxels x 3</tt> matrix.</p><p>Next, we will set up the setting structure. These fields are all optional but you may of course wish to override the defaults</p><pre class="codeinput">S = struct;
-S.modalities        = {<span class="string">'MEGPLANAR'</span>};
-S.timespan          = [0 Inf];
-S.pca_order         = 50;
-S.type              = <span class="string">'Scalar'</span>;
+S.timespan          = [-3 3]; <span class="comment">% in secs</span>
+S.pca_order         = 100;
 S.inverse_method    = <span class="string">'beamform'</span>;
-S.prefix            = <span class="string">''</span>;
-</pre><p>One important option is <tt>S.path</tt> - the beamforming process creates a file 'BF.mat' that is placed in a temporary directory. You can specify a particular directory if you like, but be aware that if you process multiple files in parallel, then you need to ensure that they each save BF.mat in a different location. By default, this will not be a problem because the temporary directory should be different for all processes.</p><p>The PCA order is a form of regularization and can help improve your results. The PCA order limits the rank of the output and thus sets an upper limit on the number of parcels you can compute orthogonal timecourses for e.g. if you set <tt>pca_order=50</tt> you will be unable to orthogonalize the parcel timecourses for a parcellation with 60 ROIs, and the PCA order must be less than or equal to the rank of the input data. For CTF data, a value of 150 is typical. For Elekta data that has been maxfiltered, a value of more like 50 may be appropriate.</p><p>Now we can actually run the beamformer</p><pre class="codeinput">D_continuous = osl_inverse_model(D_continuous,mni_coords,S);
+S.type              = <span class="string">'Scalar'</span>; <span class="comment">% beamformer output will be a scalar (rather than a 3D vector)</span>
+S.prefix            = <span class="string">''</span>; <span class="comment">% add no prefix to filename</span>
+S.modalities        = {<span class="string">'MEG'</span>};
+</pre><p>The <tt>S.timespan</tt> option indicates the time window to be used to estimate the source reconstruction weights. Note however that the whole time range in D_epoched.time will still effectively be reconstructed.</p><p>Note that if you had MEGIN Neuromag data then you would want the following settings:</p><div><ul><li>S.modalities        = {'MEGPLANAR' 'MEGMAG'};</li><li>S.fuse              = 'meg';</li></ul></div><p>where the <tt>S.fuse='meg'</tt> option means that the source reconstruction will fuse information from all MEG sensor types listed in S.modalities, in this case from both the MEG planar grads and the magnetometers.</p><p>The PCA order is a form of regularization and can help improve your results. For CTF data, a value of 100 is typical. For MEGIN data that has been maxfiltered, a value  less than ~60 will be appropriate (as this reflects the fact that after  default maxfiltering, the rank of the MEG data in sensor space is ~64).</p><p>We now actually run the beamformer. Before calling <tt>osl_inverse_model</tt>, we make sure that the normalised sensor space montage is the one being used.</p><pre class="codeinput">normalise_data_montage=1;
+D_epoched = D_epoched.montage(<span class="string">'switch'</span>,normalise_data_montage);
+
 D_epoched = osl_inverse_model(D_epoched,mni_coords,S);
-</pre><pre class="codeoutput">Warning: fuse specification not recognised or incorrect, assuming fuse='no' for
-now 
-Warning: conditions specification not recognised or incorrect, assuming
-conditions=all for now 
+</pre><p>Note that <tt>osl_inverse_model</tt> writes changes to disk and thus will commit any unsaved changes you have made to the MEEG object to disk. This is something to be aware of if you are used to changing the montages in memory (e.g. by parcellation or orthogonalization) without saving to disk.</p><h2 id="22">Beamformer output</h2><p>Note that the <tt>D_epoched</tt> object has now got a number of channels equal to the number of MNI coordinates we specified in mni_coords, and they will be in the same order:</p><pre class="codeinput">D_epoched
 
+disp(<span class="string">'Number of channels in D_epoched:'</span>)
+disp(D_epoched.nchannels)
 
-------------------------------------------------------------------------
-Running job #2
-------------------------------------------------------------------------
-Running 'Prepare data'
-Done    'Prepare data'
-Running 'Define sources'
-computing surface normals
-Done    'Define sources'
-Running 'Covariance features'
-Done    'Covariance features'
-Running 'Inverse solution'
-Done    'Inverse solution'
-Running 'Output'
-Done    'Output'
-Running 'Write'
-
-SPM12: spm_eeg_montage (v6835)                     14:27:43 - 29/08/2017
-========================================================================
-
-SPM12: spm_eeg_montage (v6835)                     14:27:45 - 29/08/2017
-========================================================================
-Done    'Write'
-Done
-
-Warning: fuse specification not recognised or incorrect, assuming fuse='no' for
-now 
-Warning: conditions specification not recognised or incorrect, assuming
-conditions=all for now 
-
-
-------------------------------------------------------------------------
-Running job #2
-------------------------------------------------------------------------
-Running 'Prepare data'
-Done    'Prepare data'
-Running 'Define sources'
-computing surface normals
-Done    'Define sources'
-Running 'Covariance features'
-Done    'Covariance features'
-Running 'Inverse solution'
-Done    'Inverse solution'
-Running 'Output'
-Done    'Output'
-Running 'Write'
-
-SPM12: spm_eeg_montage (v6835)                     14:28:34 - 29/08/2017
-========================================================================
-
-SPM12: spm_eeg_montage (v6835)                     14:28:37 - 29/08/2017
-========================================================================
-Done    'Write'
-Done
-
-</pre><p>Note that <tt>osl_inverse_model</tt> writes changes to disk and thus will commit any unsaved changes you have made to the MEEG object to disk. This is something to be aware of if you are used to changing the montages in memory (e.g. by parcellation or orthogonalization) without saving to disk.</p><p>The result of running the beamformer is the addition of new online montages corresponding to the beamformed result</p><pre class="codeinput">has_montage(D_epoched)
-</pre><pre class="codeoutput">0 - none (323 channels)
-1 - without weights normalisation, class 1 (3559 channels)
-*2 - with weights normalisation, class 1 (3559 channels)
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+disp(<span class="string">'Number of MNI coordinates:'</span>)
+disp(size(mni_coords,1))
+</pre><p>You'll see that the result of running the beamformer is the addition of two new online montages corresponding to the beamformed result:</p><div><ul><li>Source space (MEG) without weights normalisation,</li><li>Source space (MEG) with weights normalisation</li></ul></div><p>Weights normalisation is used to correct the fact that, with beamforming, voxels that are deeper in the brain tend to have higher variance.</p><pre class="codeinput">has_montage(D_epoched)
+</pre><p>Switch to the montage that corresponds to the source recon with weights normalisation, check that source_recon_montage is set accordingly before running this next bit</p><pre class="codeinput">source_recon_montage=3;
+D_epoched=D_epoched.montage(<span class="string">'switch'</span>,source_recon_montage)
+</pre><h2 id="25">Source space ERFs</h2><p>To see the conditions (i.e. trial types) in the data we can use:</p><pre class="codeinput">D_epoched.condlist
+</pre><p>Here we will first focus on 'Stim_Onset' trials, which corresponds to a simple visual stimulus. We can do using the <tt>indtrial</tt> function:</p><pre class="codeinput">resp_trls = indtrial(D_epoched,<span class="string">'Stim_Onset'</span>,<span class="string">'good'</span>);
+</pre><p>This gives all good trials for this condition in the data.</p><p>We then compute the event-related field (ERF) by averaging over all these trials. Note that because of the ambiguity of the sign of the activity following source reconstruction (see <a href="https://ohba-analysis.github.io/osl-docs/pages/docs/sign_ambiguity.html">https://ohba-analysis.github.io/osl-docs/pages/docs/sign_ambiguity.html</a>), we work with the absolute value of the ERF:</p><pre class="codeinput">erf=squeeze(mean(D_epoched(:,:,resp_trls),3));
+abs_erf=abs(erf);
+</pre><p>We can then save out and view the spatio-temporal activity of the abs(ERF), as a 4D niftii file where the 4th dimension is time.</p><pre class="codeinput">fname_out=nii.quicksave(abs_erf,<span class="string">'abs_erf'</span>,spatial_res,spatial_res);
+fsleyes(fname_out);
+</pre><p>Once FSLeyes is open, make sure you:</p><div><ul><li>select the abs_erf image in the overlay list</li><li>set the min to 0.3</li><li>select "View-&gt;Time-series"</li></ul></div><p>We expect a good evoked response in the visual cortex at ~100ms. NOTE: fsleyes shows the time-axis using the time index (i.e. the volume-index in the 4D niftii file being shown). So to know what time index 100ms corresponds to, you can use:</p><pre class="codeinput">time_of_interest=0.1; <span class="comment">% in secs</span>
+time_index=nearest(D_epoched.time,time_of_interest)-1;
+disp(time_index);
+</pre><p>Note that you can also press the <i>volume/movie</i> button (immediately to the left of toggle crosshairs on/off) to automatically cycle through the time series.</p><h2 id="32">Source space time-frequency plots</h2><p>As well as viewing the ERF, we can also look at oscillatory power using the time-frequency TF transform (i.e. the induced response, which corresponds to event-related synchronisations and de-synchronisations)</p><p>Here we want to focus on the 'Abduction' trials in the same data, which correspond to a simple hand movement. We can identify Abduction trials using the indtrial function:</p><pre class="codeinput">resp_trls = indtrial(D_epoched,<span class="string">'Abduction'</span>,<span class="string">'good'</span>);
+</pre><p>We then use <tt>osl_tf_transform</tt> to do the time-frequency TF transform. Here we are using a Hilbert transform within the beta-band frequency range, i.e. 13-30Hz.</p><pre class="codeinput">S = struct;
+S.tf_method = <span class="string">'hilbert'</span>;
+S.tf_freq_range = [13,30];
+S.tf_num_freqs = 1;
+S.raw_times = D_epoched.time;
+S.ds_factor = 0.5; <span class="comment">% smaller value means less time samples in result</span>
+dat = osl_tf_transform( S , D_epoched(:,:,resp_trls) );
+</pre><p>We can now compute the induced response in the beta band by averaging over trials:</p><pre class="codeinput">induced_response_beta = mean(dat.dattf(:,:,:,:),3);
+</pre><p>We then do baseline correction on the trial averaged data, separately for each frequency bin</p><pre class="codeinput">S=struct;
+S.data = induced_response_beta; <span class="comment">% pass in trial averaged beta power data [nchannels x ntpts]</span>
+S.time = dat.tf_times; <span class="comment">% vector or tpts for 2nd dimension of S.data</span>
+S.time_window = [-3 -2]; <span class="comment">% [start end] in secs</span>
+induced_response_beta_bc = osl_baseline_correct(S);
+</pre><p>Finally, we can save the result and open it in <tt>fsleyes</tt></p><pre class="codeinput">fname_out=nii.quicksave(induced_response_beta_bc,<span class="string">'induced_response_beta_bc'</span>,spatial_res,spatial_res); <span class="comment">% output spatial map of erf at 0sec</span>
+fsleyes(fname_out);
+</pre><p>Once FSLeyes is open, make sure you:</p><div><ul><li>select the induced_response_beta_bc image in the overlay list</li><li>turn on the negative color map and set it to use "blue-light blue"</li><li>set the min to 0.15</li><li>select "View-&gt;Time-series"</li></ul></div><p>We expect a post movement beta rebound (beta synchronisation or power increase) at about 1-2 sec post stimulus</p><p>NOTE: fsleyes shows the time-axis using the time index (i.e. the volume-index in the 4D niftii file being shown). So to know what time index 1.3secs corresponds to, you can use:</p><pre class="codeinput">time_of_interest=1.3; <span class="comment">% in secs</span>
+disp(nearest(dat.tf_times,time_of_interest)-1)
+</pre><p>Now, use fsleyes to find a voxel at this ~1.3sec timepoint that has a high beta rebound (i.e. a high positive value, indicating a high beta power or beta ERS), and enter it here in MNI coordinates in mm:</p><pre class="codeinput">beta_ers_mnicoord=[-30 -21 58]; <span class="comment">% in mm</span>
+</pre><p>We can then get the voxel index nearest to that:</p><pre class="codeinput">beta_ers_voxel_index=nearest_vec(mni_coords,beta_ers_mnicoord);
+</pre><p>Next, we can plot the time course of beta power at the chosen voxel:</p><pre class="codeinput">figure;
+plot(dat.tf_times,induced_response_beta_bc(beta_ers_voxel_index,:));
+xlabel(<span class="string">'time (s)'</span>,<span class="string">'FontSize'</span>,15);
+ylabel(<span class="string">'beta power'</span>,<span class="string">'FontSize'</span>,15);
+set(gca,<span class="string">'FontSize'</span>,15)
+</pre><p>We can also plot the TF transform across a range of freq bands at this voxel</p><pre class="codeinput">S = struct;
+S.tf_method = <span class="string">'morlet'</span>;
+S.tf_freq_range = [1,40];
+S.tf_num_freqs = 30;
+S.raw_times = D_epoched.time;
+S.tf_morlet_factor=7;
+S.ds_factor = 0.5;
+dat = osl_tf_transform( S , D_epoched(beta_ers_voxel_index,:,resp_trls) );
+</pre><p>Next, we perform baseline correction, carried out on trial averaged data, separately for each frequency bin</p><pre class="codeinput">S=struct;
+S.data = mean(dat.dattf,3); <span class="comment">% pass in trial averaged TF data [nchannels x ntpts x 1 x nfreq]</span>
+S.time = dat.tf_times; <span class="comment">% vector or tpts for 2nd dimension of S.data</span>
+S.time_window = [-Inf -1.5]; <span class="comment">% [start end] in secs</span>
+dat_bc = osl_baseline_correct(S);
+</pre><p>Finally, we can plot the baseline corrected time-frequency response for the chosen voxel</p><pre class="codeinput">figure;
+tf = squeeze(dat_bc(:,:,:,:))';
+grid <span class="string">on</span>;
+contourf(dat.tf_times,dat.tf_freqs,tf,32,<span class="string">'linestyle'</span>,<span class="string">'none'</span> )
+colorbar
+xlabel(<span class="string">'Time (seconds)'</span>);
+ylabel(<span class="string">'Power'</span>,<span class="string">'FontSize'</span>,15);
+set(gca,<span class="string">'FontSize'</span>,15)
+title(<span class="string">'Induced Response'</span>,<span class="string">'FontSize'</span>,15)
+</pre><p>Note that in everything we have done in this practical, we have not done any statistics. We have just been looking at the evoked responses averaged over trials in a single subject.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Beamforming in OSL
 % This example shows how to perform beamforming
 
 %%
 % This practical will work with a single subject's data from an emotional
-% faces experiment (Elekta Neuromag data).
-% 
-% First, we will load in two example files, one continuous, and one epoched
-% (to demonstrate that beamformer usage is the same for both types of data)
+% faces experiment (MEGIN Neuromag data).
 
-D_continuous = spm_eeg_load(fullfile(osldir,'example_data','faces_singlesubject','spm_files','Aface_meg1'))
+%% Setup the analysis
+% The only thing you need to do is to go into your OSL directory (i.e. type
+% |cd /somedirectory/osl/osl-core| ) and then run the following.
+
+osl_startup;
 
 %%
-%
-D_epoched = spm_eeg_load(fullfile(osldir,'example_data','faces_singlesubject','spm_files','eAface_meg1'))
+%This only needs to be run once, each time you re-start MATLAB
+
+% First, we will load in an SPM MEEG object that has been preprocessed,
+% including epoching. This is from a subject doing two tasks interleaved
+% together:
+% * a simple finger tapping
+% * viewing a simple visual stimulus
+
+D_epoched = spm_eeg_load(fullfile(osldir,'example_data','beamforming_example','sept2019_vml_session1_epoched'));
+
+%%
+% We start by cropping the data in time to the time window we are
+% interested in (this will speed things up too). We're expecting to see
+% quite a long-lived response post stimulus in the frequency domain, that's
+% why we use such a large window.
+
+S = struct;
+S.D = D_epoched;
+S.timewin = [-4 4]*1000; % in msecs
+D_epoched = spm_eeg_crop(S);
+
+%%
+% Note that we can visualise the timings of the trials, in continuous time, before the epoching was done. This
+% shows the different trial types (alongside the
+% samples that have been marked as bad - if there are any)
+% The start of a trial is marked with an 'o', and the end is marked with an
+% 'x'. 
+% 
+% You can see that this choice of window width (i.e. -4 to 4secs) avoids overlapping
+% between trials of the same type. Note that there were no bad samples marked in
+% continuous space in this data.
+
+report.trial_timings(D_epoched);
 
 %%
 % The MEEG object must be in a sensor-space montage - this could be the raw
-% data (montage 0) or it could be an online montage obtained after running
+% data (montage 0), or it could be an online montage obtained after running
 % AFRICA
-D_continuous = D_continuous.montage('switch',0);
+
 D_epoched = D_epoched.montage('switch',0);
 
 %%
 % It is worth noting here that each MEEG object keeps track of its filename
+
 D_epoched.fullfile
 
 %% 
-% Some of the OSL functions result in the file being copied, and a prefix added. Typically this happens when filtering. You can update your
-% |D| variable in place, and use the |fullfile| property to keep track of the updated filename instead of 
-% dealing with the prefixes themselves. The only caveat is that you will end up with a lot of files on disk unless you delete them as you go
+% Some of the OSL functions result in the file being copied, and a prefix
+% added. Typically this happens when filtering. You can update your |D|
+% variable in place, and use the |fullfile| property to keep track of the
+% updated filename instead of dealing with the prefixes themselves. The
+% only caveat is that you will end up with a lot of files on disk unless
+% you delete them as you go
 
-%% Filtering
-% Before beamforming, you may want to filter your data. A frequency range of 1-45Hz is typical. You can do this
-% using the |osl_filter| function:
-D_continuous = osl_filter(D_continuous,[1 45]);
+%% Temporal Filtering
+% It is typical that we want the beamforming to focus on a particular
+% frequency band. A frequency range of 1-45Hz is fairly typical for a
+% standard ERF or induced response analysis, although you could beamform to
+% more specific bands (e.g. alpha, beta). Here we will beamform the 1-45Hz
+% band. You can do this using the |osl_filter| function
+
 D_epoched = osl_filter(D_epoched,[1 45]);
 D_epoched.fullfile
 
 %%
-% Notice how the filename has automatically been updated. There is only a single variable (|D_continuous|) in Matlab, but there are two files on disk, one filtered and one unfiltered. Effectively, the unfiltered file is no longer loaded in Matlab. If you 
-% didn't want to retain the original unfiltered data on disk, you could use
+% Notice how the filename has automatically been updated. There is only a
+% single variable (|D_epoched|) in Matlab, but there are two files on disk,
+% one filtered and one unfiltered. Effectively, the unfiltered file is no
+% longer loaded in Matlab. If you didn't want to retain the original
+% unfiltered data on disk, you could use
 %
-%   filtered_D_continuous = osl_filter(D_continuous);
-%   D_continuous.delete()
+%   filtered_D_epoched = osl_filter(D_epoched); D_epoched.delete()
 %
 
-%% Beamforming
+%% Sensor-type normalisation
+% If we were working with MEGIN Neuromag data then we would have two sensor
+% types, planar gradiometers and magnetometers. Before beamforming, we
+% would need to normalise these two sensor types so that they can
+% contribute equally to the beamformer calculation. Briefly, this is done
+% by scaling the different sensor types to so that their variances over
+% time are equal.
 %
-% The main entry point for beamforming is |osl_inverse_model|. In order to
-% perform beamforming, the MEEG object needs to have been coregistered and the
-% forward model needs to have been run. You can determine if this is the case
-% by examining the MEEG object's |inv| property
+% Here, we are working with CTF data, where there is one sensor type - so
+% this step is not strictly necessary:
+
+S=[];
+S.D=D_epoched;
+%S.datatype='neuromag';
+S.datatype='ctf';
+S.do_plots=true; 
+[D_epoched pcadim] = osl_normalise_sensor_data(S);
+
+%% Check coregistration and forward model
+% The function used for beamforming is |osl_inverse_model|. 
+% The MEEG object passed to |osl_inverse_model| needs to have been 
+% coregistered and the forward model needs to have been run. 
+% You can determine if this is
+% the case by examining the MEEG object's |inv| property
+
 D_epoched.inv{1}
 
 %%
-% If the |forward| field is not empty, then you should be fine. Otherwise
+% If the |forward| field is not empty, then you should be fine. Otherwise:
 %
 % * If |forward| is empty but |D.inv| is not, then you need to run
 %   |osl_forward_model|
-% * If |D.inv| is empty or missing, then you need to run |osl_headmodel|
+% * If |D.inv| is empty or missing, then you need to run |osl_headmodel|.
 %
-% |osl_inverse_model| takes three arguments - an MEEG object, an array of MNI
-% coordinates to compute voxel timecourses at, and an optional settings
-% structure if you would like to override some of the defaults in
-% |osl_inverse_model|. You can get the set of MNI coordinates in two ways. If
-% you are beamforming onto one of the OSL standard masks (i.e. something like
-% 'MNI152_T1_8mm_brain.nii.gz') then you can create a parcellation object at
-% that spatial resolution and use the template coordinates
-p = parcellation(8);
+% Note that |osl_headmodel| runs coregistration (e.g. |rhino| or the SPM coregistration), 
+% and |osl_forward_model|.
+%
+% See the coregistration practical for more on coregistration:
+% <https://ohba-analysis.github.io/osl-docs/matlab/osl_example_coregistration.html>
+
+%% Calling |osl_inverse_model|
+% The function that does the actual beamforming is called
+% |osl_inverse_model|.
+%
+% This takes three arguments: 1) an MEEG object, 2) a set of MNI
+% coordinates to compute voxel timecourses at, and 3) an optional settings
+% structure, used to override the default settings in |osl_inverse_model|.
+%
+% You can get the set of MNI coordinates in two ways. If you are
+% beamforming onto one of the OSL standard masks (i.e. something like
+% 'MNI152_T1_8mm_brain.nii.gz') then you can create a parcellation object
+% at that spatial resolution and use the template coordinates
+
+spatial_res=10; % Spatial resolution of the voxel grid to beamform to, in mm
+p = parcellation(spatial_res);
 mni_coords = p.template_coordinates;
 
 %%
-% This syntax might also be appealing if you plan to use a parcellation later
-% in your analysis e.g.
+% This syntax might also be appealing if you plan to use a parcellation
+% later in your analysis e.g.
 %
-%   p = parcellation('my_parcellation.nii.gz')
-%   mni_coords = p.template_coordinates;
+%   p = parcellation('my_parcellation.nii.gz') mni_coords =
+%   p.template_coordinates;
 %
-% Alternatively, you could pass a NIFTI file to |osl_mnimask2mnicoords|
-mni_coords = osl_mnimask2mnicoords(fullfile(osldir,'std_masks','MNI152_T1_8mm_brain.nii.gz'));
+% Alternatively, you can get the set of MNI coordinates by passing a NIFTI
+% file to |osl_mnimask2mnicoords|
+
+%%
+% OSL comes with a set of pre-computed MNI-aligned masks at various
+% resolutions (from 1 to 15mm, in 1mm steps). Below we select a 10mm grid.
+% Note that this coarse grid is selected to keep the practical speedy - the
+% spatial resolution of MEG is on the order of 3-5mm.
+
+spatial_res=10; % Spatial resolution of voxel grid to beamform to, in mm
+mni_coords = osl_mnimask2mnicoords(fullfile(osldir,'std_masks',['MNI152_T1_', num2str(spatial_res), 'mm_brain.nii.gz']));
 size(mni_coords)
 
 %%
-% Either way, mni_coords should be an |n_voxels x 3| matrix. 
+% Either way, mni_coords should be an |n_voxels x 3| matrix.
 %
 % Next, we will set up the setting structure. These fields are all optional
 % but you may of course wish to override the defaults
+
 S = struct;
-S.modalities        = {'MEGPLANAR'}; 
-S.timespan          = [0 Inf];
-S.pca_order         = 50;
-S.type              = 'Scalar';
+S.timespan          = [-3 3]; % in secs
+S.pca_order         = 100;
 S.inverse_method    = 'beamform';
-S.prefix            = '';
+S.type              = 'Scalar'; % beamformer output will be a scalar (rather than a 3D vector)
+S.prefix            = ''; % add no prefix to filename
+S.modalities        = {'MEG'};
 
 %%
-% One important option is |S.path| - the beamforming process creates a file 
-% 'BF.mat' that is placed in a temporary directory. You can specify a particular
-% directory if you like, but be aware that if you process multiple files in
-% parallel, then you need to ensure that they each save BF.mat in a different
-% location. By default, this will not be a problem because the temporary directory
-% should be different for all processes.
+% The |S.timespan| option indicates the time window to be used to estimate
+% the source reconstruction weights. Note however that the whole time range
+% in D_epoched.time will still effectively be reconstructed.
 
 %%
-% The PCA order is a form of regularization and can help improve your results.
-% The PCA order limits the rank of the output and thus sets an upper limit on
-% the number of parcels you can compute orthogonal timecourses for e.g. if you
-% set |pca_order=50| you will be unable to orthogonalize the parcel
-% timecourses for a parcellation with 60 ROIs, and the PCA order must be less
-% than or equal to the rank of the input data. For CTF data, a value of 150 is
-% typical. For Elekta data that has been maxfiltered, a value of more like 50
-% may be appropriate.
+% Note that if you had MEGIN Neuromag data then you would want the
+% following settings:
 %
-% Now we can actually run the beamformer
-D_continuous = osl_inverse_model(D_continuous,mni_coords,S);
+% * S.modalities        = {'MEGPLANAR' 'MEGMAG'};
+% * S.fuse              = 'meg'; 
+%
+% where the |S.fuse='meg'| option means that
+% the source reconstruction will fuse information from all MEG sensor types
+% listed in S.modalities, in this case from both the MEG planar grads and
+% the magnetometers.
+
+%%
+% The PCA order is a form of regularization and can help improve your
+% results. For CTF data, a value of 100 is typical. For MEGIN data that has
+% been maxfiltered, a value
+%  less than ~60 will be appropriate (as this reflects the fact that after
+%  default
+% maxfiltering, the rank of the MEG data in sensor space is ~64).
+%
+% We now actually run the beamformer. Before calling
+% |osl_inverse_model|, we make sure that the normalised sensor space
+% montage is the one being used.
+
+normalise_data_montage=1;
+D_epoched = D_epoched.montage('switch',normalise_data_montage);
+
 D_epoched = osl_inverse_model(D_epoched,mni_coords,S);
 
 %%
 % Note that |osl_inverse_model| writes changes to disk and thus will commit
 % any unsaved changes you have made to the MEEG object to disk. This is
-% something to be aware of if you are used to changing the montages in memory
-% (e.g. by parcellation or orthogonalization) without saving to disk.
+% something to be aware of if you are used to changing the montages in
+% memory (e.g. by parcellation or orthogonalization) without saving to
+% disk.
 %
-% The result of running the beamformer is the addition of new online montages
-% corresponding to the beamformed result
+
+%% Beamformer output
+% Note that the |D_epoched| object has now got a number of channels equal to
+% the number of MNI coordinates we specified in mni_coords, and they will be 
+% in the same order:
+
+D_epoched
+
+disp('Number of channels in D_epoched:')
+disp(D_epoched.nchannels)
+
+disp('Number of MNI coordinates:')
+disp(size(mni_coords,1))
+
+%%
+% You'll see that the result of running the beamformer is the addition of
+% two new online montages corresponding to the beamformed result: 
+%
+% * Source space (MEG) without weights normalisation,
+% * Source space (MEG) with weights normalisation 
+%
+% Weights normalisation is used to correct the fact
+% that, with beamforming, voxels that are deeper in the brain tend to have
+% higher variance.
+
 has_montage(D_epoched)
 
+%% 
+% Switch to the montage that corresponds to the source recon with weights
+% normalisation, check that source_recon_montage is set accordingly before
+% running this next bit
+
+source_recon_montage=3;
+D_epoched=D_epoched.montage('switch',source_recon_montage)
+
+%% Source space ERFs
+% To see the conditions (i.e. trial types) in the data we can use:
+
+D_epoched.condlist
+
+%%
+% Here we will first focus on 'Stim_Onset' trials, which corresponds to a
+% simple visual stimulus. We can do using the |indtrial| function:
+
+resp_trls = indtrial(D_epoched,'Stim_Onset','good');
+
+%%
+% This gives all good trials for this condition in the data.
+
+%%
+% We then compute the event-related field (ERF) by averaging over all these
+% trials. Note that because of the ambiguity of the sign of the activity
+% following source reconstruction (see
+% <https://ohba-analysis.github.io/osl-docs/pages/docs/sign_ambiguity.html>),
+% we work with the absolute value of the ERF:
+
+erf=squeeze(mean(D_epoched(:,:,resp_trls),3));
+abs_erf=abs(erf);
+
+%%
+% We can then save out and view the spatio-temporal activity of the
+% abs(ERF), as a 4D niftii file where the 4th dimension is time.
+
+fname_out=nii.quicksave(abs_erf,'abs_erf',spatial_res,spatial_res);
+fsleyes(fname_out);
+
+%%
+% Once FSLeyes is open, make sure you:
+%
+% * select the abs_erf image in the overlay list
+% * set the min to 0.3
+% * select "View->Time-series"
+%
+% We expect a good evoked response in the visual cortex at ~100ms. NOTE:
+% fsleyes shows the time-axis using the time index (i.e. the volume-index
+% in the 4D niftii file being shown). So to know what time index 100ms
+% corresponds to, you can use:
+
+time_of_interest=0.1; % in secs
+time_index=nearest(D_epoched.time,time_of_interest)-1;
+disp(time_index);
+
+%%
+% Note that you can also press the _volume/movie_ button (immediately to the
+% left of toggle crosshairs on/off) to automatically cycle through the time
+% series.
+
+%% Source space time-frequency plots
+% As well as viewing the ERF, we can also look at oscillatory power using
+% the time-frequency TF transform (i.e. the induced response, which
+% corresponds to event-related synchronisations and de-synchronisations)
+
+%%
+% Here we want to focus on the 'Abduction' trials in the same data, which
+% correspond to a simple hand movement. We can identify Abduction trials
+% using the indtrial function:
+
+resp_trls = indtrial(D_epoched,'Abduction','good');
+
+%%
+% We then use |osl_tf_transform| to do the time-frequency TF transform.
+% Here we are using a Hilbert transform within the beta-band frequency
+% range, i.e. 13-30Hz.
+
+S = struct;
+S.tf_method = 'hilbert';
+S.tf_freq_range = [13,30];
+S.tf_num_freqs = 1;
+S.raw_times = D_epoched.time;
+S.ds_factor = 0.5; % smaller value means less time samples in result
+dat = osl_tf_transform( S , D_epoched(:,:,resp_trls) );
+
+%%
+% We can now compute the induced response in the beta band by averaging
+% over trials:
+induced_response_beta = mean(dat.dattf(:,:,:,:),3);
+
+%%
+% We then do baseline correction on the trial averaged data, separately for
+% each frequency bin
+
+S=struct;
+S.data = induced_response_beta; % pass in trial averaged beta power data [nchannels x ntpts]
+S.time = dat.tf_times; % vector or tpts for 2nd dimension of S.data
+S.time_window = [-3 -2]; % [start end] in secs
+induced_response_beta_bc = osl_baseline_correct(S);
+
+%%
+% Finally, we can save the result and open it in |fsleyes|
+
+fname_out=nii.quicksave(induced_response_beta_bc,'induced_response_beta_bc',spatial_res,spatial_res); % output spatial map of erf at 0sec
+fsleyes(fname_out);
+
+%%
+% Once FSLeyes is open, make sure you:
+%
+% * select the induced_response_beta_bc image in the overlay list
+% * turn on the negative color map and set it to use "blue-light blue"
+% * set the min to 0.15
+% * select "View->Time-series"
+%
+% We expect a post movement beta rebound (beta synchronisation or power
+% increase) at about 1-2 sec post stimulus
+% 
+% NOTE: fsleyes shows the time-axis using the time index (i.e. the
+% volume-index in the 4D niftii file being shown). So to know what time 
+% index 1.3secs corresponds to, you can use:
+
+time_of_interest=1.3; % in secs
+disp(nearest(dat.tf_times,time_of_interest)-1)
+
+%%
+% Now, use fsleyes to find a voxel at this ~1.3sec timepoint that has a
+% high beta rebound (i.e. a high positive value, indicating a
+% high beta power or beta ERS), and enter it here in MNI coordinates in mm:
+
+beta_ers_mnicoord=[-30 -21 58]; % in mm
+
+%%
+% We can then get the voxel index nearest to that:
+beta_ers_voxel_index=nearest_vec(mni_coords,beta_ers_mnicoord);
+
+%%
+% Next, we can plot the time course of beta power at the chosen voxel:
+figure;
+plot(dat.tf_times,induced_response_beta_bc(beta_ers_voxel_index,:));
+xlabel('time (s)','FontSize',15);
+ylabel('beta power','FontSize',15);
+set(gca,'FontSize',15)
+
+%% 
+% We can also plot the TF transform across a range of freq bands at this
+% voxel
+
+S = struct;
+S.tf_method = 'morlet';
+S.tf_freq_range = [1,40];
+S.tf_num_freqs = 30;
+S.raw_times = D_epoched.time;
+S.tf_morlet_factor=7;
+S.ds_factor = 0.5;
+dat = osl_tf_transform( S , D_epoched(beta_ers_voxel_index,:,resp_trls) );
+
+%%
+% Next, we perform baseline correction, carried out on trial averaged data, 
+% separately for each frequency bin
+
+S=struct;
+S.data = mean(dat.dattf,3); % pass in trial averaged TF data [nchannels x ntpts x 1 x nfreq]
+S.time = dat.tf_times; % vector or tpts for 2nd dimension of S.data
+S.time_window = [-Inf -1.5]; % [start end] in secs
+dat_bc = osl_baseline_correct(S);
+
+%%
+% Finally, we can plot the baseline corrected time-frequency response for 
+% the chosen voxel
+
+figure;
+tf = squeeze(dat_bc(:,:,:,:))';
+grid on;
+contourf(dat.tf_times,dat.tf_freqs,tf,32,'linestyle','none' )
+colorbar
+xlabel('Time (seconds)');
+ylabel('Power','FontSize',15);
+set(gca,'FontSize',15)
+title('Induced Response','FontSize',15)
+
+%%
+% Note that in everything we have done in this practical, we have not done any
+% statistics. We have just been looking at the evoked responses averaged
+% over trials in a single subject.
 ##### SOURCE END #####
 --></body></html>
