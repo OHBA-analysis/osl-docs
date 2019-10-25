@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Preproc - OPT</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_preprocessing_opt.m"></head><body><div class="content"><h1>Preproc - OPT</h1><!--introduction--><p>This is an example for running the OHBA recommended preprocessing pipeline on Elekta-Neuromag MEG data (a very similar pipeline will work on CTF and EEG data as well) using OPT (OSL's preproscessing tool). It works through similar steps as you would for the manual preprocessing, but this time it is all automated.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#4">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#6">SETTING UP AN OPT ANALYSIS</a></li><li><a href="#16">CHECK OPT SETTINGS</a></li><li><a href="#17">LOOK AT OPT SETTINGS AND SUBSETTINGS</a></li><li><a href="#22">RUNNING THE OPT ANALYSIS</a></li><li><a href="#23">VIEWING OPT RESULTS</a></li><li><a href="#37">EXERCISES</a></li></ul></div><p>We will work with two subjects' data from a button press experiment. The data should be available in your installation already. Note that this contains the fif files, e.g. fifs/loc_S01_sss1.fif, which have already been SSS Maxfiltered and downsampled to 250 Hz, and which we will use for this analysis.</p><p><b>SPECIFY DIRECTORIES FOR THIS ANALYSIS</b></p><p>First, we set the data directory where the data is, this should be the correct path already:</p><pre class="codeinput">datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_example'</span>,<span class="string">'automatic_opt'</span>)
+   <title>Preproc - OPT</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-25"><meta name="DC.source" content="osl_example_preprocessing_opt.m"></head><body><div class="content"><h1>Preproc - OPT</h1><!--introduction--><p>This is an example for running the OHBA recommended preprocessing pipeline on Elekta-Neuromag MEG data (a very similar pipeline will work on CTF and EEG data as well) using OPT (OSL's preproscessing tool). It works through similar steps as you would for the manual preprocessing, but this time it is all automated.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#4">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#6">SETTING UP AN OPT ANALYSIS</a></li><li><a href="#16">CHECK OPT SETTINGS</a></li><li><a href="#17">LOOK AT OPT SETTINGS AND SUBSETTINGS</a></li><li><a href="#22">RUNNING THE OPT ANALYSIS</a></li><li><a href="#23">VIEWING OPT RESULTS</a></li><li><a href="#37">EXERCISES</a></li></ul></div><p>We will work with two subjects' data from a button press experiment. The data should be available in your installation already. Note that this contains the fif files, e.g. fifs/loc_S01_sss1.fif, which have already been SSS Maxfiltered and downsampled to 250 Hz, and which we will use for this analysis.</p><p><b>SPECIFY DIRECTORIES FOR THIS ANALYSIS</b></p><p>First, we set the data directory where the data is, this should be the correct path already:</p><pre class="codeinput">datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_example'</span>,<span class="string">'automatic_opt'</span>)
 </pre><p>We now need to specify a list of the fif files that we want to work on. We also need to specify a list of SPM file names, which will be used to name the resulting SPM data files after the fif files have been imported into SPM. It is important to make sure that the order of these lists is consistent.</p><pre class="codeinput"><span class="comment">%</span>
 <span class="comment">% fif_files{1}=[testdir '/fifs/sub1_face_sss.fif'];</span>
 <span class="comment">% fif_files{2}=[testdir '/fifs/sub2_face_sss.fif'];</span>
@@ -20,7 +20,7 @@ fif_files{2}=fullfile(datadir,<span class="string">'fifs'</span>,<span class="st
 
 spm_files{1}=fullfile(datadir,<span class="string">'spm_files'</span>,<span class="string">'loc_S01'</span>);
 spm_files{2}=fullfile(datadir,<span class="string">'spm_files'</span>,<span class="string">'loc_S02'</span>);
-</pre><h2 id="4">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</h2><p>OPT takes in SPM MEEG objects, so we first need to convert the fif file for each subject into this format using <tt>osl_import</tt>.</p><p>The fif files that we are working with, e.g. loc_S02_sss1.fif, have already been max-filtered and downsampled to 250Hz.</p><p>The SPM M/EEG object is the data structure used to store and manipulate MEG and EEG data in SPM.</p><p>Calling <tt>osl_import</tt> will also produce a histogram plot showing the number of events detected for each code on the trigger channel. The codes used on the trigger channel for this experiment were:</p><pre class="codeinput"><span class="keyword">if</span>(~isempty(fif_files))
+</pre><h2 id="4">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</h2><p>OPT takes in SPM MEEG objects, so we first need to convert the fif file for each subject into this format using <tt>osl_import</tt>.</p><p>The fif files that we are working with, e.g. loc_S02_sss1.fif, have already been max-filtered and downsampled to 250Hz.</p><p>The SPM M/EEG object is the data structure used to store and manipulate MEG and EEG data in SPM.</p><p>Calling <tt>osl_import</tt> will also produce a histogram plot showing the number of events detected for each code on the trigger channel.</p><pre class="codeinput"><span class="keyword">if</span>(~isempty(fif_files))
     S2=[];
     <span class="keyword">for</span> i=1:length(fif_files) <span class="comment">% loops over subjects</span>
         S2.outfile = spm_files{i};
@@ -37,7 +37,7 @@ spm_files{2}=fullfile(datadir,<span class="string">'spm_files'</span>,<span clas
 
 structural_files{1}=fullfile(datadir,<span class="string">'structs'</span>,<span class="string">'anat1.nii'</span>); <span class="comment">% leave empty if no structural available</span>
 structural_files{2}=fullfile(datadir,<span class="string">'structs'</span>,<span class="string">'anat2.nii'</span>); <span class="comment">% leave empty if no structural available</span>
-</pre><h2 id="6">SETTING UP AN OPT ANALYSIS</h2><p>This sets up an OPT struct to pass to <tt>osl_check_opt</tt>, by setting the appropriate fields and values in the OPT struct. Note that some fields are mandatory while others are optional (and will be automatically set to their default values). The osl_check_opt.m function should be used to setup the settings for OPT. This function will check the settings, and will throw an error if any required inputs are missing, and will fill other settings that are not passed in with their default values. The OPT structure can then be passed to osl_run_opt to do an OPT analysis. On the Matlab command line type <tt>help osl_check_opt</tt> to see what the mandatory fields are. Note that you MUST specify:</p><p><tt>opt.spm_files</tt>: A list of the spm meeg files for input into SPM (require</p><p>AND:</p><p><tt>opt.datatype</tt>: Specifies the datatype, i.e. 'neuromag', 'ctf', 'eeg'</p><p>For more information, see</p><p>
+</pre><h2 id="6">SETTING UP AN OPT ANALYSIS</h2><p>This sets up an OPT struct to pass to <tt>osl_check_opt</tt>, by setting the appropriate fields and values in the OPT struct. Note that some fields are mandatory while others are optional (and will be automatically set to their default values). The osl_check_opt.m function should be used to setup the settings for OPT. This function will check the settings, and will throw an error if any required inputs are missing, and will fill other settings that are not passed in with their default values. The OPT structure can then be passed to osl_run_opt to do an OPT analysis. On the Matlab command line type <tt>help osl_check_opt</tt> to see what the mandatory fields are. Note that you MUST specify:</p><p><tt>opt.spm_files</tt>: A list of the spm meeg files for input into SPM</p><p>AND:</p><p><tt>opt.datatype</tt>: Specifies the datatype, i.e. 'neuromag', 'ctf', 'eeg'</p><p>For more information, see</p><p>
 <a href="https://ohba-analysis.github.io/osl-docs/pages/docs/opt.html" target="_blank">https://ohba-analysis.github.io/osl-docs/pages/docs/opt.html</a>
 </p><p><b>Specify required inputs</b></p><p>We need to specify the list of input SPM MEEG object files and data type: In our case the input files were already setup above in the variable <tt>spm_files</tt>, and we are using data acquired by the MEGIN Neuromag system (same type as in manual preproc practical).</p><pre class="codeinput">opt=[];
 opt.spm_files=spm_files;
@@ -195,8 +195,7 @@ spm_files{2}=fullfile(datadir,'spm_files','loc_S02');
 % MEG and EEG data in SPM.
 % 
 % Calling |osl_import| will also produce a histogram plot showing the number of events detected
-% for each code on the trigger channel. The codes used on the trigger
-% channel for this experiment were:
+% for each code on the trigger channel. 
 
 if(~isempty(fif_files))
     S2=[];
@@ -216,10 +215,11 @@ end
 %%
 % *SET UP STRUCTURALS*
 % 
-% OPT can also perform coregistration (estimating the spatial position of a subject's head and brain
-% relative to the MEG sensors). Since coregistration requires a structural MRI for 
-% each subject, we need to supply these to OPT. Coregistration and its role in source reconstruction 
-% will be explained in a different practical. 
+% OPT can also perform coregistration (estimating the spatial position of a 
+% subject's head and brain relative to the MEG sensors). 
+% Since coregistration requires a structural MRI for 
+% each subject, we need to supply these to OPT. Coregistration and its role 
+% in source reconstruction will be explained in a different practical. 
 %
 % Here, we setup a list of existing structural files, in the same
 % order as in spm_files and fif_files.
@@ -242,7 +242,7 @@ structural_files{2}=fullfile(datadir,'structs','anat2.nii'); % leave empty if no
 % fields are. 
 % Note that you MUST specify:
 %
-% |opt.spm_files|: A list of the spm meeg files for input into SPM (require
+% |opt.spm_files|: A list of the spm meeg files for input into SPM
 %
 % AND:
 %
