@@ -7,13 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>ROInets 1 - Introduction to orthogonalization</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-31"><meta name="DC.source" content="osl_example_roinets_1_synthetic.m"></head><body><div class="content"><h1>ROInets 1 - Introduction to orthogonalization</h1><!--introduction--><p>This example uses synthetic signals to illustrate the effect of orthogonalization.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">TUTORIAL</a></li><li><a href="#9">EXERCISES</a></li></ul></div><h2 id="1">TUTORIAL</h2><p>Spatial leakage in the beamformer results in correlations between adjacent/nearby voxels being introduced, that are not the result of correlations in neural activity. As an approximation, this can be corrected for by removing all zero-lag correlations. Note that this does not eliminate correlations in the amplitude envelopes (although it does decrease them somewhat). By doing this, the remaining correlation is assumed to reflect genuine functional connectivity.</p><p>To demonstrate orthogonalization in practice, this example illustrates the use of the low-level <tt>ROInets</tt> function <tt>remove_source_leakage()</tt> which implements the core orthogonalization algorithms.</p><p>We generate a synthetic signal with 3 channels, and a manually specified covariance matrix C, using an auto-regressive model. This is done in two steps:</p><pre class="language-matlab">- first, we <span class="string">generate</span> <span class="string">multi-variate</span> <span class="string">normally</span> <span class="string">distributed</span> <span class="string">noise</span>, using <span class="string">the</span> <span class="string">Cholesky</span>
-decomposition <span class="string">of</span> <span class="string">the</span> <span class="string">covariance</span> <span class="string">matrix</span> <span class="string">C</span>;
-- second, we <span class="string">give</span> <span class="string">some</span> <span class="string">temporal</span> <span class="string">structure</span> <span class="string">to</span> <span class="string">that</span> <span class="string">noise</span> <span class="string">by</span> <span class="string">smoothing</span> <span class="string">it</span> <span class="string">in</span> <span class="string">time</span>
-using <span class="string">an</span> <span class="string">auto-regressive</span> <span class="string">model</span> <span class="string">(see</span>
-&lt;https://uk.mathworks.com/help/signal/examples/linear-prediction-and-autoregressive-modeling.html
-this <span class="string">tutorial&gt;</span> <span class="string">for</span> <span class="string">details).</span>
-</pre><pre class="codeinput">Fs       = 100; <span class="comment">% Hz</span>
+   <title>ROInets 1 - Introduction to orthogonalization</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-31"><meta name="DC.source" content="osl_example_roinets_1_synthetic.m"></head><body><div class="content"><h1>ROInets 1 - Introduction to orthogonalization</h1><!--introduction--><p>This example uses synthetic signals to illustrate the effect of orthogonalization.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">TUTORIAL</a></li><li><a href="#9">EXERCISES</a></li></ul></div><h2 id="1">TUTORIAL</h2><p>Spatial leakage in the beamformer results in correlations between adjacent/nearby voxels being introduced, that are not the result of correlations in neural activity. As an approximation, this can be corrected for by removing all zero-lag correlations. Note that this does not eliminate correlations in the amplitude envelopes (although it does decrease them somewhat). By doing this, the remaining correlation is assumed to reflect genuine functional connectivity.</p><p>To demonstrate orthogonalization in practice, this example illustrates the use of the low-level <tt>ROInets</tt> function <tt>remove_source_leakage()</tt> which implements the core orthogonalization algorithms.</p><p>We generate a synthetic signal with 3 channels, and a manually specified covariance matrix C, using an auto-regressive model. This is done in two steps:</p><div><ul><li>first, we generate multi-variate normally distributed noise, using the Cholesky   decomposition of the covariance matrix C;</li><li>second, we give some temporal structure to that noise by smoothing it in time   using an auto-regressive model (see   <a href="https://uk.mathworks.com/help/signal/examples/linear-prediction-and-autoregressive-modeling.html">this tutorial</a> for details).</li></ul></div><pre class="codeinput">Fs       = 100; <span class="comment">% Hz</span>
 duration = 5*60; <span class="comment">% 5 min</span>
 time     = 0:1/Fs:duration;
 nTime    = length(time);
@@ -37,9 +31,9 @@ corrcov(trueCov)
 </pre><pre class="codeoutput">
 ans =
 
-    1.0000   -0.1034    0.5891
-   -0.1034    1.0000    0.3065
-    0.5891    0.3065    1.0000
+    1.0000   -0.0905    0.6058
+   -0.0905    1.0000    0.3072
+    0.6058    0.3072    1.0000
 
 
 ans =
@@ -51,21 +45,21 @@ ans =
 </pre><p>The <tt>remove_source_leakage()</tt> function takes in the data matrix, as well as the orthogonalization method. To apply symmetric orthogonalization, we can simply call:</p><pre class="codeinput">tic
 data_orthog = ROInets.remove_source_leakage(data, <span class="string">'symmetric'</span>);
 toc
-</pre><pre class="codeoutput">Elapsed time is 0.026800 seconds.
+</pre><pre class="codeoutput">Elapsed time is 0.017853 seconds.
 </pre><p>Now, the channels have no static zero-lag correlation</p><pre class="codeinput">corrcoef(data_orthog')
 </pre><pre class="codeoutput">
 ans =
 
-    1.0000    0.0000    0.0000
-    0.0000    1.0000   -0.0000
-    0.0000   -0.0000    1.0000
+    1.0000    0.0000   -0.0000
+    0.0000    1.0000    0.0000
+   -0.0000    0.0000    1.0000
 
 </pre><p>However, the amplitude of the orthogonalized signals is quite different to the original signals</p><pre class="codeinput">std(data.')
 std(data_orthog.')
 </pre><pre class="codeoutput">
 ans =
 
-    0.0219    0.0222    0.0219
+    0.0222    0.0220    0.0224
 
 
 ans =
@@ -78,14 +72,14 @@ std(data_orthog_closest.')
 </pre><pre class="codeoutput">
 ans =
 
-    1.0000    0.0000    0.0000
-    0.0000    1.0000   -0.0000
-    0.0000   -0.0000    1.0000
+    1.0000    0.0000   -0.0000
+    0.0000    1.0000    0.0000
+   -0.0000    0.0000    1.0000
 
 
 ans =
 
-    0.0207    0.0219    0.0203
+    0.0208    0.0216    0.0208
 
 </pre><p>The 'closest' orthogonalization method also results in orthogonal signals, but iteratively rotates and scales the basis vectors to best preserve the original signals. As a result, the orthogonalized signals are still uncorrelated, but their amplitudes much better match the original signals</p><h2 id="9">EXERCISES</h2><p>1. Have a closer look at the outcome of the orthogonalisation procedures, using simple superimposed plotting or compute correlations between the different orthogonalization.</p><p>2. Also, try to model a situation where one parcel gets a lot of signal from another one (due to a bad parcellation, for example). This can be modeled by increasing the correlation between e.g. parcel 1 and 3 as defined by the matrix multiplied in variable C (i.e. change both values of 0.6 to 0.9, for example). Check the outcome of the orthogonalization. Have a look at how much the orthogonalization changes the original signal (by simply plotting over each other or by calculating the correlation coefficient). What happens with the similarity between the original and the 'closest' orthogonalisation if there is this elevated mixing of signals in comparison to the example in the practical?</p><p>3. Why would someone want to use 'symmetric' over 'closest' orthogonalization if it matches the original time-series so much better in terms of amplitude? Increase the dimensionality and/ or length of fthe time courses? and compare runtimes. Also, check how these two time-series compare (correlation or simple visual inspection).</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
@@ -108,9 +102,9 @@ ans =
 % We generate a synthetic signal with 3 channels, and a manually specified
 % covariance matrix C, using an auto-regressive model. This is done in two steps:
 %
-%   - first, we generate multi-variate normally distributed noise, using the Cholesky
+% * first, we generate multi-variate normally distributed noise, using the Cholesky
 %   decomposition of the covariance matrix C;
-%   - second, we give some temporal structure to that noise by smoothing it in time
+% * second, we give some temporal structure to that noise by smoothing it in time
 %   using an auto-regressive model (see
 %   <https://uk.mathworks.com/help/signal/examples/linear-prediction-and-autoregressive-modeling.html
 %   this tutorial> for details).  
