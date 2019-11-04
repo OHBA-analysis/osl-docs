@@ -36,13 +36,43 @@ It's possible for FSLView to appear off the screen, if an external monitor was p
 5. Once FSLView is opened (i.e. the icon has appeared in the dock, even if the FSLView window is located offscreen), double click `fix_fslview.app`
 6. The FSLView window should now be repositioned on your screen
 
-#### Mac OS additional information
+#### Compiling MEX files on OSX
 
-If the “System Information” section of the `osl_debug_log.txt` file indicates that there is no C compiler, you may have to install XCode, which can be done straightforwardly through the Apple App Store though it is quite a large download.
+Compiling MEX files is significantly more troublesome on OSX than on Linux, because it requires Xcode to be installed.
 
-You may also need to [install XQuartz](https://www.xquartz.org) in order for FSLView to work properly.
+Check for compatible Xcode versions depdending on your Matlab version at [this link](https://uk.mathworks.com/support/requirements/previous-releases.html) (column "Supported Compilers"), and download a suitable version [here](https://developer.apple.com/download/more/?=xcode) (requires an Apple ID). This is a very large archive, and may take several hours to download, so make sure you have a good Internet connection.
 
-#### FieldTrip mex errors
+Once the download is finished, go through the installation process and make sure to accept the license. 
+If needed, you can manually accept the license by typing in a terminal: `sudo xcodebuild -license` 
+
+You can check that Xcode is installed by opening `Finder > Applications` and looking for "Xcode.app" (blue icon with a hammer).
+
+#### Using FSLview on Mac OSX
+
+You will need to [install XQuartz](https://www.xquartz.org) in order for FSLView to work properly.
+
+#### MEX errors on Ubuntu
+
+If you run into errors of the type _"GLIBCXX symbols not found"_ when calling MEX functions, this might be due to a mismatch between the C/C++ libraries built into Matlab, and your system's. The fix for [this bug](https://uk.mathworks.com/support/bugreports/1297894) may prevent such issues.
+
+#### Re-compiling SPM or FieldTrip
+
+If you experience unexpected behaviour in SPM e.g. it hangs when you try to load an MEEG object, you may need to recompile the MEX files (see the [required setup](#compiling-mex-files-on-osx) on OSX). 
+To do this, open a terminal into the folder `osl/spm12/src` and follow the instructions for your platform:
+
+- Instructions for compiling on Linux: [here](https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux#Compilation)
+- Instructions for compiling on OSX: [here](https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)#Compilation)
+
+> **Note:**
+>
+> Prior to running these steps, you should ensure that the Matlab binaries are on your path:
+> ```
+> export PATH=$MATLABROOT/bin:$PATH
+> ```
+>
+> where `$MATLABROOT` corresponds to the output of command `matlabroot()` within Matlab; typical locations are `/Applcations/MATLAB_R2018b.app` on OSX, or `/opt/MATLAB/R2018b` on Linux for example.
+
+#### FieldTrip MEX errors
 
 To recompile Fieldtrip, start up OSL, and then run
 
@@ -53,15 +83,3 @@ If the problem is in `ft_getopt` it is also fine to just delete the MEX file i.e
 	osl/spm12/external/fieldtrip/utilities/ft_getopt.mexmaci64
 
 On recent versions of Matlab, there is essentially no performance advantage from using the compiled version of this function.
-
-#### SPM crashes or hangs
-
-If you experience unexpected behaviour in SPM e.g. it hangs when you try to load an MEEG object, you may need to recompile the MEX files. To do this, in a terminal go into your SPM directory and then
-
-	cd spm12/src
-	make distclean
-	make && make install
-	make external-distclean
-	make external && make external-install
-
-This will also recompile FieldTrip

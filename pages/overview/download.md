@@ -30,6 +30,7 @@ See also the [troubleshooting]({{ site.baseurl }}/pages/overview/troubleshooting
 - A Mac or Linux computer - FSL/OSL cannot be used on Windows
 - Matlab R2014b or newer. 
 - FSL should be installed - you can obtain FSL [here](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation).
+- On OSX, [XQuartz](https://www.xquartz.org) should be installed
 
 Matlab R2014b and newer are fully supported. Matlab R2012b-R2014a have basic testing for processing, but there are known graphics incompatibilities. We have not tested functionality for versions of Matlab below R2012b.
 
@@ -37,7 +38,8 @@ Optionally, some scripts require [Connectome Workbench](https://www.humanconnect
 
 ## Installation instructions
 
-Before jumping to the first step, make sure your Matlab version is R2014b or newer, and that FSL is installed (see requirements).
+Before moving on to the first step, make sure your Matlab version is R2014b or newer, that FSL is installed, and that XQuartz is installed if you are on OSX (see requirements).
+In particular, typing `echo $FSLDIR` in a terminal should return the path to the FSL folder on your machine.
 
 #### Step 1: download sources
 
@@ -59,7 +61,6 @@ This should create a folder called `osl` with the following contents:
     ├── layouts/
     ├── MEG-ROI-nets/
     ├── ohba-external/
-    ├── osl.conf
     ├── osl-core/
     ├── parcellations/
     ├── spm12/
@@ -68,25 +69,7 @@ This should create a folder called `osl` with the following contents:
 
 > **Tip:** the command `osldir()`, which is used in many scripts within OSL, refers to the root folder `osl`, and not to the subfolder `osl-core`.
 
-#### Step 2: compile Mex files
-
-For compatibility reasons, OSL includes its own copy of SPM12 and Fieldtrip. Both come with Mex files that need to be compiled every time the supporting folder are updated, and in particular when OSL is first installed. To do so, open a terminal into the folder `osl` and type:
-
-	cd spm12/src
-	make distclean
-	make && make install
-	make external-distclean
-	make external && make external-install
-
-_(Note: this requires Xcode to be installed on OSX, [more info]({{ site.baseurl }}/pages/overview/troubleshooting.html#mac-os-additional-information) on the troubleshooting page.)_
-
-If you wish to use your own versions of these packages as part of your analysis pipeline, you cannot simultaneously use OSL. However, you can always restore your Matlab path after using OSL by calling `osl_shutdown`. For example, if you have a pipeline that uses OSL for preprocessing and Fieldtrip for analysis:
-
-- run `osl_startup` to use OSL, 
-- perform your preprocessing, 
-- then run `osl_shutdown` and continue as normal. 
-
-#### Step 3: configure OSL paths
+#### Step 2: configure OSL paths
 
 Complete the installation of OSL by opening Matlab, navigate to the subfolder `osl/osl-core`, and type `osl_startup`.
 
@@ -107,9 +90,22 @@ The default SPM folder is that packaged in the supplementary archive, and the us
 
 Although it is possible to specify your own version of SPM, we strongly discourage doing so, because several changes were introduced in the version provided with OSL, and we cannot guarantee the behaviour of OSL functions without that version.
 
-Finally, some OSL functions for plotting on the cortical surface rely on Workbench. If you need to use them, you will need to specify the location of the Workbench folder on your system (the one that contains a folder named `bin_linux64` or similar).
+Finally, some OSL functions for plotting on the cortical surface rely on [Connectome Workbench](https://www.humanconnectome.org/software/get-connectome-workbench). 
+If you need to use them, you will need to specify the location of the Workbench folder on your system (the one that contains a folder named `bin_linux64` or similar).
 
 ---
+
+## SPM and FieldTrip
+
+For compatibility reasons, OSL includes its own copy of SPM12 and Fieldtrip. 
+Both come with Mex files that are pre-compiled, but if you run into errors, you might need to re-compile them manually your machine. 
+More information about this is available in the corresponding [troubleshooting section]({{ site.baseurl }}/pages/overview/troubleshooting.html#spm-and-fieldtrip).
+
+If you wish to use your own versions of these packages as part of your analysis pipeline, you cannot simultaneously use OSL. However, you can always restore your Matlab path after using OSL by calling `osl_shutdown`. For example, if you have a pipeline that uses OSL for preprocessing and Fieldtrip for analysis:
+
+- run `osl_startup` to use OSL, 
+- perform your preprocessing, 
+- then run `osl_shutdown` and continue as normal. 
 
 ## Tutorial data
 
