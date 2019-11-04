@@ -99,7 +99,7 @@ If you need to use them, you will need to specify the location of the Workbench 
 
 For compatibility reasons, OSL includes its own copy of SPM12 and Fieldtrip. 
 Both come with Mex files that are pre-compiled, but if you run into errors, you might need to re-compile them manually your machine. 
-More information about this is available in the corresponding [troubleshooting section]({{ site.baseurl }}/pages/overview/troubleshooting.html#spm-and-fieldtrip).
+More information about this is available in the corresponding [troubleshooting section]({{ site.baseurl }}/pages/overview/troubleshooting.html#compiling-spm-and-fieldtrip).
 
 If you wish to use your own versions of these packages as part of your analysis pipeline, you cannot simultaneously use OSL. However, you can always restore your Matlab path after using OSL by calling `osl_shutdown`. For example, if you have a pipeline that uses OSL for preprocessing and Fieldtrip for analysis:
 

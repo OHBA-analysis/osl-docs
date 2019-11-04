@@ -55,7 +55,7 @@ You will need to [install XQuartz](https://www.xquartz.org) in order for FSLView
 
 If you run into errors of the type _"GLIBCXX symbols not found"_ when calling MEX functions, this might be due to a mismatch between the C/C++ libraries built into Matlab, and your system's. The fix for [this bug](https://uk.mathworks.com/support/bugreports/1297894) may prevent such issues.
 
-#### Re-compiling SPM or FieldTrip
+#### Compiling SPM and FieldTrip
 
 If you experience unexpected behaviour in SPM e.g. it hangs when you try to load an MEEG object, you may need to recompile the MEX files (see the [required setup](#compiling-mex-files-on-osx) on OSX). 
 To do this, open a terminal into the folder `osl/spm12/src` and follow the instructions for your platform:
