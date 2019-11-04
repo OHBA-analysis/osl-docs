@@ -65,12 +65,12 @@ S2.stats_fname=oat.first_level.results_fnames{1};
 S2.first_level_contrasts=[3,1,2];
 S2.resamp_gridstep=oat.source_recon.gridstep;
 [statsdir,times,count]=oat_save_nii_stats(S2);
-</pre><h2 id="8">OPEN NIFTII RESULTS IN FSLVIEW</h2><p>We can now view the nifti images containing our GLM results in FSL, here we are running fslview from the matlab command line, but you do not need to - you can run it from the UNIX command line instead.</p><pre class="codeinput">mni_brain=[osldir <span class="string">'/std_masks/MNI152_T1_'</span> num2str(S2.resamp_gridstep) <span class="string">'mm_brain.nii.gz'</span>];
+</pre><h2 id="8">OPEN NIFTII RESULTS IN FSLEYES</h2><p>We can now view the nifti images containing our GLM results in FSL, here we are running fsleyes from the matlab command line, but you do not need to - you can run it from the UNIX command line instead.</p><pre class="codeinput">mni_brain=[osldir <span class="string">'/std_masks/MNI152_T1_'</span> num2str(S2.resamp_gridstep) <span class="string">'mm_brain.nii.gz'</span>];
 
 <span class="comment">% Inspect the results of an OAT contrast in FSLVIEW</span>
 contrast=2;
-runcmd([<span class="string">'fslview '</span> mni_brain <span class="string">' '</span> [statsdir <span class="string">'/tstat'</span> num2str(contrast) <span class="string">'_'</span> num2str(S2.resamp_gridstep) <span class="string">'mm'</span>] <span class="string">' &amp;'</span>]);
-</pre><h2 id="9">VIEW RESULTS IN FLSVIEW</h2><p>The previous command should have opened FSLVIEW with the t-stats for the faces contrast. We need to tweat the viewing settings to see the results well.</p><p>Firstly, make sure the 'tstat2_8mm' image in selected by clicking on it once in the bottom window. Next set the 'Min' and 'Max' to 15 and 25 respectively in the two boxes in the middel at the top of the screen.</p><p>We are currently looking at the first time-point in the source_recon window which corresponds to -100ms, in which not much is happening.</p><p>Change the 'Volume' in the bottom left to 49, this corresponds to around 100ms after stimulus onset. You should see a response in early visual cortex at the back of the brain. You can cross-check the times referred to in the Volumes with the 'times' variable returned by 'oat_save_nii_stats' above (Note that FSLVIEW indexes Volumes from 0 and Matlab indexes times from 1)</p><p>Now change the 'Volume' to 59, corresponding to around 140ms after stimulus onset. The peak of activation jumps to the right hemiphere visual cortex.</p><p>You can futher investigate the results by clicking on the 'Tools-&gt;Timeseries' option in the top menu. This will bring up and new window showing the t-value across time for the voxel under the green curser. You can navigate across space by clicking on a part of the brain and time by clicking at a time-point on the timeseries.</p><p>Try changing to code in the previous cell to bring up the tstats for contrast 3 'Face-Motorbikes'. Following the same visualisation instructions you should be able to see that the early time-window (Volume 49) does not contain any large responses whereas the later response (Volume 59) still occurs. This indicates that there are no large differences between Faces and Motorbikes in the the early response, whereas the later response does differ.</p><pre class="codeinput"><span class="comment">% Display the vector of times associated with Volumes in the Nifti output.</span>
+runcmd([<span class="string">'fsleyes '</span> mni_brain <span class="string">' '</span> [statsdir <span class="string">'/tstat'</span> num2str(contrast) <span class="string">'_'</span> num2str(S2.resamp_gridstep) <span class="string">'mm'</span>] <span class="string">' &amp;'</span>]);
+</pre><h2 id="9">EYES RESULTS IN FLSEYES</h2><p>The previous command should have opened FSLEYES with the t-stats for the faces contrast. We need to tweat the viewing settings to see the results well.</p><p>Firstly, make sure the 'tstat2_8mm' image in selected by clicking on it once in the bottom window. Next set the 'Min' and 'Max' to 15 and 25 respectively in the two boxes in the middle at the top of the screen. Then change the colourmap from Greyscale to Red-Yellow using the drop down menu at the top-centre of the screen.</p><p>We are currently looking at the first time-point in the source_recon window which corresponds to -100ms, in which not much is happening.</p><p>Change the 'Volume' in the bottom left to 49, this corresponds to around 100ms after stimulus onset. You should see a response in early visual cortex at the back of the brain. You can cross-check the times referred to in the Volumes with the 'times' variable returned by 'oat_save_nii_stats' above (Note that FSLEYES indexes Volumes from 0 and Matlab indexes times from 1)</p><p>Now change the 'Volume' to 59, corresponding to around 140ms after stimulus onset. The peak of activation jumps to the right hemiphere visual cortex.</p><p>You can futher investigate the results by clicking on the 'View-&gt;Timeseries' option in the top menu. This will bring up and new window showing the t-value across time for the voxel under the green curser. You can navigate across space by clicking on a part of the brain and time by clicking at a time-point on the timeseries.</p><p>Try changing to code in the previous cell to bring up the tstats for contrast 3 'Face-Motorbikes'. Following the same visualisation instructions you should be able to see that the early time-window (Volume 49) does not contain any large responses whereas the later response (Volume 59) still occurs. This indicates that there are no large differences between Faces and Motorbikes in the the early response, whereas the later response does differ.</p><pre class="codeinput"><span class="comment">% Display the vector of times associated with Volumes in the Nifti output.</span>
 disp(times)
 </pre><h2 id="10">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</h2><p>We may want to see the results across all contrasts for a single ROI to gain another perspective on our results.</p><p>Here we will interrogate the wholebrain OAT (run above) using a specified MNI coordinate.</p><p>Run the code below now. This will bring up a the COPE and tstat estimates across time for a voxel in visual cortex. Note the prominant response around 100ms</p><p>Try changing the code to run at 32,-64,-18</p><p>This corresponds to a point in Right Hemisphere Fusiform Cortex. Note that the 100ms response does not appear here, rather the later Face specific response is more dominant.</p><pre class="codeinput">mni_coord=[4,-82,-8]; <span class="comment">% Visual Cortex Voxel</span>
 
@@ -376,20 +376,20 @@ S2.first_level_contrasts=[3,1,2];
 S2.resamp_gridstep=oat.source_recon.gridstep;
 [statsdir,times,count]=oat_save_nii_stats(S2);
 
-%% OPEN NIFTII RESULTS IN FSLVIEW
+%% OPEN NIFTII RESULTS IN FSLEYES
 % We can now view the nifti images containing our GLM results in FSL, here
-% we are running fslview from the matlab command line, but you do not need
+% we are running fsleyes from the matlab command line, but you do not need
 % to - you can run it from the UNIX command line instead.
 
 mni_brain=[osldir '/std_masks/MNI152_T1_' num2str(S2.resamp_gridstep) 'mm_brain.nii.gz'];
 
 % Inspect the results of an OAT contrast in FSLVIEW
 contrast=2;
-runcmd(['fslview ' mni_brain ' ' [statsdir '/tstat' num2str(contrast) '_' num2str(S2.resamp_gridstep) 'mm'] ' &']);
+runcmd(['fsleyes ' mni_brain ' ' [statsdir '/tstat' num2str(contrast) '_' num2str(S2.resamp_gridstep) 'mm'] ' &']);
 
-%% VIEW RESULTS IN FLSVIEW
+%% VIEW RESULTS IN FLSEYES
 %
-% The previous command should have opened FSLVIEW with the t-stats for the
+% The previous command should have opened FSLEYES with the t-stats for the
 % faces contrast. We need to tweat the viewing settings to see the results
 % well.
 %
