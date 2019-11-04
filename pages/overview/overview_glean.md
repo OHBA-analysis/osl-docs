@@ -1,6 +1,6 @@
 ---
 layout: default
-title: GLEAN
+title: Toolbox GLEAN
 resource: true
 categories: overview
 ---

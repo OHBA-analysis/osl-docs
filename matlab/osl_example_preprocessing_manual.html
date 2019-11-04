@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>Preproc - Manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-22"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h1>Preproc - Manual</h1><!--introduction--><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#76">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#79">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#107">EXERCISES</a></li></ul></div><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following steps:</p><p>Note that this contains the fif file: fifs/sub1_face_sss.fif that has already been SSS Maxfiltered and downsampled to 250 Hz.</p><p>We will now run it through a manual preprocessing pipeline as outlined above.</p><h2 id="2">SET UP ANALYSIS</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <i>cd /somedirectory/osl-core</i> ) and then run the following.</p><pre class="codeinput">osl_startup;
+   <title>Preproc - Manual</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-04"><meta name="DC.source" content="osl_example_preprocessing_manual.m"></head><body><div class="content"><h1>Preproc - Manual</h1><!--introduction--><p>This an example for running a manual preprocessing pipeline in OSL. For today's workshop we will copy and paste directly from this practical on the website. You can also do the same with the Matlab script found under /osl-core/examples/osl_example_preprocessing_manual.m.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">SET UP ANALYSIS</a></li><li><a href="#7">CONVERT FROM FIF TO AN SPM M/EEG OBJECT</a></li><li><a href="#8">THE SPM M/EEG OBJECT - LOADING AND BASIC INFORMATION</a></li><li><a href="#20">OSLVIEW</a></li><li><a href="#23">FILTERING: BAND-PASS AND NOTCH FILTERING</a></li><li><a href="#27">DOWNSAMPLING</a></li><li><a href="#34">AUTOMATED BAD SEGMENT/CHANNEL DETECTION</a></li><li><a href="#37">MANUAL BAD SEGMENT/CHANNEL DETECTION USING OSLVIEW</a></li><li><a href="#39">MANUAL AFRICA DENOISING</a></li><li><a href="#55">EPOCHING OF DATA</a></li><li><a href="#72">AUTOMATED BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#76">MANUAL BAD TRIAL/CHANNEL DETECTION</a></li><li><a href="#79">EXAMINE AND VISUALISE EPOCHED DATA</a></li><li><a href="#107">EXERCISES</a></li></ul></div><p>We will work with a single subject's data from an emotional faces task.</p><p>We will take an approach here which is run step-by-step and requires manual intervention. This will go through the following preprocessing steps:</p><div><ul><li>Import data into SPM MEEG format</li><li>Band-pass temporal filtering</li><li>Downsampling</li><li>Bad segment/channel detection</li><li>ICA denoising using AFRICA</li><li>Epoching</li><li>Outlier trial detection</li></ul></div><p>Note that this contains the fif file: fifs/sub1_face_sss.fif that has already been SSS Maxfiltered and downsampled to 250 Hz.</p><p>We will now run it through a manual preprocessing pipeline as outlined above.</p><h2 id="2">SET UP ANALYSIS</h2><p>The only thing you need to do is to go into your OSL directory (i.e. type <i>cd /somedirectory/osl-core</i> ) and then run the following.</p><pre class="codeinput">osl_startup;
 </pre><p>This will not be necessary after you have done this once, i.e. no need to repeat during one of the follow-up practicals.</p><p><b>SPECIFY DIRECTORIES FOR THIS ANALYSIS</b></p><p>Next, the <tt>datadir</tt> needs to be setup to point to the right folder, where the example data are stored.</p><pre class="codeinput">datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'preproc_example'</span>,<span class="string">'manual'</span>);
 </pre><p>The working directory will be same as the data directory. This is where the files from the preprocessing we run will be stored.</p><pre class="codeinput">workingdir=datadir;
 </pre><p>We now need to specify a list of the fif files that we want to work on. We also need to specify a list of SPM file names, which will be used to name the resulting SPM data files after the fif files have been imported into SPM. It is important to make sure that the order of these lists is consistent. Note that we only work with one subject here, but more generally there would be more than one, e.g.:</p><pre class="codeinput"><span class="comment">% fif_files{1}=[testdir '/fifs/sub1_face_sss.fif'];</span>
@@ -126,7 +126,7 @@ D = spm_eeg_load(spm_files{subnum});
     D.save;
 <span class="keyword">end</span>
 </pre><p>Note that the bad segments/channels are not actually removed from the data, they are instead marked as bad, so that they can be optionally excluded from future parts of the analysis.</p><p>We now view the automatically marked segments/channels using oslview.</p><pre class="codeinput">D=oslview(D);
-</pre><p>The start of any bad segments are indicated with a dashed green line, and the end with a dashed red line.</p><p>Bad channels have their data plotted as dashed lines.</p><p>There are a lot of artefacts now marked in this data!</p><p>See <a href="https://ohba-analysis.github.io/osl-docs/matlab/osl_example_preprocessing_detect_artefacts.html">https://ohba-analysis.github.io/osl-docs/matlab/osl_example_preprocessing_detect_artefacts.html</a> for more info on this automated approach, including how to select data that exludes bad channels/segments. Close oslview.</p><h2 id="37">MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW</h2><p>There is also the option to run manual bad epoch/channel detection using oslview itself. We can do this as an alternative, or in addition, to the automated bad epoch/channel detection described above.</p><p>Here we now run the manual dection on the data without the automated bad epoch/channel detection having been done (i.e. using the data with the 'dff' prefix as input).</p><pre class="codeinput">clear <span class="string">spm_files</span>;
+</pre><p>The start of any bad segments are indicated with a dashed green line, and the end with a dashed red line.</p><p>Bad channels have their data plotted as dashed lines.</p><p>There are a lot of artefacts now marked in this data!</p><p>See <a href="https://ohba-analysis.github.io/osl-docs/matlab/osl_example_preprocessing_detect_artefacts.html">https://ohba-analysis.github.io/osl-docs/matlab/osl_example_preprocessing_detect_artefacts.html</a> for more info on this automated approach, including how to select data that exludes bad channels/segments. Close oslview.</p><h2 id="37">MANUAL BAD SEGMENT/CHANNEL DETECTION USING OSLVIEW</h2><p>There is also the option to run manual bad segment/channel detection using oslview itself. We can do this as an alternative, or in addition, to the automated bad segment/channel detection described above.</p><p>Here we now run the manual dection on the data without the automated bad segment/channel detection having been done (i.e. using the data with the 'dff' prefix as input).</p><pre class="codeinput">clear <span class="string">spm_files</span>;
 <span class="keyword">for</span> subnum = 1:length(spm_files_basenames) <span class="comment">% iterates over subjects</span>
     spm_files{subnum}=fullfile(workingdir,[<span class="string">'dff'</span> spm_files_basenames{subnum}]);
 
@@ -377,7 +377,15 @@ sensors_topoplot(D_africa,topo2,{<span class="string">'MEGPLANAR'</span> <span c
 % We will work with a single subject's data from an emotional faces task. 
 % 
 % We will take an approach here which is run step-by-step and requires
-% manual intervention. This will go through the following steps:
+% manual intervention. This will go through the following preprocessing steps:
+%
+% * Import data into SPM MEEG format
+% * Band-pass temporal filtering
+% * Downsampling
+% * Bad segment/channel detection
+% * ICA denoising using AFRICA
+% * Epoching
+% * Outlier trial detection
 %
 % Note that this contains the fif file: fifs/sub1_face_sss.fif that has
 % already been SSS Maxfiltered and downsampled to 250 Hz.
@@ -765,15 +773,14 @@ D=oslview(D);
 % for more info on this automated approach, including how to select data
 % that exludes bad channels/segments. Close oslview.
 
-%% MANUAL BAD EPOCH/CHANNEL DETECTION USING OSLVIEW 
-% There is also the option to run manual bad epoch/channel detection using
+%% MANUAL BAD SEGMENT/CHANNEL DETECTION USING OSLVIEW 
+% There is also the option to run manual bad segment/channel detection using
 % oslview itself. We can do this as an alternative, or in addition, to the 
-% automated bad
-% epoch/channel detection described above. 
+% automated bad segment/channel detection described above. 
 %
 % Here we now run the manual dection on the data without 
 % the automated bad
-% epoch/channel detection having been done (i.e. using the data with the 'dff' prefix as input).
+% segment/channel detection having been done (i.e. using the data with the 'dff' prefix as input).
 
 clear spm_files;
 for subnum = 1:length(spm_files_basenames) % iterates over subjects

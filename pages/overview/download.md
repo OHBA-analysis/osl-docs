@@ -5,19 +5,27 @@ resource: true
 categories: overview
 ---
 
-The best way to get started with is to take the following steps:
+OSL consists of a set of repositories available from the [OHBA Analysis on GitHub](https://github.com/OHBA-analysis):
 
-1. Follow the instructions below to download and install OSL
-2. Download the [example data](#example-data) available below
-2. Run through some of the example scripts (listed on this website, and available in the `examples` folder in OSL)
-3. Copy and then adapt a template script to the analysis you want to do.
+- `osl-core` and `ohba-external` contain the main Matlab scripts, and external dependencies;
+- The toolboxes `HMM-MAR`, `GLEAN` and `MEG-ROI-nets` provide additional analysis tools.
 
+OSL is built around `SPM12` and `FSL`. There are two main archives to be downloaded, and an additional archive containing data for the examples:
+
+- [`osl.tar.gz`]({{ site.downloadurl }}/osl.tar.gz) contains the repositories mentioned above as static sources (see [how to](#using-git-repositories) convert them to git repositories);
+- [`release_supplements.tar.gz`]({{ site.downloadurl }}/release_supplements.tar.gz) contains supporting folders required by OSL, and packaged separately to facilitate manual updates;
+- (optional) [`example_data.tar.gz`]({{ site.downloadurl }}/example_data.tar.gz) contains the data used for the tutorials available on this website (menu "Examples").
+
+The installation instructions can be found below.
 Please note that we only have limited capacity to provide technical assistance, so OSL is publicly distributed as-is and we provide support on a best-effort basis. 
+See also the [troubleshooting]({{ site.baseurl }}/pages/overview/troubleshooting.html) page.
 
 * TOC
 {:toc}
 
-## Prerequisites
+---
+
+## Requirements
 
 - A Mac or Linux computer - FSL/OSL cannot be used on Windows
 - Matlab R2014b or newer. 
@@ -25,44 +33,116 @@ Please note that we only have limited capacity to provide technical assistance, 
 
 Matlab R2014b and newer are fully supported. Matlab R2012b-R2014a have basic testing for processing, but there are known graphics incompatibilities. We have not tested functionality for versions of Matlab below R2012b.
 
+Optionally, some scripts require [Connectome Workbench](https://www.humanconnectome.org/software/get-connectome-workbench) to be installed. See [below](#step-3-configure-osl-paths) how to configure OSL to use `wb_command`.
+
 ## Installation instructions
 
-1. Make sure your Matlab version is R2014b or newer, and that FSL is installed
-2. [Download OSL](https://www.dropbox.com/s/0bebw2s30xdzg55/osl.tar.gz?dl=0)
-3. Once downloaded, extract the contents somewhere convenient. This will create a folder called `osl`
-4. Open Matlab and go into the `osl` folder. Within that folder, go into `osl-core`
-5. Type `osl_startup` to initialize OSL
+Before jumping to the first step, make sure your Matlab version is R2014b or newer, and that FSL is installed (see requirements).
 
-For compatibility reasons, OSL includes its own copy of SPM12 and Fieldtrip. If you wish to use current versions of these packages as part of your analysis pipeline, you cannot simultaneously use OSL. To restore your path prior to running OSL, you can call `osl_shutdown`. So for example, if you have a pipeline that uses OSL for preprocessing and Fieldtrip for analysis, run `osl_startup`, perform your preprocessing, then run `osl_shutdown` and continue as normal. 
+#### Step 1: download sources
 
-### Check installation
+Open a terminal into a convenient folder to install OSL (e.g. `$HOME/Documents/MATLAB`), and type:
 
-To verify that your copy of OSL is fully functional, type `osl_check_installation` to test OSL. It is especially important that you verify that an FSLView window appears as part of the test process, because we cannot check this automatically from within Matlab. The test script will create a text file called `osl_debug_log.txt`. Read through the console output or this debug file, which will indicate whether there are any missing packages or system issues that might need resolving.
+    curl -O "{{ site.downloadurl }}/osl.tar.gz"
+    curl -O "{{ site.downloadurl }}/release_supplements.tar.gz"
 
-### Mac OS additional information
+    tar xzf osl.tar.gz
+    tar xzf release_supplements.tar.gz --strip-components=1 --directory=osl
 
-- If the “System Information” section of the `osl_debug_log.txt` file indicates that there is no C compiler, you may have to install XCode, which can be done straightforwardly through the Apple App Store though it is quite a large download.
-- You may need to [install XQuartz](https://www.xquartz.org) in order for FSLView to work properly
+_(Note: you can also use `wget` instead of `curl -O` if needed.)_
 
-### Configuration options
+This should create a folder called `osl` with the following contents:
 
-When you start up OSL for the first time, a file `osl.conf` will be created in your OSL directory (i.e. the path returned by the function `osldir()`). Among other settings, this file contains a list of locations for components of FSL, specifying where the binaries, libraries, and Matlab utilities are located. By default, OSL will look in some standard locations for FSL and use those if FSL is present. If FSL is in an unexpected location, an error will be raised, and you will need to specify the location of FSL manually. Edit `osl.conf` to specify the directories on your system. You can also use this facility to specify which version of FSL you want to use, if you have multiple versions of FSL on your system.
+    osl/
+    ├── GLEAN/
+    ├── HMM-MAR/
+    ├── layouts/
+    ├── MEG-ROI-nets/
+    ├── ohba-external/
+    ├── osl.conf
+    ├── osl-core/
+    ├── parcellations/
+    ├── spm12/
+    ├── std_masks/
+    └── version.txt
 
-Similarly, you can specify a copy of SPM12 to use. OSL includes its own version of SPM12 because we have made some changes to functions within SPM. Some functions in OSL may not work correctly if you use an unsupported version of SPM, so we do not recommend this.
+> **Tip:** the command `osldir()`, which is used in many scripts within OSL, refers to the root folder `osl`, and not to the subfolder `osl-core`.
 
-There are some OSL functions relating to plotting on the cortical surface rely on Workbench. As with FSL, after you have run OSL for the first time, you can edit `osl.conf` to specify the location of Workbench on your system.
+#### Step 2: compile Mex files
 
-### Updating OSL
+For compatibility reasons, OSL includes its own copy of SPM12 and Fieldtrip. Both come with Mex files that need to be compiled every time the supporting folder are updated, and in particular when OSL is first installed. To do so, open a terminal into the folder `osl` and type:
 
-_WARNING - Updating OSL is **not** recommended. Downloading a new copy is strongly advised_
+	cd spm12/src
+	make distclean
+	make && make install
+	make external-distclean
+	make external && make external-install
 
-The various components of OSL are available on GitHub. To update your copy of OSL to the latest code on GitHub, we have provided an upgrade script. From within Matlab, you can run `osl_upgrade`. If this does not work, you can also open a Terminal and run `osl-core/upgrade.sh` manually. Note that parts of the OSL code on GitHub may have changed together with files in `std_masks` or other directories not included on GitHub, and in these cases you may also encounter unexpected behaviour. 
+_(Note: this requires Xcode to be installed on OSX, [more info]({{ site.baseurl }}/pages/overview/troubleshooting.html#mac-os-additional-information) on the troubleshooting page.)_
 
-## Example data
+If you wish to use your own versions of these packages as part of your analysis pipeline, you cannot simultaneously use OSL. However, you can always restore your Matlab path after using OSL by calling `osl_shutdown`. For example, if you have a pipeline that uses OSL for preprocessing and Fieldtrip for analysis:
 
-OSL comes with several tutorials to illustrate usage. The pages on this website document these, but you can run them yourself using the example scripts included with OSL. 
+- run `osl_startup` to use OSL, 
+- perform your preprocessing, 
+- then run `osl_shutdown` and continue as normal. 
 
-[Download tutorial data](http://users.fmrib.ox.ac.uk/~woolrich/osl/example_data.tar.gz)
+#### Step 3: configure OSL paths
 
-Note that we cannot publicly distribute data for all of the examples due to confidentiality restrictions, so currently it is not possible to run all of the tutorials using the public OSL release. 
+Complete the installation of OSL by opening Matlab, navigate to the subfolder `osl/osl-core`, and type `osl_startup`.
 
+The first time that this command is run, a file called `osl.conf` will be created in the `osl` folder. 
+This file contains a list of paths used by OSL to determine the location of various binaries, libraries, sources and Matlab utilities. 
+An empty version of this file might look like this:
+
+    FSLDIR = 
+    FSLBIN = 
+    FSLLIB = 
+    WORKBENCH = 
+    SPMDIR = 
+
+It is recommended to specify these paths manually prior to using OSL, by editing this file.
+
+By default, OSL will look for FSL components in a few standard locations, and raise an error if they cannot be found. 
+The default SPM folder is that packaged in the supplementary archive, and the use of Workbench is disabled by default, unless a path is specified.
+
+Although it is possible to specify your own version of SPM, we strongly discourage doing so, because several changes were introduced in the version provided with OSL, and we cannot guarantee the behaviour of OSL functions without that version.
+
+Finally, some OSL functions for plotting on the cortical surface rely on Workbench. If you need to use them, you will need to specify the location of the Workbench folder on your system (the one that contains a folder named `bin_linux64` or similar).
+
+---
+
+## Tutorial data
+
+OSL comes with several tutorials to illustrate usage, and we encourage users to copy and adapt these tutorials for their own analysis.
+The scripts are located in the folder `osl/osl-core/examples`, and expected outputs can be found in the "Examples" menu on this website.
+
+In order to run the tutorials yourself, you will need to download the [tutorial data]({{ site.downloadurl }}/example_data.tar.gz), and extract it as a folder `osl/example_data`.
+Be aware that this archive contains several GB of data, so a good connection is needed for this download (using `wget` or `curl` from a console may also be preferrable). 
+
+Note that we cannot publicly distribute all of the data for the tutorials due to confidentiality restrictions, so currently some of the tutorials cannot be run locally using the public OSL release.
+
+## Using git repositories
+
+The OSL sources distributed in the archive above are static; they are merely snapshots of the repositories that can be found [on GitHub](https://github.com/OHBA-analysis).
+However, it is possible to transform these static folders into git repositories. This may be useful for:
+
+- Updating the various packages to the latest available versions with a single command.
+- Contributing your own improvements or bug fixes. You may be interested to [read more](https://guides.github.com/activities/forking/) about forks and pull-requests.
+
+In order to transform the static folders into git repositories, simply run:
+
+    cd osl/osl-core
+    ./git-replace.sh
+
+> **Warning!** 
+> This will **delete everything** within the main OSL sources folders, and replace them with freshly cloned repositories. Make sure to backup any important modifications, files or data that was saved manually into these folders prior to running these commands.
+
+## Updating OSL
+
+Partial updates of OSL (e.g. updating only a certain toolbox, or only the supplementary folders) is generally strongly discouraged, as it can introduce breaking changes and cause unexpected behaviour that may be difficult to debug. The simplest and recommended way to update OSL is to download a new copy, and to follow the installation procedure described above.
+
+Nevertheless, it is also possible to update parts of OSL more regularly if you want to stay at the edge:
+
+1. Updating the sources (folders `osl-core`, `ohba-external`, and toolboxes) can be done by converting these folders into git repositories -- as described in the previous section -- and calling the script `./git-update.sh` from the folder `osl/osl-core`.
+
+2. It is also possible to update the supplementary folders manually by downloading the [latest archive]({{ site.downloadurl }}/release_supplements.tar.gz). To avoid unexpected errors, make sure to delete the old folders before replacing them with the new ones, instead of merging the two.

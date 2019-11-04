@@ -1,6 +1,6 @@
 ---
 layout: default
-title: HMM-MAR
+title: Toolbox HMM-MAR
 resource: true
 categories: overview
 ---

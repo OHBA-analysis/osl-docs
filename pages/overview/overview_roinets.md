@@ -1,6 +1,6 @@
 ---
 layout: default
-title: MEG-ROI-nets
+title: Toolbox MEG-ROI-nets
 resource: true
 categories: overview
 ---
