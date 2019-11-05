@@ -7,13 +7,13 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>OAT 3 - Sourcespace Analysis</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-01"><meta name="DC.source" content="osl_example_oat_3_sourcespace.m"></head><body><div class="content"><h1>OAT 3 - Sourcespace Analysis</h1><!--introduction--><p>This practical will work with a single subject's data from an emotional faces experiment (Elekta Neuromag data).</p><p>Work your way through the script cell by cell using the supplied dataset. As well as following the instructions below, make sure that you read all of the comments and understand each step as you go.</p><p>We will estimate neural activity in the brain's source space using a beamformer algorithm, task dependant differences in this source activity is then quantified using a GLM. This will go through the following steps:</p><div><ol><li>Set-up an OAT Analysis: source_recon and first_level</li><li>Run source space GLM fitting and contrasts</li><li>Check coregistration</li><li>Save and view t-stat volumes</li><li>GLM analysis in an ROI</li><li>Time-frequency analysis in an ROI</li><li>Whole brain time-frequency analysis</li></ol></div><p>This practical requires the first part of the osl_example_coregistration practical to be run first. If you haven't run this before, please do so before starting this session.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</a></li><li><a href="#2">SET UP THE SUBJECTS FOR THE ANALYSIS</a></li><li><a href="#3">SETUP THE OAT:</a></li><li><a href="#5">SPECIFIY FIRST LEVEL OPTIONS</a></li><li><a href="#6">RUN THE OAT:</a></li><li><a href="#7">VIEW OAT  REPORT</a></li><li><a href="#8">OUTPUT SUBJECT'S NIFTII FILES</a></li><li><a href="#9">OPEN NIFTII RESULTS IN FSLVIEW</a></li><li><a href="#15">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</a></li><li><a href="#17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</a></li><li><a href="#19">TIME-FREQUENCY ANALYSIS ACROSS A SOURCE-SPACE PARCELLATION</a></li><li><a href="#20">LOAD PREVIOUSLY RUN OAT</a></li><li><a href="#21">VIEW THE RESULTS IN THE OAT REPORT</a></li><li><a href="#22">SOURCE ROI TIME-FREQUENCY PLOT</a></li><li><a href="#23">SOURCE ROI SINGLE-FREQUENCY POWER PLOT</a></li></ul></div><h2 id="1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</h2><p>This cell sets the directory that OAT will work in. Change the workingdir variable to correspond to the correct directory on your computer before running the cell.</p><pre class="codeinput"><span class="comment">% directory where the data is:</span>
-datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject_example'</span>,<span class="string">'spm_files'</span>);
-structdir =  fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject_example'</span>,<span class="string">'structurals'</span>);
+   <title>OAT 3 - Sourcespace Analysis</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-05"><meta name="DC.source" content="osl_example_oat_3_sourcespace.m"></head><body><div class="content"><h1>OAT 3 - Sourcespace Analysis</h1><!--introduction--><p>This practical will work with a single subject's data from an emotional faces experiment (Elekta Neuromag data).</p><p>Work your way through the script cell by cell using the supplied dataset. As well as following the instructions below, make sure that you read all of the comments and understand each step as you go.</p><p>We will estimate neural activity in the brain's source space using a beamformer algorithm, task dependant differences in this source activity is then quantified using a GLM. This will go through the following steps:</p><div><ol><li>Set-up an OAT Analysis: <tt>source_recon</tt> and <tt>first_level</tt></li><li>Run source space GLM fitting and contrasts</li><li>Check coregistration</li><li>Save and view t-stat volumes</li><li>GLM analysis in an ROI</li><li>Time-frequency analysis in an ROI</li><li>Whole brain time-frequency analysis</li></ol></div><p>This practical requires the first part of the osl_example_coregistration practical to be run first. If you haven't run this before, please do so before starting this session.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</a></li><li><a href="#2">SET UP THE SUBJECTS FOR THE ANALYSIS</a></li><li><a href="#3">SETUP THE OAT:</a></li><li><a href="#5">SPECIFIY FIRST LEVEL OPTIONS</a></li><li><a href="#6">RUN THE OAT:</a></li><li><a href="#7">VIEW OAT REPORT</a></li><li><a href="#8">OUTPUT SUBJECT'S NIFTII FILES</a></li><li><a href="#9">OPEN NIFTII RESULTS IN FSLVIEW</a></li><li><a href="#15">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</a></li><li><a href="#17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</a></li><li><a href="#19">TIME-FREQUENCY ANALYSIS ACROSS A SOURCE-SPACE PARCELLATION</a></li><li><a href="#20">LOAD PREVIOUSLY RUN OAT</a></li><li><a href="#21">VIEW THE RESULTS IN THE OAT REPORT</a></li><li><a href="#22">SOURCE ROI TIME-FREQUENCY PLOT</a></li><li><a href="#23">SOURCE ROI SINGLE-FREQUENCY POWER PLOT</a></li></ul></div><h2 id="1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</h2><p>This cell sets the directory that OAT will work in. Change the workingdir variable to correspond to the correct directory on your computer before running the cell.</p><pre class="codeinput"><span class="comment">% directory where the data is:</span>
+datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>);
+structdir =  fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'structurals'</span>);
 
 <span class="comment">% directory to put the analysis in</span>
 workingdir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_subject1_data_osl2'</span>);
-</pre><h2 id="2">SET UP THE SUBJECTS FOR THE ANALYSIS</h2><p>Specify a list of the fif files, structural files (not applicable for this practical) and SPM files (which will be created). It is important to make sure that the order of these lists is consistent across sessions. Note that here we only have 1 subject, but more generally there would be more than one. For example:</p><p><tt>fif_files{1}=[testdir '/fifs/sub1_face_sss.fif'];</tt></p><p><tt>fif_files{2}=[testdir '/fifs/sub2_face_sss.fif'];</tt></p><p>etc...</p><p><tt>spm_files{1} = [workingdir '/sub1_face_sss.mat'];</tt></p><p><tt>spm_files{2} = [workingdir '/sub2_face_sss.mat'];</tt></p><p>etc...</p><pre class="codeinput"><span class="comment">% clear old spm files</span>
+</pre><h2 id="2">SET UP THE SUBJECTS FOR THE ANALYSIS</h2><p>Specify a list of the SPM input files. Note that here we only have 1 subject, but more generally there would be more than one. For example:</p><p><tt>spm_files{1} = [workingdir '/sub1_face_sss.mat'];</tt> <tt>spm_files{2} = [workingdir '/sub2_face_sss.mat'];</tt></p><p>etc...</p><pre class="codeinput"><span class="comment">% clear old spm files</span>
 clear <span class="string">spm_files_continuous</span> <span class="string">spm_files_epoched</span>
 
 spm_files_continuous{1}=fullfile(datadir,<span class="string">'Aface_meg1.mat'</span>);
@@ -27,7 +27,7 @@ D.save()
 D = spm_eeg_load(spm_files_epoched{1});
 D = osl_update_inv_dir(D,structdir);
 D.save()
-</pre><h2 id="3">SETUP THE OAT:</h2><p>The oat.source_recon options define the parameters for the data filtering, windowing and beamforming. We define the D files, conditions and time-frequency options in the same way as the sensorspace OAT. THe In this section we will do a wholebrain beamformer, followed by a trial-wise GLM that will correspond to a comparison of the ERFs for the different conditions. The source-space projection is defined by a new set of options.</p><p>The critical options are:</p><div><ul><li><tt>method</tt> -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral' and 'mne_datacov'</li><li><tt>normalise_method</tt> - How to normalise the magnetometers and gradiometers</li><li><tt>gridstep</tt> - This is the distance (in mm) between points to be reconstructed, the spatial resolution of the analysis. We are using 8mm which is lower than usual but faster to compute.</li><li><tt>forward_meg</tt> - This specifies the forward model used.</li><li><tt>modalities</tt> - Defines which types of sensor to use.</li><li><tt>do_source_variance_maps</tt> - If set to 1, this outputs an optional sanity check</li></ul></div><p>These options are the same as the sensorspace OAT and define input-data, conditions, filtering and windowing.</p><pre class="codeinput">oat=[];
+</pre><h2 id="3">SETUP THE OAT:</h2><p>The <tt>oat.source_recon</tt> options define the parameters for the data filtering, windowing and beamforming. We define the continuous and epoched SPM MEEG object files, conditions and time-frequency options in the same way as the sensorspace OAT. The In this section we will do a wholebrain beamformer, followed by a trial-wise GLM that will correspond to a comparison of the ERFs for the different conditions. The source-space projection is defined by a new set of options.</p><p>The critical options are:</p><div><ul><li><tt>method</tt> -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral'</li><li><tt>normalise_method</tt> - How to normalise the magnetometers and gradiometers</li><li><tt>gridstep</tt> - This is the distance (in mm) between points to be reconstructed, the spatial resolution of the analysis. We are using 8mm which is lower than usual but faster to compute.</li><li><tt>forward_meg</tt> - This specifies the forward model used.</li><li><tt>modalities</tt> - Defines which types of sensor to use.</li><li><tt>do_source_variance_maps</tt> - If set to 1, this outputs an optional sanity check</li></ul></div><p>These options are the same as the sensorspace OAT and define input-data, conditions, filtering and windowing.</p><pre class="codeinput">oat=[];
 oat.source_recon.D_continuous=spm_files_continuous;
 oat.source_recon.D_epoched=spm_files_epoched;
 
@@ -42,7 +42,7 @@ oat.source_recon.modalities{1}={<span class="string">'MEGPLANAR'</span>, <span c
 oat.source_recon.report.do_source_variance_maps=1;
 
 oat.source_recon.dirname=fullfile(workingdir,<span class="string">'beamformer_erf'</span>); <span class="comment">% directory the oat and results will be stored in</span>
-</pre><h2 id="5">SPECIFIY FIRST LEVEL OPTIONS</h2><p>These options are the same as the sensorspace ERF tutorial.</p><p>design_matrix_summary is a parsimonious description of the design matrix. It contains values <tt>design_matrix_summary{reg,cond}</tt>, where reg is a regressor no. and cond is a condition no. This will be used (by expanding the conditions over trials) to create the (num_regressors x num_trials) design matrix:</p><pre class="codeinput">design_matrix_summary={};
+</pre><h2 id="5">SPECIFIY FIRST LEVEL OPTIONS</h2><p>These options are the same as the sensorspace ERF tutorial.</p><p><tt>design_matrix_summary</tt> is a parsimonious description of the design matrix. It contains values <tt>design_matrix_summary{reg,cond}</tt>, where <tt>reg</tt> is a regressor index number and <tt>cond</tt> indexes different experimental conditions (e.g. pictures of faces, pictures of motorbikes). This will be used (by expanding the conditions over trials) to create the (num_regressors x num_trials) design matrix.</p><pre class="codeinput">design_matrix_summary={};
 design_matrix_summary{1}=[1 0 0 0];design_matrix_summary{2}=[0 1 0 0];design_matrix_summary{3}=[0 0 1 0];design_matrix_summary{4}=[0 0 0 1];
 oat.first_level.design_matrix_summary=design_matrix_summary;
 
@@ -62,24 +62,23 @@ oat.first_level.post_tf_downsample_factor=1;
 oat.first_level.name=[<span class="string">'wholebrain_first_level'</span>];
 
 oat = osl_check_oat(oat);
-</pre><h2 id="6">RUN THE OAT:</h2><p>We only need to run the source_recon and first_level stages in this tutorial, the subject_level and group_level options can be set to 0.</p><p>The OAT will produce and close a number of figures as it processes, we will discuss what they mean once it has finished (this takes a couple of minutes)</p><pre class="codeinput">oat.to_do=[1 1 0 0];
+</pre><h2 id="6">RUN THE OAT:</h2><p>We only need to run the <tt>source_recon</tt> and <tt>first_level</tt> stages in this tutorial, so the <tt>oat.to_do</tt> flags for the <tt>subject_level</tt> and <tt>group_level</tt> OAT stages are set to 0.</p><p>The OAT will produce and close a number of figures as it processes, we will discuss what they mean once it has finished (this takes a couple of minutes)</p><pre class="codeinput">oat.to_do=[1 1 0 0];
 oat = osl_run_oat(oat);
-close <span class="string">all</span>
-</pre><h2 id="7">VIEW OAT  REPORT</h2><p>The OAT will create a number of figures whilst running. This includes the sensor normalisation which is completed during the source recon. Please find these figures now.</p><p>Note that the eigenspectrum of the sensordata ('Pre-normalised log eigenspectrum') drops off sharply at around 64, this indicates the rank of the sensor data which i limited by maxfilter de-noising. The Pre-normalised variances shows the sensor-by-sensor variance across time. Channels 205-306 are the Magnetometers and have much higher variance than the Gradiometers. We need to normalise the data to remove this disparity or the information in the Magnetometers will dominate the reconstruction. In the normalised_eigs plot below, we can see that the 'mean_eig' sensor normalisation has both removed the shelf in the eigenspectrum and brought the sensor variances in line with each other.</p><p></p><p>
-Once finished, the OAT will print a link to a html report. Click to open it in the matlab html browser.</p><p><b>Source Recon</b></p><p>Firstly, click to open the "Session_1_report". This contains the plots relevent to the source_recon. In our case this is the sensor normalisation. .</p><p><b>First Level</b></p><p>Click back to the first page and on to the 'First level (epoched) report' and then the 'session1 report'. This contains a results summary from the voxel-wise GLM</p><p>Design matrix plot. At the top is the design matrix used for each subject. Red values indicate a value of 1, blue indicates a value of zero. It is worth noting if every regressor (in this case corresponding to the four different conditions) is well represented. For example, if aggressive amounts of outlier rejection has been applied then it is possible to end up with very few trials in a regressor.</p><p><b>Stats plots</b> These show the time courses of the COPEs and t-stats for the different contrasts listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>, at the MNI coordinated indicated in the title of the plots. This MNI coordinate is chosen by finding the voxel with the maximum t-stat for the first contrast listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>.</p><p>The COPE is on the left and the t-stat on the right. Note the large peak around 96ms after stimulus onset.</p><p><b>COPE and t-stat orthoview plots</b> These show orthoviews of the COPEs and t-stats for the different contrasts listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>, at the time point indicated in the title of the plots. This time point is chosen by finding the time point with the maximum t-stat for the first contrast listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>.</p><p>This time-point is around 136ms and shows peaks in lateral and medial occipital cortex. These are right hemisphere lateralised for the Faces and Faces-Motorbikes condition.</p><p><img vspace="5" hspace="5" src="osl_example_beamformer_oat_cope_at_maxt_smap_c2.png" alt=""> </p><h2 id="8">OUTPUT SUBJECT'S NIFTII FILES</h2><p>The html report gives a brief summary of the results but we would like to go into more detail.</p><p>We can do this by saving the contrast of parameter estimates (COPEs) and t-statistics for each of our contrasts to NIFTI images.</p><pre class="codeinput">S2=[];
 
+close <span class="string">all</span> <span class="comment">% close any open figures</span>
+</pre><h2 id="7">VIEW OAT REPORT</h2><p>Once finished, OAT will print a link to a html report. Click to open it in the matlab html browser.</p><p><b>Source Recon</b></p><p>Firstly, click to open the "Session_1_report". This contains the plots relevent to the <tt>source_recon</tt> stage. This shows the results of the sensor normalisation that is done prior to the source reconstruction. This is done to ensure that all sensor types can contribute appropriately to the source reconstruction.</p><p>Note that the eigenspectrum of the sensordata ('Pre-normalised log eigenspectrum') drops off sharply at around 64, this indicates the rank of the sensor data which is limited by the maxfilter de-noising that was done during the preprocessing of this data.</p><p>The Pre-normalised variances shows the sensor-by-sensor variance across time. Channels 205-306 are the Magnetometers and have much higher variance than the Gradiometers. We need to normalise the data to remove this disparity or the information in the Magnetometers will dominate the reconstruction.</p><p>In the <tt>normalised_eigs</tt> plot below, we can see that the 'mean_eig' sensor normalisation has both removed the shelf in the eigenspectrum and brought the sensor variances in line with each other.</p><p><b>First Level</b></p><p>Click back to the first page and on to the 'First level (epoched) report' and then the 'session1 report'. This contains a results summary from the voxel-wise GLM</p><p>Design matrix plot. At the top is the design matrix used for each subject. Red values indicate a value of 1, blue indicates a value of zero. It is worth noting if every regressor (in this case corresponding to the four different conditions) is well represented. For example, if aggressive amounts of outlier rejection has been applied then it is possible to end up with very few trials in a regressor.</p><p><b>Stats plots</b> These show the time courses of the COPEs and t-stats for the different contrasts listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>, at the MNI coordinated indicated in the title of the plots. This MNI coordinate is chosen by finding the voxel with the maximum t-stat for the first contrast listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>.</p><p>The COPE is on the left and the t-stat on the right. Note the large peak around 96ms after stimulus onset.</p><p><b>COPE and t-stat orthoview plots</b> These show orthoviews of the COPEs and t-stats for the different contrasts listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>, at the time point indicated in the title of the plots. This time point is chosen by finding the time point with the maximum t-stat for the first contrast listed in <tt>oat.first_level.report.first_level_cons_to_do</tt>.</p><p>This time-point is around 136ms and shows peaks in lateral and medial occipital cortex. These are right hemisphere lateralised for the Faces and Faces-Motorbikes condition.</p><p><img vspace="5" hspace="5" src="osl_example_beamformer_oat_cope_at_maxt_smap_c2.png" alt=""> </p><h2 id="8">OUTPUT SUBJECT'S NIFTII FILES</h2><p>The html report gives a brief summary of the results but we would like to go into more detail.</p><p>We can do this by saving the contrast of parameter estimates (COPEs) and t-statistics for each of our contrasts to NIFTI images.</p><pre class="codeinput">S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
 S2.first_level_contrasts=[3,1,2];
 S2.resamp_gridstep=oat.source_recon.gridstep;
 [statsdir,times,count]=oat_save_nii_stats(S2);
 </pre><h2 id="9">OPEN NIFTII RESULTS IN FSLVIEW</h2><p>We can now view the nifti images containing our GLM results using <tt>osleyes</tt>.</p><pre class="codeinput">o = osleyes(fullfile(statsdir,<span class="string">'tstat1_8mm.nii.gz'</span>));
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_01.png" alt=""> <p>We need to tweak the viewing settings to see the results well.</p><p>Firstly, set the 'Min' and 'Max' colour limits to 15 and 25, respectively.</p><pre class="codeinput">o.layer(2).clim = [15 25];
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_02.png" alt=""> <p>We are currently looking at the first time-point in the source_recon window which corresponds to -100ms, in which not much is happening. Change the 'Volume' to 49, which corresponds to around 100ms after stimulus onset. You should see a response in early visual cortex at the back of the brain. The time value now shows around 200ms, which is 100ms after stimulus onset.</p><pre class="codeinput">o.layer(2).volume = 53;
+</pre><p>We need to tweak the viewing settings to see the results well.</p><p>Firstly, set the 'Min' and 'Max' colour limits to 15 and 25, respectively.</p><pre class="codeinput">o.layer(2).clim = [15 25];
+</pre><p>We are currently looking at the first time-point in the source_recon window which corresponds to -100ms, in which not much is happening. Change the 'Volume' to 49, which corresponds to around 100ms after stimulus onset. You should see a response in early visual cortex at the back of the brain. The time value now shows around 200ms, which is 100ms after stimulus onset.</p><pre class="codeinput">o.layer(2).volume = 53;
 o.current_point = [-9 -90 -18]; <span class="comment">% set the location of the crosshair</span>
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_03.png" alt=""> <p>Now change the 'Volume' to 62, corresponding to around 140ms after stimulus onset. The peak of activation jumps to the right hemiphere visual cortex.</p><pre class="codeinput">o.layer(2).volume = 62;
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_04.png" alt=""> <p>You can futher investigate the results by plotting the time series, by right clicking on the plot and selecting 'plot_timeseries' or using the 'plot_timeseries' method on the <tt>osleyes</tt> object. This will bring up a new window showing the t-value across time for the voxel under crosshair. The MNI coordinates are also displayed in the title of the plot. You can navigate across space by clicking on a part of the brain and time by clicking at a time-point on the timeseries.</p><pre class="codeinput">o.plot_timeseries
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_05.png" alt=""> <img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_06.png" alt=""> <p>Try changing to code in the previous cell to bring up the tstats for contrast 3 'Face-Motorbikes'. Following the same visualisation instructions you should be able to see that the early time-window (Volume 49) does not contain any large responses whereas the later response (Volume 59) still occurs. This indicates that there are no large differences between Faces and Motorbikes in the the early response, whereas the later response does differ.</p><h2 id="15">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</h2><p>We may want to see the results across all contrasts for a single ROI to gain another perspective on our results.</p><p>Here we will interrogate the wholebrain OAT (run above) using a specified MNI coordinate.</p><p>Run the code below now. This will bring up a the COPE and tstat estimates across time for a voxel in visual cortex. Note the prominant response around 100ms</p><p>Try changing the code to run at 32,-64,-18</p><p>This corresponds to a point in Right Hemisphere Fusiform Cortex. Note that the 100ms response does not appear here, rather the later Face specific response is more dominant.</p><pre class="codeinput">mni_coord=[4,-82,-8]; <span class="comment">% Visual Cortex Voxel</span>
+</pre><p>Now change the 'Volume' to 62, corresponding to around 140ms after stimulus onset. The peak of activation jumps to the right hemiphere visual cortex.</p><pre class="codeinput">o.layer(2).volume = 62;
+</pre><p>You can futher investigate the results by plotting the time series, by right clicking on the plot and selecting 'plot_timeseries' or using the 'plot_timeseries' method on the <tt>osleyes</tt> object. This will bring up a new window showing the t-value across time for the voxel under crosshair. The MNI coordinates are also displayed in the title of the plot. You can navigate across space by clicking on a part of the brain and time by clicking at a time-point on the timeseries.</p><pre class="codeinput">o.plot_timeseries
+</pre><p>Try changing to code in the previous cell to bring up the tstats for contrast 3 'Face-Motorbikes'. Following the same visualisation instructions you should be able to see that the early time-window (Volume 49) does not contain any large responses whereas the later response (Volume 59) still occurs. This indicates that there are no large differences between Faces and Motorbikes in the the early response, whereas the later response does differ.</p><h2 id="15">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</h2><p>We may want to see the results across all contrasts for a single ROI to gain another perspective on our results.</p><p>Here we will interrogate the wholebrain OAT (run above) using a specified MNI coordinate.</p><p>Run the code below now. This will bring up a the COPE and tstat estimates across time for a voxel in visual cortex. Note the prominant response around 100ms</p><p>Try changing the code to run at 32,-64,-18</p><p>This corresponds to a point in Right Hemisphere Fusiform Cortex. Note that the 100ms response does not appear here, rather the later Face specific response is more dominant.</p><pre class="codeinput">mni_coord=[4,-82,-8]; <span class="comment">% Visual Cortex Voxel</span>
 
 S2=[];
 S2.vox_coord=mni_coord;
@@ -88,21 +87,21 @@ S2.oat=oat;
 S2.first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; <span class="comment">% plots all of these contrasts</span>
 
 [vox_ind_used] = oat_plot_vox_stats(S2);
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_07.png" alt=""> <p>Note that this output is a combination of all of the NIFTI files that could otherwise be viewed individually using <tt>osleyes</tt>. For example, to plot just the faces tstat for the same voxel shown above, we could use</p><pre class="codeinput">o = osleyes(fullfile(statsdir,<span class="string">'tstat2_8mm.nii.gz'</span>));
+</pre><p>Note that this output is a combination of all of the NIFTI files that could otherwise be viewed individually using <tt>osleyes</tt>. For example, to plot just the faces tstat for the same voxel shown above, we could use</p><pre class="codeinput">o = osleyes(fullfile(statsdir,<span class="string">'tstat2_8mm.nii.gz'</span>));
 o.current_point = mni_coord;
 o.plot_timeseries;
 close(o.fig); <span class="comment">% Close the volume viewer, because we only want the time series plot</span>
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_08.png" alt=""> <h2 id="17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</h2><p>In this section we will interrogate the wholebrain OAT (run above) using an ROI mask. Here we will use an MNI mask of the right temporal occipital fusiform cortex, to perform first level statistics restricted to the mask. The final result will correspond to a spatial average over the mask.</p><p>Unlike the virtual electrode, the results from many voxels (all defined in the binary mask in <tt>S2.mask_fname</tt>) are extracted and the average results across these points presented.</p><p>Apply a mask and spatially average the results over an ROI</p><pre class="codeinput">S2=[];
+</pre><h2 id="17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</h2><p>In this section we will interrogate the wholebrain OAT (run above) using an ROI mask. Here we will use an MNI mask of the right temporal occipital fusiform cortex, to perform first level statistics restricted to the mask. The final result will correspond to a spatial average over the mask.</p><p>Unlike the virtual electrode, the results from many voxels (all defined in the binary mask in <tt>S2.mask_fname</tt>) are extracted and the average results across these points presented.</p><p>Apply a mask and spatially average the results over an ROI</p><pre class="codeinput">S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
-S2.mask_fname=fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject_example'</span>,<span class="string">'structurals'</span>,<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz'</span>);
+S2.mask_fname=fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'structurals'</span>,<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz'</span>);
 [stats,times,mni_coords_used]=oat_output_roi_stats(S2);
 </pre><p>Plot the COPEs and t-stats within the ROI</p><pre class="codeinput">S2=[];
 S2.stats=stats;
 S2.oat=oat;
 S2.first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; <span class="comment">% plots all of these contrasts</span>
 [vox_ind_used] = oat_plot_vox_stats(S2);
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_09.png" alt=""> <h2 id="19">TIME-FREQUENCY ANALYSIS ACROSS A SOURCE-SPACE PARCELLATION</h2><p>Often we want to interrogate neuronal responses in the frequency domain rather than the time-domain ERF. As we saw in the sensor-space practical we can extend the OAT to compute the GLM across a time-frequency decomposition of the data. Here we will extend the analysis to compute the first level GLM across a detailed time-frequency decomposition.</p><p>The GLM across the full time-frequency decomposition takes much longer to compute than the ERF or power within a single frequency band. As such we will run a time-frequency OAT across a 39 node source-space parcellation.</p><p>This has several benefits. Firstly, we can reduce noise by pooling across many voxels within a source parcel and secondly it is much faster to compute time-frequency transforms for 39 parcels than 306 Sensors or ~3500 Voxels. The details of source parcellations are covered in the ROInets practical sessions - for the moment we can consider the parcellation to be simple way to compute the OAT across many Regions of Interest at the same time.</p><p>Most of the OAT settings do not need to be changed for this analysis. We just need to define which parcellation should be applied and add the time-frequency decomposition parameters in the first level.</p><p>We are going to use the wholebrain OAT (which was run above), to make use of the settings and source_recon results already in there. The new time- frequency parameters are:</p><div><ul><li><tt>tf_freq_range</tt> - The lower and upper bounds on the frequency range of interest</li><li><tt>tf_num_freqs</tt> - The number of frequency bands to estimate within the bounds in <tt>tf_freq_range</tt></li><li><tt>tf_method</tt>-  The spectral power estimation method</li><li><tt>tf_hilbert_freq_res</tt> - The resolution to use in the hilbert spectral estimation</li><li><tt>post_tf_downsample_factor</tt>- How much to downsample the tf results</li></ul></div><p>The new parcellation parameters are defined within a <tt>oat.first_level.parcellation</tt> struct. the critical parameters are:</p><div><ul><li><tt>parcellation</tt> - The full path to a nifti file defining the parcellation</li><li><tt>orthogonalisation</tt> - Option to reduce source leakage, in this case we will not apply correction</li><li><tt>method</tt> - method for reconstructing parcel time-course. Options are <tt>PCA</tt>, <tt>mean</tt>, <tt>peakVoxel</tt> and <tt>spatialBasis</tt>.</li></ul></div><h2 id="20">LOAD PREVIOUSLY RUN OAT</h2><p>We are going to use the wholebrain OAT (which was run above for the ERF analysis), to make use of the settings already in there</p><pre class="codeinput">oat.source_recon.dirname=fullfile(workingdir,<span class="string">'beamformer_erf'</span>); <span class="comment">% Make sure this matches the dirname used above</span>
+</pre><h2 id="19">TIME-FREQUENCY ANALYSIS ACROSS A SOURCE-SPACE PARCELLATION</h2><p>Often we want to interrogate neuronal responses in the frequency domain rather than the time-domain ERF. As we saw in the sensor-space practical we can extend the OAT to compute the GLM across a time-frequency decomposition of the data. Here we will extend the analysis to compute the first level GLM across a detailed time-frequency decomposition.</p><p>The GLM across the full time-frequency decomposition takes much longer to compute than the ERF or power within a single frequency band. As such we will run a time-frequency OAT across a 39 node source-space parcellation.</p><p>This has several benefits. Firstly, we can reduce noise by pooling across many voxels within a source parcel and secondly it is much faster to compute time-frequency transforms for 39 parcels than 306 Sensors or ~3500 Voxels. The details of source parcellations are covered in the ROInets practical sessions - for the moment we can consider the parcellation to be simple way to compute the OAT across many Regions of Interest at the same time.</p><p>Most of the OAT settings do not need to be changed for this analysis. We just need to define which parcellation should be applied and add the time-frequency decomposition parameters in the first level.</p><p>We are going to use the wholebrain OAT (which was run above), to make use of the settings and source_recon results already in there. The new time- frequency parameters are:</p><div><ul><li><tt>tf_freq_range</tt> - The lower and upper bounds on the frequency range of interest</li><li><tt>tf_num_freqs</tt> - The number of frequency bands to estimate within the bounds in <tt>tf_freq_range</tt></li><li><tt>tf_method</tt>-  The spectral power estimation method</li><li><tt>tf_hilbert_freq_res</tt> - The resolution to use in the hilbert spectral estimation</li><li><tt>post_tf_downsample_factor</tt>- How much to downsample the tf results</li></ul></div><p>The new parcellation parameters are defined within a <tt>oat.first_level.parcellation</tt> struct. the critical parameters are:</p><div><ul><li><tt>parcellation</tt> - The full path to a nifti file defining the parcellation</li><li><tt>orthogonalisation</tt> - Option to reduce source leakage, in this case we will not apply correction</li><li><tt>method</tt> - method for reconstructing parcel time-course. Options are <tt>PCA</tt>, <tt>mean</tt>, <tt>peakVoxel</tt> and <tt>spatialBasis</tt>.</li></ul></div><h2 id="20">LOAD PREVIOUSLY RUN OAT</h2><p>We are going to use the wholebrain OAT (which was run above for the ERF analysis), to make use of the settings already in there</p><pre class="codeinput">oat.source_recon.dirname=fullfile(workingdir,<span class="string">'beamformer_erf'</span>); <span class="comment">% Make sure this matches the dirname used above</span>
 oat.first_level.name=[<span class="string">'wholebrain_first_level'</span>];
 oat=osl_load_oat(oat);
 
@@ -127,7 +126,7 @@ oat.first_level.bc=[1 1 0]; <span class="comment">% specifies whether or not bas
 oat.first_level.parcellation.do=1;
 
 <span class="comment">% Path to the nifti defining the parcellation</span>
-parcellationfile=fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject_example'</span>,<span class="string">'structurals'</span>,<span class="string">'fmri_d100_parcellation_with_PCC_reduced_2mm_ds8mm.nii.gz'</span>);
+parcellationfile=fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'structurals'</span>,<span class="string">'fmri_d100_parcellation_with_PCC_reduced_2mm_ds8mm.nii.gz'</span>);
 
 <span class="comment">% Define the parcellation options.</span>
 oat.first_level.parcellation.parcellation=parcellationfile;
@@ -150,7 +149,7 @@ S2.oat=oat;
 S2.first_level_cons_to_do = [3]; <span class="comment">% plots all of these contrasts</span>
 
 [vox_ind_used] = oat_plot_vox_stats(S2);
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_10.png" alt=""> <h2 id="23">SOURCE ROI SINGLE-FREQUENCY POWER PLOT</h2><p>We may also isolate the results from a single frequency by defining the freq_inds parameter. The code below will plot the OAT results over time for the 8Hz frequency band.</p><p>Note that first two contrasts in the GLM are testing whether the power at a given time and frequency is different from zero. As such the COPE and t-stats return high values, even within the pre-stimulus period. This reflects the fact that there is always some power at 8Hz, though the later time-points clearly indicate that this power is modulated by stimulus onset.</p><p>The faces-motorbikes contrast is looking for differences in power. This quantity is not strictly positive so we do see t-values around zero in the prestimulus period.</p><p>Taken together, these results indicate that there is none-zero power at 8Hz through the epoch, though it is modulated by stimulus onset, moreover faces show a greater modulation of power than motorbikes.</p><pre class="codeinput"><span class="comment">% Load first level results</span>
+</pre><h2 id="23">SOURCE ROI SINGLE-FREQUENCY POWER PLOT</h2><p>We may also isolate the results from a single frequency by defining the freq_inds parameter. The code below will plot the OAT results over time for the 8Hz frequency band.</p><p>Note that first two contrasts in the GLM are testing whether the power at a given time and frequency is different from zero. As such the COPE and t-stats return high values, even within the pre-stimulus period. This reflects the fact that there is always some power at 8Hz, though the later time-points clearly indicate that this power is modulated by stimulus onset.</p><p>The faces-motorbikes contrast is looking for differences in power. This quantity is not strictly positive so we do see t-values around zero in the prestimulus period.</p><p>Taken together, these results indicate that there is none-zero power at 8Hz through the epoch, though it is modulated by stimulus onset, moreover faces show a greater modulation of power than motorbikes.</p><pre class="codeinput"><span class="comment">% Load first level results</span>
 stats=oat_load_results(oat,oat.first_level.results_fnames{1});
 
 <span class="comment">% Define frequency of interest</span>
@@ -166,7 +165,7 @@ S2.oat=oat;
 S2.freq_inds=freqbin;
 S2.first_level_cons_to_do=[2,1,3]; <span class="comment">% plots all of these contrasts</span>
 [vox_ind_used] = oat_plot_vox_stats(S2);
-</pre><img vspace="5" hspace="5" src="osl_example_oat_3_sourcespace_11.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% OAT 3 - Sourcespace Analysis
 % This practical will work with a single subject's data from an emotional
@@ -180,7 +179,7 @@ S2.first_level_cons_to_do=[2,1,3]; <span class="comment">% plots all of these co
 % task dependant differences in this source activity is then quantified using a GLM.
 % This will go through the following steps:
 %
-% # Set-up an OAT Analysis: source_recon and first_level
+% # Set-up an OAT Analysis: |source_recon| and |first_level|
 % # Run source space GLM fitting and contrasts
 % # Check coregistration
 % # Save and view t-stat volumes
@@ -196,26 +195,19 @@ S2.first_level_cons_to_do=[2,1,3]; <span class="comment">% plots all of these co
 % This cell sets the directory that OAT will work in. Change the workingdir variable to correspond to the correct directory on your computer before running the cell.
 
 % directory where the data is:
-datadir = fullfile(osldir,'example_data','faces_singlesubject_example','spm_files');
-structdir =  fullfile(osldir,'example_data','faces_singlesubject_example','structurals');
+datadir = fullfile(osldir,'example_data','faces_singlesubject','spm_files');
+structdir =  fullfile(osldir,'example_data','faces_singlesubject','structurals');
 
 % directory to put the analysis in
 workingdir = fullfile(osldir,'example_data','faces_subject1_data_osl2');
 
-
-
 %% SET UP THE SUBJECTS FOR THE ANALYSIS
 %
-% Specify a list of the fif files, structural files (not applicable for this practical) and SPM files (which will be created). It is important to make sure that the order of these lists is consistent across sessions. Note that here we only have 1 subject, but more generally there would be more than one. For example:
-%
-% |fif_files{1}=[testdir '/fifs/sub1_face_sss.fif'];|
-%
-% |fif_files{2}=[testdir '/fifs/sub2_face_sss.fif'];|
-%
-% etc...
+% Specify a list of the SPM input files. 
+% Note that here we only have 1 subject, but more generally there would be 
+% more than one. For example:
 %
 % |spm_files{1} = [workingdir '/sub1_face_sss.mat'];|
-%
 % |spm_files{2} = [workingdir '/sub2_face_sss.mat'];|
 %
 % etc...
@@ -237,9 +229,10 @@ D.save()
 
 %% SETUP THE OAT:
 %
-% The oat.source_recon options define the parameters for the data
-% filtering, windowing and beamforming. We define the D files, conditions
-% and time-frequency options in the same way as the sensorspace OAT. THe
+% The |oat.source_recon| options define the parameters for the data
+% filtering, windowing and beamforming. We define the continuous and epoched
+% SPM MEEG object files, conditions
+% and time-frequency options in the same way as the sensorspace OAT. The
 % In this section we will do a wholebrain beamformer, followed by a trial-wise
 % GLM that will correspond to a comparison of the ERFs for the different
 % conditions. The source-space projection is defined by a new set of
@@ -247,7 +240,7 @@ D.save()
 %
 % The critical options are:
 %
-% * |method| -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral' and 'mne_datacov'
+% * |method| -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral'
 % * |normalise_method| - How to normalise the magnetometers and gradiometers
 % * |gridstep| - This is the distance (in mm) between points to be reconstructed, the spatial resolution of the analysis. We
 % are using 8mm which is lower than usual but faster to compute.
@@ -257,6 +250,7 @@ D.save()
 %
 % These options are the same as the sensorspace OAT and define input-data,
 % conditions, filtering and windowing.
+
 oat=[];
 oat.source_recon.D_continuous=spm_files_continuous;
 oat.source_recon.D_epoched=spm_files_epoched;
@@ -276,15 +270,17 @@ oat.source_recon.report.do_source_variance_maps=1;
 
 oat.source_recon.dirname=fullfile(workingdir,'beamformer_erf'); % directory the oat and results will be stored in
 
-
 %% SPECIFIY FIRST LEVEL OPTIONS
 %
 % These options are the same as the sensorspace ERF tutorial.
 %
-% design_matrix_summary is a parsimonious description of the design matrix.
-% It contains values |design_matrix_summary{reg,cond}|, where reg is a regressor no. and cond
-% is a condition no. This will be used (by expanding the conditions over
-% trials) to create the (num_regressors x num_trials) design matrix:
+% |design_matrix_summary| is a parsimonious description of the design matrix.
+% It contains values |design_matrix_summary{reg,cond}|, where |reg| is a 
+% regressor index number and |cond| indexes different experimental 
+% conditions (e.g. pictures of faces, pictures of motorbikes). 
+% This will be used (by expanding the conditions over trials) to create the 
+% (num_regressors x num_trials) design matrix.
+
 design_matrix_summary={};
 design_matrix_summary{1}=[1 0 0 0];design_matrix_summary{2}=[0 1 0 0];design_matrix_summary{3}=[0 0 1 0];design_matrix_summary{4}=[0 0 0 1];
 oat.first_level.design_matrix_summary=design_matrix_summary;
@@ -308,8 +304,9 @@ oat = osl_check_oat(oat);
 
 %% RUN THE OAT:
 %
-% We only need to run the source_recon and first_level stages in this
-% tutorial, the subject_level and group_level options can be set to 0.
+% We only need to run the |source_recon| and |first_level| stages in this
+% tutorial, so the |oat.to_do| flags for the |subject_level| and |group_level| 
+% OAT stages are set to 0.
 %
 % The OAT will produce and close a number of figures as it processes, we
 % will discuss what they mean once it has finished (this takes a couple of
@@ -317,21 +314,27 @@ oat = osl_check_oat(oat);
 
 oat.to_do=[1 1 0 0];
 oat = osl_run_oat(oat);
-close all
 
-%% VIEW OAT  REPORT
+close all % close any open figures
+
+%% VIEW OAT REPORT
 %
-% Once finished, the OAT will print a link to a html report. Click to open
+% Once finished, OAT will print a link to a html report. Click to open
 % it in the matlab html browser.
 %
 % *Source Recon*
 %
 % Firstly, click to open the "Session_1_report". This contains the plots
-% relevent to the source_recon. In our case this is the sensor
-% normalisation. Note that the eigenspectrum of the sensordata
+% relevent to the |source_recon| stage. This shows the results of the sensor
+% normalisation that is done prior to the source reconstruction. This is
+% done to ensure that all sensor types can contribute appropriately to the 
+% source reconstruction. 
+% 
+% Note that the eigenspectrum of the sensordata
 % ('Pre-normalised log eigenspectrum') drops off sharply at
-% around 64, this indicates the rank of the sensor data which i limited by
-% maxfilter de-noising.
+% around 64, this indicates the rank of the sensor data which is limited by
+% the maxfilter de-noising that was done during the preprocessing of this
+% data.
 %
 % The Pre-normalised variances shows the sensor-by-sensor variance across
 % time. Channels 205-306 are the Magnetometers and have much higher
@@ -339,7 +342,7 @@ close all
 % this disparity or the information in the Magnetometers will dominate the
 % reconstruction.
 %
-% In the normalised_eigs plot below, we can see that the 'mean_eig' sensor
+% In the |normalised_eigs| plot below, we can see that the 'mean_eig' sensor
 % normalisation has both removed the shelf in the eigenspectrum and brought
 % the sensor variances in line with each other.
 %
@@ -485,7 +488,7 @@ close(o.fig); % Close the volume viewer, because we only want the time series pl
 S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
-S2.mask_fname=fullfile(osldir,'example_data','faces_singlesubject_example','structurals','Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz');
+S2.mask_fname=fullfile(osldir,'example_data','faces_singlesubject','structurals','Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz');
 [stats,times,mni_coords_used]=oat_output_roi_stats(S2);
 
 %%
@@ -569,7 +572,7 @@ oat.first_level.bc=[1 1 0]; % specifies whether or not baseline correction is do
 oat.first_level.parcellation.do=1;
 
 % Path to the nifti defining the parcellation
-parcellationfile=fullfile(osldir,'example_data','faces_singlesubject_example','structurals','fmri_d100_parcellation_with_PCC_reduced_2mm_ds8mm.nii.gz');
+parcellationfile=fullfile(osldir,'example_data','faces_singlesubject','structurals','fmri_d100_parcellation_with_PCC_reduced_2mm_ds8mm.nii.gz');
 
 % Define the parcellation options.
 oat.first_level.parcellation.parcellation=parcellationfile;
