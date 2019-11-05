@@ -17,25 +17,6 @@ To verify that your copy of OSL is fully functional, type `osl_check_installatio
 OSL will not start properly without FSL installed and properly [configured]({{ site.baseurl }}/pages/overview/download.html#step-3-configure-osl-paths).
 See [https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) for instructions to install FSL. 
 
-#### FSLView doesn't start on Mac OS 10.12
-
-Update XQuartz to the latest version.
-
-#### FSLVIEW appears offscreen on Mac OS
-
-It's possible for FSLView to appear off the screen, if an external monitor was previously used and is now not present (or vice versa). If the title bar is not visible, it may not be possible to reposition the window, rendering FSLView unusable. We have included an app to fix this. 
-
-1. Open the Mac OS 'System Preferences', click 'Security and Privacy', and click 'Accessibility' in the list on the left side of the window
-2. Unlock the preferences by clicking the lock icon in the bottom left of the window (may not be necessary depending on your machine)
-3. Press the '+' button to add a new app to the list of permitted apps. Navigate to your `osl2` directory, then go into `util` and select `fix_fslview.app`
-4. Open FSL, either by typing `fslview` in the terminal if your system paths are set up correctly, or in Matlab, type
-
-	p = parcellation(8)
-	p.fslview
-
-5. Once FSLView is opened (i.e. the icon has appeared in the dock, even if the FSLView window is located offscreen), double click `fix_fslview.app`
-6. The FSLView window should now be repositioned on your screen
-
 #### Compiling MEX files on OSX
 
 Compiling MEX files is significantly more troublesome on OSX than on Linux, because it requires Xcode to be installed.
@@ -46,10 +27,6 @@ Once the download is finished, go through the installation process and make sure
 If needed, you can manually accept the license by typing in a terminal: `sudo xcodebuild -license` 
 
 You can check that Xcode is installed by opening `Finder > Applications` and looking for "Xcode.app" (blue icon with a hammer).
-
-#### Using FSLview on Mac OSX
-
-You will need to [install XQuartz](https://www.xquartz.org) in order for FSLView to work properly.
 
 #### MEX errors on Ubuntu
 
@@ -83,3 +60,28 @@ If the problem is in `ft_getopt` it is also fine to just delete the MEX file i.e
 	osl/spm12/external/fieldtrip/utilities/ft_getopt.mexmaci64
 
 On recent versions of Matlab, there is essentially no performance advantage from using the compiled version of this function.
+
+---
+
+#### FSLView doesn't start on Mac OS 10.12
+
+Update XQuartz to the latest version.
+
+#### Using FSLview on Mac OSX
+
+You will need to [install XQuartz](https://www.xquartz.org) in order for FSLView to work properly.
+
+#### FSLVIEW appears offscreen on Mac OS
+
+It's possible for FSLView to appear off the screen, if an external monitor was previously used and is now not present (or vice versa). If the title bar is not visible, it may not be possible to reposition the window, rendering FSLView unusable. We have included an app to fix this. 
+
+1. Open the Mac OS 'System Preferences', click 'Security and Privacy', and click 'Accessibility' in the list on the left side of the window
+2. Unlock the preferences by clicking the lock icon in the bottom left of the window (may not be necessary depending on your machine)
+3. Press the '+' button to add a new app to the list of permitted apps. Navigate to your `osl2` directory, then go into `util` and select `fix_fslview.app`
+4. Open FSL, either by typing `fslview` in the terminal if your system paths are set up correctly, or in Matlab, type
+
+	p = parcellation(8)
+	p.fslview
+
+5. Once FSLView is opened (i.e. the icon has appeared in the dock, even if the FSLView window is located offscreen), double click `fix_fslview.app`
+6. The FSLView window should now be repositioned on your screen

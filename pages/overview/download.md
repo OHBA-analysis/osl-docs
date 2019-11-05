@@ -29,8 +29,7 @@ See also the [troubleshooting]({{ site.baseurl }}/pages/overview/troubleshooting
 
 - A Mac or Linux computer - FSL/OSL cannot be used on Windows
 - Matlab R2014b or newer. 
-- FSL should be installed - you can obtain FSL [here](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation).
-- On OSX, [XQuartz](https://www.xquartz.org) should be installed
+- FSL should be installed - please follow the instructions [here](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation).
 
 Matlab R2014b and newer are fully supported. Matlab R2012b-R2014a have basic testing for processing, but there are known graphics incompatibilities. We have not tested functionality for versions of Matlab below R2012b.
 
@@ -38,7 +37,7 @@ Optionally, some scripts require [Connectome Workbench](https://www.humanconnect
 
 ## Installation instructions
 
-Before moving on to the first step, make sure your Matlab version is R2014b or newer, that FSL is installed, and that XQuartz is installed if you are on OSX (see requirements).
+Before moving on to the first step, make sure that your Matlab version is R2014b or newer, and that FSL is installed (see requirements).
 In particular, typing `echo $FSLDIR` in a terminal should return the path to the FSL folder on your machine.
 
 #### Step 1: download sources
