@@ -72,7 +72,7 @@ S2.stats_fname=oat.first_level.results_fnames{1};
 S2.first_level_contrasts=[3,1,2];
 S2.resamp_gridstep=oat.source_recon.gridstep;
 [statsdir,times,count]=oat_save_nii_stats(S2);
-</pre><h2 id="9">OPEN NIFTII RESULTS IN FSLVIEW</h2><p>We can now view the nifti images containing our GLM results using <tt>osleyes</tt>.</p><pre class="codeinput">o = osleyes(fullfile(statsdir,<span class="string">'tstat1_8mm.nii.gz'</span>));
+</pre><h2 id="9">OPEN NIFTII RESULTS IN FSLVIEW</h2><p>We can now view the nifti images containing our GLM results using <tt>osleyes</tt>.</p><pre class="codeinput">o = osleyes(fullfile(statsdir,[<span class="string">'tstat1_'</span> num2str(oat.source_recon.gridstep) <span class="string">'mm.nii.gz'</span>]));
 </pre><p>We need to tweak the viewing settings to see the results well.</p><p>Firstly, set the 'Min' and 'Max' colour limits to 15 and 25, respectively.</p><pre class="codeinput">o.layer(2).clim = [15 25];
 </pre><p>We are currently looking at the first time-point in the source_recon window which corresponds to -100ms, in which not much is happening. Change the 'Volume' to 49, which corresponds to around 100ms after stimulus onset. You should see a response in early visual cortex at the back of the brain. The time value now shows around 200ms, which is 100ms after stimulus onset.</p><pre class="codeinput">o.layer(2).volume = 53;
 o.current_point = [-9 -90 -18]; <span class="comment">% set the location of the crosshair</span>
@@ -87,14 +87,14 @@ S2.oat=oat;
 S2.first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; <span class="comment">% plots all of these contrasts</span>
 
 [vox_ind_used] = oat_plot_vox_stats(S2);
-</pre><p>Note that this output is a combination of all of the NIFTI files that could otherwise be viewed individually using <tt>osleyes</tt>. For example, to plot just the faces tstat for the same voxel shown above, we could use</p><pre class="codeinput">o = osleyes(fullfile(statsdir,<span class="string">'tstat2_8mm.nii.gz'</span>));
+</pre><p>Note that this output is a combination of all of the NIFTI files that could otherwise be viewed individually using <tt>osleyes</tt>. For example, to plot just the faces tstat for the same voxel shown above, we could use</p><pre class="codeinput">o = osleyes(fullfile(statsdir,[<span class="string">'tstat2_'</span> num2str(oat.source_recon.gridstep) <span class="string">'mm.nii.gz'</span>]));
 o.current_point = mni_coord;
 o.plot_timeseries;
 close(o.fig); <span class="comment">% Close the volume viewer, because we only want the time series plot</span>
 </pre><h2 id="17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</h2><p>In this section we will interrogate the wholebrain OAT (run above) using an ROI mask. Here we will use an MNI mask of the right temporal occipital fusiform cortex, to perform first level statistics restricted to the mask. The final result will correspond to a spatial average over the mask.</p><p>Unlike the virtual electrode, the results from many voxels (all defined in the binary mask in <tt>S2.mask_fname</tt>) are extracted and the average results across these points presented.</p><p>Apply a mask and spatially average the results over an ROI</p><pre class="codeinput">S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
-S2.mask_fname=fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'structurals'</span>,<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz'</span>);
+S2.mask_fname=fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'structurals'</span>,[<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_'</span> num2str(oat.source_recon.gridstep) <span class="string">'mm.nii.gz'</span>]);
 [stats,times,mni_coords_used]=oat_output_roi_stats(S2);
 </pre><p>Plot the COPEs and t-stats within the ROI</p><pre class="codeinput">S2=[];
 S2.stats=stats;
@@ -397,7 +397,7 @@ S2.resamp_gridstep=oat.source_recon.gridstep;
 
 %% OPEN NIFTII RESULTS IN FSLVIEW
 % We can now view the nifti images containing our GLM results using |osleyes|. 
-o = osleyes(fullfile(statsdir,'tstat1_8mm.nii.gz'));
+o = osleyes(fullfile(statsdir,['tstat1_' num2str(oat.source_recon.gridstep) 'mm.nii.gz']));
 
 %%
 % We need to tweak the viewing settings to see the results well.
@@ -469,7 +469,7 @@ S2.first_level_cons_to_do=oat.first_level.report.first_level_cons_to_do; % plots
 %%
 % Note that this output is a combination of all of the NIFTI files that could otherwise be viewed individually
 % using |osleyes|. For example, to plot just the faces tstat for the same voxel shown above, we could use
-o = osleyes(fullfile(statsdir,'tstat2_8mm.nii.gz'));
+o = osleyes(fullfile(statsdir,['tstat2_' num2str(oat.source_recon.gridstep) 'mm.nii.gz']));
 o.current_point = mni_coord;
 o.plot_timeseries;
 close(o.fig); % Close the volume viewer, because we only want the time series plot
@@ -489,7 +489,7 @@ close(o.fig); % Close the volume viewer, because we only want the time series pl
 S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
-S2.mask_fname=fullfile(osldir,'example_data','faces_singlesubject','structurals','Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz');
+S2.mask_fname=fullfile(osldir,'example_data','faces_singlesubject','structurals',['Right_Temporal_Occipital_Fusiform_Cortex_' num2str(oat.source_recon.gridstep) 'mm.nii.gz']);
 [stats,times,mni_coords_used]=oat_output_roi_stats(S2);
 
 %%
