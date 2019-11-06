@@ -7,15 +7,97 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>OAT 4 - Group Analysis</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-01"><meta name="DC.source" content="osl_example_oat_4_group.m"></head><body><div class="content"><h1>OAT 4 - Group Analysis</h1><!--introduction--><p>This practical will work with a group-level OAT analysis run across 40 participants in the faces-motorbikes task we looked at in the single subject practical sessions.</p><p>Work your way through the script cell by cell using the supplied dataset. As well as following the instructions below, make sure that you read all of the comments (indicated by %), as these explain what each step is doing. Note that you can run a cell (marked by %%) using the Cell drop down menu on the Matlab GUI.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">LOAD PRE-RUN GROUP OAT</a></li><li><a href="#2">EXAMINE THE LOWER LEVEL ANALYSES</a></li><li><a href="#3">SUBJECT LEVEL OPTIONS</a></li><li><a href="#4">SETUP GROUP-LEVEL OPTIONS</a></li><li><a href="#5">CHECK OAT</a></li><li><a href="#6">CREATE A STATS REPORT</a></li><li><a href="#7">VIEW GROUP LEVEL STATS REPORT</a></li><li><a href="#8">OUTPUT GROUP'S NIFTII FILES</a></li><li><a href="#9">VIEW NIFTII RESULTS IN OSLEYES</a></li><li><a href="#13">INVESTIGATING LOCATIONS OF INTEREST USING AN MNI COORDINATE</a></li><li><a href="#14">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</a></li><li><a href="#15">GROUP STATS ON A SINGLE VOLUME WITHIN A TIME-WINDOW</a></li><li><a href="#16">RUN 3D PERMUTATION STATS ON A SINGLE VOLUME</a></li><li><a href="#17">ROI TIME-FREQ ANALYSIS</a></li><li><a href="#18">2D CLUSTER PERMUTATION STATS</a></li></ul></div><h2 id="1">LOAD PRE-RUN GROUP OAT</h2><p>A group analysis needs the source_recon, first_level and subject_level analyses to be completed for each participant and the group_level to be run across all the lower level results.</p><p>This takes quite a while to run for a 40 subject dataset, so to save time for this tutorial we have provided a completed OAT analysis which we can load in and explore.</p><p>This section loads the  OAT analysis for which the first 3 stages (source recon, first-level GLM, subject-level averaging) have already been run. Note that the 1st level contrasts that have been run are:</p><div><ul><li>S2.contrast{1}=[3 0 0 0]'; % motorbikes</li><li>S2.contrast{2}=[0 1 1 1]'; % faces</li><li>S2.contrast{3}=[-3 1 1 1]'; % faces-motorbikes</li></ul></div><pre class="codeinput"><span class="comment">% the directory containing the group OAT</span>
-workingdir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_example'</span>);
+   <title>OAT 4 - Group Analysis</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-06"><meta name="DC.source" content="osl_example_oat_4_group.m"></head><body><div class="content"><h1>OAT 4 - Group Analysis</h1><!--introduction--><p>This practical will work with a group-level OAT analysis run across 40 participants in the faces-motorbikes task we looked at in the single subject practical sessions.</p><p>Work your way through the script cell by cell using the supplied dataset. As well as following the instructions below, make sure that you read all of the comments (indicated by %), as these explain what each step is doing. Note that you can run a cell (marked by %%) using the Cell drop down menu on the Matlab GUI.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">LOAD PRE-RUN GROUP OAT</a></li><li><a href="#2">EXAMINE THE LOWER LEVEL ANALYSES</a></li><li><a href="#3">SUBJECT LEVEL OPTIONS</a></li><li><a href="#4">SETUP GROUP-LEVEL OPTIONS</a></li><li><a href="#5">CHECK OAT</a></li><li><a href="#6">CREATE A STATS REPORT</a></li><li><a href="#7">VIEW GROUP LEVEL STATS REPORT</a></li><li><a href="#8">OUTPUT GROUP'S NIFTII FILES</a></li><li><a href="#9">VIEW NIFTII RESULTS IN OSLEYES</a></li><li><a href="#13">INVESTIGATING LOCATIONS OF INTEREST USING AN MNI COORDINATE</a></li><li><a href="#14">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</a></li><li><a href="#15">GROUP STATS ON A SINGLE VOLUME WITHIN A TIME-WINDOW</a></li><li><a href="#16">RUN 3D PERMUTATION STATS ON A SINGLE VOLUME</a></li><li><a href="#17">ROI TIME-FREQ ANALYSIS</a></li><li><a href="#18">2D CLUSTER PERMUTATION STATS</a></li></ul></div><h2 id="1">LOAD PRE-RUN GROUP OAT</h2><p>A group analysis needs the source_recon, first_level and subject_level analyses to be completed for each participant and the group_level to be run across all the lower level results.</p><p>This takes quite a while to run for a 40 subject dataset, so to save time for this tutorial we have provided a completed OAT analysis which we can load in and explore.</p><p>This section loads the  OAT analysis for which the first 3 stages (source recon, first-level GLM, subject-level averaging) have already been run. Note that the 1st level contrasts that have been run are:</p><div><ul><li>S2.contrast{1}=[3 0 0 0]'; % motorbikes</li><li>S2.contrast{2}=[0 1 1 1]'; % faces</li><li>S2.contrast{3}=[-3 1 1 1]'; % faces-motorbikes</li></ul></div><pre class="codeinput"><span class="comment">% the directory containing the group OAT</span>
+workingdir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_data'</span>);
 
 <span class="comment">% Load in the previous OAT</span>
-oat = osl_load_oat(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_example'</span>,<span class="string">'beamform'</span>), <span class="string">'first_level_none'</span>,<span class="string">'sub_level'</span>,<span class="string">'group_level'</span>);
+oat = osl_load_oat(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_data'</span>,<span class="string">'beamform'</span>), <span class="string">'first_level_none'</span>,<span class="string">'sub_level'</span>,<span class="string">'group_level'</span>);
+</pre><pre class="codeoutput">Loaded OAT: /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/oat_first_level_none_sub_level_group_level.mat
 </pre><h2 id="2">EXAMINE THE LOWER LEVEL ANALYSES</h2><p>Take a look at the options for the source-recon and first-level analyses. These are very similar to the parameters we chose for the single subject ERF beamformer tutorial</p><p>Take a moment to familiarise yourself with the options. In particular, look at the first level GLM settings and which contrasts have been run. This can be found in <tt>oat.first_level.contrast</tt> and <tt>oat.first_level.contrast_name</tt>.</p><pre class="codeinput">disp(oat.source_recon);
 disp(oat.first_level);
+</pre><pre class="codeoutput">                time_range: [-0.1500 0.3000]
+                conditions: {1&times;4 cell}
+              D_continuous: []
+                 D_epoched: {1&times;14 cell}
+                freq_range: [1 48]
+                   dirname: '/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat'
+            sessions_to_do: 3
+                 epochinfo: []
+                    method: 'beamform'
+     bandstop_filter_mains: 0
+        artefact_chanlabel: []
+                modalities: {'MEGPLANAR'  'MEGMAG'}
+             session_names: {14&times;1 cell}
+          normalise_method: 'mean_eig'
+                     regpc: 0
+                  gridstep: 9
+               forward_meg: 'Single Shell'
+                       mri: {1&times;28 cell}
+                   pca_dim: [14&times;1 double]
+             force_pca_dim: 1
+                      type: 'Scalar'
+            hmm_num_states: 0
+            hmm_num_starts: 1
+               hmm_pca_dim: 40
+    hmm_av_class_occupancy: 35
+                    report: [1&times;1 struct]
+            results_fnames: {14&times;1 cell}
+
+                                     doGLM: 1
+                     design_matrix_summary: {1&times;4 cell}
+                                  contrast: {1&times;3 cell}
+                             contrast_name: {1&times;3 cell}
+                            sessions_to_do: 3
+                                time_range: [-0.1500 0.3000]
+                         baseline_timespan: [-0.1500 0]
+                  do_weights_normalisation: 1
+                            use_robust_glm: 0
+                                        bc: [3&times;1 double]
+              sensor_space_combine_planars: 'combine_cartesian'
+                              bc_trialwise: 0
+                                      name: 'first_level_none'
+                   time_moving_av_win_size: []
+          post_glm_time_moving_av_win_size: []
+                      hmm_do_glm_statewise: 0
+                                 tf_method: 'none'
+                             tf_freq_range: [1 48]
+                              tf_num_freqs: 1
+                              time_average: 0
+                     tf_multitaper_ncycles: []
+      post_movingaverage_downsample_factor: []
+                 post_tf_downsample_factor: []
+                       tf_hilbert_freq_res: 2
+    tf_hilbert_do_bandpass_for_single_freq: 0
+                    tf_hilbert_freq_ranges: []
+                          tf_morlet_factor: 6
+                        tf_hanning_ncycles: []
+                                 cope_type: 'acope'
+                       save_trialwise_data: 0
+                       trialwise_directory: []
+                              parcellation: [1&times;1 struct]
+                                is_epoched: 1
+                             do_glm_demean: 0
+                                    report: [1&times;1 struct]
+                               warp_fields: []
+                            results_fnames: {14&times;1 cell}
+
 </pre><h2 id="3">SUBJECT LEVEL OPTIONS</h2><p>The subject level allows for a fixed-effects combination of different datasets recorded from a single participant. To clarify some terminology:</p><div><ul><li>session - a session at the <tt>source_recon</tt> or <tt>first_level</tt> is a single dataset acquired from a single run in the scanner.</li><li>subject - a single participant who has contributed one or more sessions to the analysis.</li></ul></div><p>If we have a design in which one subject has contributed several sessions, we can combine the COPEs from each session to get a subject level estimate. This subject level estimate is then passed into the group_level analysis.</p><p>The key parameter in the subject level is <tt>oat.subject_level.session_index_list</tt>. This is a cell array with a cell containing the indices of all the first_level sessions contributed by that subject.</p><p>There are some extra options for computing laterality contrasts at the subject level. This is useful if you was to compare a response or effect between the left and right hemispheres. For instance, is the response to a tactile stimulation on the hand larger in the ipsi or contra lateral hemisphere?</p><p>In our case, each subject contributed a single session so this indexing is a simple one-to-one matching between the <tt>first_level</tt> and <tt>subject_level</tt></p><pre class="codeinput">disp(oat.subject_level);
 disp(oat.subject_level.session_index_list);
+</pre><pre class="codeoutput">    session_index_list: {1&times;14 cell}
+        subjects_to_do: [1 2 3 4 5 6 7 8 9 10 11 12 13 14]
+                  name: 'sub_level'
+    compute_laterality: []
+      merge_contraipsi: []
+        results_fnames: {14&times;1 cell}
+
+  Columns 1 through 11
+
+    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    [10]    [11]
+
+  Columns 12 through 14
+
+    [12]    [13]    [14]
+
 </pre><h2 id="4">SETUP GROUP-LEVEL OPTIONS</h2><p>This section defines the parameters for the group_level in the OAT analysis.</p><p>The group design matrix is defined as a single vector of ones, this calculates a group average across all participants. Finally the first-level and group-level contrasts to run for the report are set up. In this case we are running first level contrast 3 (faces &gt; motorbikes) and group level contrast 1 (grand mean).</p><pre class="codeinput">oat.group_level.name=<span class="string">'group_level'</span>;
 oat.group_level.subjects_to_do=[1:14];
 
@@ -49,6 +131,58 @@ oat.group_level.report.show_lower_level_cope_maps=0;
 oat = osl_check_oat( oat );
 
 oat = osl_run_oat( oat );
+</pre><pre class="codeoutput">Unknown datatype. Using default Elekta Neuromag 306 settings
+Warning: oat.source_recon.modalities not set, or not set properly. Will set to
+default:MEGPLANARMEGMAG 
+oat.source_recon.D_epoched set. OAT will do an epoched data trial-wise GLM
+Unknown datatype. Using default Elekta Neuromag 306 settings
+Warning: oat.source_recon.modalities not set, or not set properly. Will set to
+default:MEGPLANARMEGMAG 
+oat.source_recon.D_epoched set. OAT will do an epoched data trial-wise GLM
+*************************************************************
+Running group_level
+*************************************************************
+Loading in lower level stats
+Using same indices as lower_level
+ - estimated time to finish is 0 seconds
+Processing Group stats for first level contrast 1, motorbikes
+Number 1 of 3
+Preparing data
+Computing group statistics
+ - estimated time to finish is 0 seconds
+Do spatial smoothing of group varcopes with FWHM=100 mm
+Processing Group stats for first level contrast 2, faces
+Number 2 of 3
+Preparing data
+Computing group statistics
+ - estimated time to finish is 0 seconds
+Do spatial smoothing of group varcopes with FWHM=100 mm
+Processing Group stats for first level contrast 3, faces-motorbikes
+Number 3 of 3
+Preparing data
+Computing group statistics
+ - estimated time to finish is 0 seconds
+Do spatial smoothing of group varcopes with FWHM=100 mm
+Processing Group stats for first level contrast 2 [faces]
+Number 1 of 3
+Outputting nii files for first level contrast 2
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/tstat2_gc1_2mm.nii.gz')
+Processing Group stats for first level contrast 1 [motorbikes]
+Number 2 of 3
+Outputting nii files for first level contrast 1
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/tstat1_gc1_2mm.nii.gz')
+Processing Group stats for first level contrast 3 [faces-motorbikes]
+Number 3 of 3
+Outputting nii files for first level contrast 3
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/tstat3_gc1_2mm.nii.gz')
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/report.html&lt;/a&gt;
+Saving statistics in file /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_group_level
+To create niftii files from this use a call to oat_save_nii_stats
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/report.html&lt;/a&gt;
+To view OAT report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/report.html&lt;/a&gt;
 </pre><h2 id="6">CREATE A STATS REPORT</h2><p>We will  create a stats report (without rerunning OAT), where we look for the maximum stat for a different first level contrast (specified by S.first_level_con), within the time range S.time_range:</p><pre class="codeinput">oat.results.plotsdir =fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_data'</span>,<span class="string">'beamform.oat'</span>,<span class="string">'plots'</span>);
 
 oat.group_level.report.time_range=[0.07 0.13];
@@ -56,16 +190,52 @@ oat.group_level.report.first_level_cons_to_do=[2,1,3]; <span class="comment">% p
 oat.group_level.report.group_level_cons_to_do=[1]; <span class="comment">% we want to isolate the group average response</span>
 oat.group_level.report.show_lower_level_cope_maps=0; <span class="comment">%</span>
 report = oat_group_level_stats_report(oat,oat.group_level.results_fnames);
-</pre><h2 id="7">VIEW GROUP LEVEL STATS REPORT</h2><p>Click the link to open the stats report after the previous cell has completed.</p><p>The report shows a range of plots which are useful for checking the analysis has run properly and summarising the key results.</p><p>On first page we see the Group-level design matrix - This is the GLM design matrix from our analysis and is a single column of ones for our simple group average</p>Click the link to open the results for the faces contrast.</p><p>Here we see the group level COPE and t-stats across the brain for the faces contrast. The time-point is chosen by the maximum response in the faces condition. There is a clear occipital response around 100ms after stimulus onset. Explore the results from the other contrasts before moving on to the next cell.</p><p><img vspace="5" hspace="5" src="osl_example_group_oat_maxt_smap_c2_gc1.png" alt=""> </p><h2 id="8">OUTPUT GROUP'S NIFTII FILES</h2><p>As with the single subject analyses we can output nifti files containing the group-level results across the whole brain and the whole experimental epoch.</p><p>This section saves out a nifti volume containing the results from first_level contrast 3 (faces &gt; motorbikes) across the whole group</p><pre class="codeinput">S2=[];
+</pre><pre class="codeoutput">Processing Group stats for first level contrast 2 [faces]
+Number 1 of 3
+Outputting nii files for first level contrast 2
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/tstat2_gc1_2mm.nii.gz')
+Processing Group stats for first level contrast 1 [motorbikes]
+Number 2 of 3
+Outputting nii files for first level contrast 1
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/tstat1_gc1_2mm.nii.gz')
+Processing Group stats for first level contrast 3 [faces-motorbikes]
+Number 3 of 3
+Outputting nii files for first level contrast 3
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/tstat3_gc1_2mm.nii.gz')
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_group_level/report.html&lt;/a&gt;
+</pre><h2 id="7">VIEW GROUP LEVEL STATS REPORT</h2><p>Click the link to open the stats report after the previous cell has completed.</p><p>The report shows a range of plots which are useful for checking the analysis has run properly and summarising the key results.</p><p>On first page we see:</p><p><b>Group-level design matrix</b> - This is the GLM design matrix from our analysis</p><p><b>Average lower level STDCOPEs</b> - These show the variance of the COPE estimate averaged over time for each subject for each contrast. If any subject has an extremely high or low variance it might indicate that their are an outlier and we should double check their lower level results. Perhaps they have very few good trials in one condition or their coregistration has gone wrong.</p><p><b>Stats for GC1</b> - These are the group average COPEs and t-stats for the lower level contrasts.</p><p><b>Lower level COPES</b> - These show the COPES for each individual subject for each lower-level contrast. The thick line indicates the group mean. Again it is good to check these to identify any outlier subject.</p><p><b>Lower-level STDCOPES</b> - These are the lower-level COPEs (as we saw above) from the maximal time-point in the faces contrast.</p><p>There are no apparent outliers in our diagnostic plots so we can click the links at the top of the page to explore the group results for each of the lower level contrasts in more detail.</p><p>Click the link to open the results for the faces contrast.</p><p>Here we see the group level COPE and t-stats across the brain for the faces contrast. The time-point is chosen by the maximum response in the faces condition. There is a clear occipital response around 100ms after stimulus onset. Explore the results from the other contrasts before moving on to the next cell.</p><p><img vspace="5" hspace="5" src="osl_example_group_oat_maxt_smap_c2_gc1.png" alt=""> </p><h2 id="8">OUTPUT GROUP'S NIFTII FILES</h2><p>As with the single subject analyses we can output nifti files containing the group-level results across the whole brain and the whole experimental epoch.</p><p>This section saves out a nifti volume containing the results from first_level contrast 3 (faces &gt; motorbikes) across the whole group</p><pre class="codeinput">S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.group_level.results_fnames;
 S2.first_level_contrasts=[3,2,1]; <span class="comment">% list of first level contrasts to output</span>
 S2.group_level_contrasts=[1]; <span class="comment">% we want to isolate the group average response</span>
 S2.resamp_gridstep=8;
 [statsdir,times]=oat_save_nii_stats(S2);
+</pre><pre class="codeoutput">Outputting nii files for first level contrast 3
+Outputting nii files for first level contrast 2
+Outputting nii files for first level contrast 1
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_group_level_dir/tstat1_gc1_8mm.nii.gz')
 </pre><h2 id="9">VIEW NIFTII RESULTS IN OSLEYES</h2><p>Run the code below to open OSLEYES with the group-level results for the faces-motorbikes contrast along with a structural image and a mask of the right hemisphere fusiform cortex.</p><pre class="codeinput">tstat = fullfile( oat.source_recon.dirname,<span class="string">'first_level_none_sub_level_group_level_dir'</span>,<span class="string">'tstat3_gc1_8mm.nii.gz'</span> );
 fusiform = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_data'</span>,<span class="string">'structurals'</span>,<span class="string">'Right_Temporal_Occipital_Fusiform_Cortex_8mm.nii.gz'</span>);
 o = osleyes({[],tstat,fusiform},<span class="string">'clim'</span>,{[],[5 8],[0 5]},<span class="string">'colormap'</span>,{[],osl_colormap(<span class="string">'hot'</span>),osl_colormap(<span class="string">'green'</span>)})
+</pre><pre class="codeoutput">
+o = 
+
+  osleyes with properties:
+
+             layer: [1&times;3 struct]
+     current_point: [1 1 1]
+      active_layer: 3
+     show_controls: 1
+    show_crosshair: 1
+             title: ''
+             nvols: 1
+               fig: [1&times;1 Figure]
+            images: {1&times;3 cell}
+
 </pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_01.png" alt=""> <p>Explore the volume to find the green Fusiform Mask. This is brain region which is closely associated with the processing of visual information and is particularly specialised for processing faces.</p><p>Make sure the <tt>tstat3_gc1_8mm</tt> layer is selected in the dropdown menu. We will make the ROI translucent so that it can be viewed at the same time as the activation.</p><pre class="codeinput">o.active_layer = 2; <span class="comment">% Select tstat layer</span>
 o.layer(3).alpha = 0.5; <span class="comment">% Make ROI transparent</span>
 o.current_point = [36.1579 -52.1053 -12.7368]; <span class="comment">% Position the image at the ROI</span>
@@ -97,10 +267,11 @@ S2.oat=oat;
 S2.first_level_cons_to_do = [2,1,3];
 S2.group_level_cons_to_do = [1];
 [vox_ind_used] = oat_plot_vox_stats(S2);
-</pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_06.png" alt=""> <h2 id="15">GROUP STATS ON A SINGLE VOLUME WITHIN A TIME-WINDOW</h2><p>Here we will run the group GLM on an average of the first-level data between the times 140 ms and 150 ms. This will produce a single volume for viewing in fsleyes.</p><p>Note that we have specified a time range of 140-150ms, and specified that we want to average over the time window with the setting:</p><div><ul><li><tt>oat.group_level.time_average=1;</tt></li></ul></div><p>Now run the cell, which should also open fsleyes for you to view the results.</p><p>Unlike earlier, there will now just be a single volume (time point) averaged over the specified time range of 140-150ms. To view the results properly, setup appropriate color-maps for the images and threshold the t-stat at about 4.5, and the cope at about 0.005.</p><pre class="codeinput"><span class="comment">% load in OAT with first 3 stages run:</span>
+</pre><pre class="codeoutput">Loaded OAT: /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/oat_first_level_none_sub_level_group_level.mat
+</pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_06.png" alt=""> <h2 id="15">GROUP STATS ON A SINGLE VOLUME WITHIN A TIME-WINDOW</h2><p>Here we will run the group GLM on an average of the first-level data between the times 140 ms and 150 ms. This will produce a single volume for viewing in fslview.</p><p>Note that we have specified a time range of 140-150ms, and specified that we want to average over the time window with the setting:</p><div><ul><li><tt>oat.group_level.time_average=1;</tt></li></ul></div><p>Now run the cell, which should also open fslview for you to view the results.</p><p>Unlike earlier, there will now just be a single volume (time point) averaged over the specified time range of 140-150ms. To view the results properly, setup appropriate color-maps for the images and threshold the t-stat at about 4.5, and the cope at about 0.005.</p><p>Once you have run this cell, try re-running to look at the window between 90 and 120 ms after stimulus onset. What differences do you notice between the early (90-120ms) and later (140-150ms) responses?</p><pre class="codeinput"><span class="comment">% load in OAT with first 3 stages run:</span>
 
 <span class="comment">% specify the time-range to average over</span>
-oat.group_level.time_range=[0.09 0.12];
+oat.group_level.time_range=[0.140 0.150];
 oat.group_level.time_average=1;
 
 oat.group_level.first_level_contrasts_to_do=[1:3]; <span class="comment">% list of first level contrasts to run the group analysis on</span>
@@ -133,7 +304,63 @@ tstat = fullfile(statsdir,[<span class="string">'tstat'</span> num2str(con) <spa
 cope  = fullfile(statsdir,[<span class="string">'cope'</span> num2str(con) <span class="string">'_gc'</span> num2str(gcon) <span class="string">'_2mm.nii.gz'</span> ]);
 
 osleyes( {[],cope,tstat} );
-</pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_07.png" alt=""> <h2 id="16">RUN 3D PERMUTATION STATS ON A SINGLE VOLUME</h2><p>We will now run a non-parametric permutation test on this volume to compute the multiple comparison (whole-brain corrected) P-values of clusters above a specified threshold. The cluster statistic that is being used is the cluster size (number of voxels), and the null distribution for this cluster size is being computed using permutations of the design.</p><p>Note the settings:</p><div><ul><li><tt>S.cluster_stats_thresh</tt> - cluster forming threshold</li><li><tt>S.cluster_stats_nperms</tt> -  number of permutations to run</li></ul></div><p>These set the cluster forming threshold on the t-statistics, and the number of permutations used (normally we recommend 5000, but we use 1000 here for speed) respectively.</p><p>Now run the cell.</p><p>This opens up fsleyes showing the results. Take a look. The images include:</p><div><ul><li><tt>stats_tstat_gc1_2mm</tt> - original unthresholded t-stat</li><li><tt>stats_clustere_tstat_gc1_2mm</tt> - cluster extent for each voxel (note that this is the number of voxels in the space used for the beamforming (8mm in this case)).</li><li><tt>stats_clustere_corrp_tstat_gc1_2mm</tt> - whole-brain corrected P-values for each cluster</li></ul></div><pre class="codeinput">S=[];
+</pre><pre class="codeoutput">Unknown datatype. Using default Elekta Neuromag 306 settings
+Warning: oat.source_recon.modalities not set, or not set properly. Will set to
+default:MEGPLANARMEGMAG 
+oat.source_recon.D_epoched set. OAT will do an epoched data trial-wise GLM
+Unknown datatype. Using default Elekta Neuromag 306 settings
+Warning: oat.source_recon.modalities not set, or not set properly. Will set to
+default:MEGPLANARMEGMAG 
+oat.source_recon.D_epoched set. OAT will do an epoched data trial-wise GLM
+*************************************************************
+Running group_level
+*************************************************************
+Loading in lower level stats
+Using same indices as lower_level
+ - estimated time to finish is 0 seconds
+Processing Group stats for first level contrast 1, motorbikes
+Number 1 of 3
+Preparing data
+Warning: Doing time averaging. This means that there will be no variance
+smoothing of the between-subject variance (as specified by
+group_varcope_time_smooth_std). 
+Computing group statistics
+ - estimated time to finish is NaN seconds
+Do spatial smoothing of group varcopes with FWHM=100 mm
+Processing Group stats for first level contrast 2, faces
+Number 2 of 3
+Preparing data
+Warning: Doing time averaging. This means that there will be no variance
+smoothing of the between-subject variance (as specified by
+group_varcope_time_smooth_std). 
+Computing group statistics
+ - estimated time to finish is NaN seconds
+Do spatial smoothing of group varcopes with FWHM=100 mm
+Processing Group stats for first level contrast 3, faces-motorbikes
+Number 3 of 3
+Preparing data
+Warning: Doing time averaging. This means that there will be no variance
+smoothing of the between-subject variance (as specified by
+group_varcope_time_smooth_std). 
+Computing group statistics
+ - estimated time to finish is NaN seconds
+Do spatial smoothing of group varcopes with FWHM=100 mm
+Processing Group stats for first level contrast 3 [faces-motorbikes]
+Number 1 of 3
+Outputting nii files for first level contrast 3
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_time_average_group_level/tstat3_gc1_2mm.nii.gz')
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_time_average_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_time_average_group_level/report.html&lt;/a&gt;
+Saving statistics in file /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level
+To create niftii files from this use a call to oat_save_nii_stats
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_time_average_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/first_level_none_sub_level_time_average_group_level/report.html&lt;/a&gt;
+To view OAT report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/plots/report.html&lt;/a&gt;
+Outputting nii files for first level contrast 2
+Outputting nii files for first level contrast 1
+Outputting nii files for first level contrast 3
+E.g. to view nii file: 
+fsleyes('/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level_dir/tstat3_gc1_2mm.nii.gz')
+</pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_07.png" alt=""> <h2 id="16">RUN 3D PERMUTATION STATS ON A SINGLE VOLUME</h2><p>We will now run a non-parametric permutation test on this volume to compute the multiple comparison (whole-brain corrected) P-values of clusters above a specified threshold. The cluster statistic that is being used is the cluster size (number of voxels), and the null distribution for this cluster size is being computed using permutations of the design.</p><p>Note the settings:</p><div><ul><li><tt>S.cluster_stats_thresh</tt> - cluster forming threshold</li><li><tt>S.cluster_stats_nperms</tt> -  number of permutations to run</li></ul></div><p>These set the cluster forming threshold on the t-statistics, and the number of permutations used (normally we recommend 5000, but we use 1000 here for speed) respectively.</p><p>Now run the cell.</p><p>This opens up fslview showing the results. Take a look. The images include:</p><div><ul><li><tt>stats_tstat_gc1_2mm</tt> - original unthresholded t-stat</li><li><tt>stats_clustere_tstat_gc1_2mm</tt> - cluster extent for each voxel (note that this is the number of voxels in the space used for the beamforming (8mm in this case)).</li><li><tt>stats_clustere_corrp_tstat_gc1_2mm</tt> - whole-brain corrected P-values for each cluster</li></ul></div><p>As with the previous cell - once you have run this section, try re-running to look at the window between 90 and 120 ms after stimulus onset. What differences do you notice between the early (90-120ms) and later (140-150ms) responses?</p><pre class="codeinput">S=[];
 S.oat=oat;
 S.cluster_stats_thresh=6;
 S.cluster_stats_nperms=1000; <span class="comment">% we normally recommend doing 5000 perms</span>
@@ -141,7 +368,7 @@ S.first_level_copes_to_do=[3];
 S.group_level_copes_to_do=[1];
 S.group_varcope_spatial_smooth_fwhm=S.oat.group_level.group_varcope_spatial_smooth_fwhm;
 S.write_cluster_script=0;
-S.time_range=[0.09 0.120];
+S.time_range=[0.140 0.150];
 S.time_average=1;
 
 <span class="comment">% Run the permutations</span>
@@ -155,6 +382,12 @@ clus_tstat = fullfile(gstats.dir,[<span class="string">'clustere_tstat'</span> n
 corr_clus_tstat = fullfile(gstats.dir,[<span class="string">'clustere_corrp_tstat'</span> num2str(con) <span class="string">'_gc1_'</span> num2str(gstats.gridstep) <span class="string">'mm.nii.gz'</span>]);
 
 osleyes( {[],tstat, clus_tstat, corr_clus_tstat} );
+</pre><pre class="codeoutput">Doing cluster perm testing
+Warning: Directory already exists. 
+Using max of mask over time window
+Cluster 4D perm testing on group contrast 1
+Warning: Directory already exists. 
+randomise -d /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level_randomise_c3_dir/design.mat -t /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level_randomise_c3_dir/design.con -i /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level_randomise_c3_dir/allsubs_time0001 -o /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level_randomise_c3_dir/stats -c 6 -R -n 1000 --seed=0 -v 43.4783 -m /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform.oat/first_level_none_sub_level_time_average_group_level_randomise_c3_dir/mask_time0001
 </pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_08.png" alt=""> <h2 id="17">ROI TIME-FREQ ANALYSIS</h2><p>We will now run an ROI power analysis over multiple frequency bands The oat.group_level.space_average=1 indicates that we want to do spatial averaging over the ROI at the group level (the averaging occurs before the group GLM is fit).</p><p>We first load in an OAT where the first three stages have been run for you, and here we will just run the group analysis. The OAT is being carried out (from the beamforming, source reconstruction, onwards) within a mask.</p><p>Type <tt>oat.source_recon.mask_fname</tt> to see which mask is being used.</p><p>Next we run the group stage of OAT. This will bring up an image showing the time-frequency COPEs and t-statistics for the different contrasts.</p><pre class="codeinput"><span class="comment">% load in an OAT for which the first 3 stages have been run to do an ROI</span>
 <span class="comment">% analysis using the Right_Temporal_Occipital_Fusiform mask</span>
 oat = osl_load_oat(fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_group_data'</span>,<span class="string">'beamform_roi'</span>), <span class="string">'first_level_hilbert'</span>,<span class="string">'sub_level'</span>,<span class="string">'group_level'</span>);
@@ -188,6 +421,42 @@ S2=[];
 S2.stats=stats;
 S2.oat=oat;
 [vox_ind_used] = oat_plot_vox_stats(S2);
+</pre><pre class="codeoutput">Loaded OAT: /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/oat_first_level_hilbert_sub_level_group_level.mat
+Unknown datatype. Using default Elekta Neuromag 306 settings
+Warning: oat.source_recon.modalities not set, or not set properly. Will set to
+default:MEGPLANARMEGMAG 
+oat.source_recon.D_epoched set. OAT will do an epoched data trial-wise GLM
+Unknown datatype. Using default Elekta Neuromag 306 settings
+Warning: oat.source_recon.modalities not set, or not set properly. Will set to
+default:MEGPLANARMEGMAG 
+oat.source_recon.D_epoched set. OAT will do an epoched data trial-wise GLM
+*************************************************************
+Running group_level
+*************************************************************
+Loading in lower level stats
+Using same indices as lower_level
+ - estimated time to finish is 0 seconds
+Processing Group stats for first level contrast 1, motorbikes
+Number 1 of 3
+Preparing data
+Computing group statistics
+ - estimated time to finish is NaN seconds
+Processing Group stats for first level contrast 2, faces
+Number 2 of 3
+Preparing data
+Computing group statistics
+ - estimated time to finish is NaN seconds
+Processing Group stats for first level contrast 3, faces-motorbikes
+Number 3 of 3
+Preparing data
+Computing group statistics
+ - estimated time to finish is NaN seconds
+Processing Group stats for first level contrast 3 [faces-motorbikes]
+Number 1 of 3
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/plots/first_level_hilbert_sub_level_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/plots/first_level_hilbert_sub_level_group_level/report.html&lt;/a&gt;
+Saving statistics in file /Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/first_level_hilbert_sub_level_group_level
+To view group level report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/plots/first_level_hilbert_sub_level_group_level/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/plots/first_level_hilbert_sub_level_group_level/report.html&lt;/a&gt;
+To view OAT report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/plots/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_group_data/beamform_roi.oat/plots/report.html&lt;/a&gt;
 </pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_09.png" alt=""> <h2 id="18">2D CLUSTER PERMUTATION STATS</h2><p>Perform sign-flip permutation tests on the data from a single point in the time-frequency OAT. This is done on first level contrast 2 (face grand mean). This tells us which points in the time frequency analysis are statistically significant with p-values corrected for multiple comparisons and cluster size.</p><pre class="codeinput"><span class="comment">% load GLM result</span>
 stats=oat_load_results(oat,oat.group_level.results_fnames);
 
@@ -205,7 +474,7 @@ subplot(1,2,1);imagesc(stats.times, stats.frequencies, squeeze(tstats));axis <sp
 ylabel(<span class="string">'frequency (Hz)'</span>); xlabel(<span class="string">'time (s)'</span>); colorbar; title([<span class="string">'T-stats'</span> num2str(contrast)]);
 subplot(1,2,2);imagesc(stats.times, stats.frequencies, squeeze(corrp));axis <span class="string">xy</span>;
 ylabel(<span class="string">'frequency (Hz)'</span>); xlabel(<span class="string">'time (s)'</span>); colorbar; title([<span class="string">'Cluster extent P-values for cope'</span> num2str(contrast)]);
-</pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_10.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="osl_example_oat_4_group_10.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% OAT 4 - Group Analysis
 %
@@ -521,19 +790,22 @@ S2.group_level_cons_to_do = [1];
 
 %% GROUP STATS ON A SINGLE VOLUME WITHIN A TIME-WINDOW
 %
-% Here we will run the group GLM on an average of the first-level data between the times 140 ms and 150 ms. This will produce a single volume for viewing in fsleyes.
+% Here we will run the group GLM on an average of the first-level data between the times 140 ms and 150 ms. This will produce a single volume for viewing in fslview.
 %
 % Note that we have specified a time range of 140-150ms, and specified that 
 % we want to average over the time window with the setting:
 %
 % * |oat.group_level.time_average=1;|
 %
-% Now run the cell, which should also open fsleyes for you to view the results. 
+% Now run the cell, which should also open fslview for you to view the results. 
 %
 % Unlike earlier, there will now just be a single volume (time point) averaged 
 % over the specified time range of 140-150ms. To view the results properly, 
 % setup appropriate color-maps for the images and threshold the t-stat at about 4.5, and the cope at about 0.005.
 %
+% Once you have run this cell, try re-running to look at the window between
+% 90 and 120 ms after stimulus onset. What differences do you notice
+% between the early (90-120ms) and later (140-150ms) responses?
 
 % load in OAT with first 3 stages run:
 
@@ -590,11 +862,16 @@ osleyes( {[],cope,tstat} );
 %
 % Now run the cell.
 %
-% This opens up fsleyes showing the results. Take a look. The images include:
+% This opens up fslview showing the results. Take a look. The images include:
 %
 % * |stats_tstat_gc1_2mm| - original unthresholded t-stat
 % * |stats_clustere_tstat_gc1_2mm| - cluster extent for each voxel (note that this is the number of voxels in the space used for the beamforming (8mm in this case)). 
 % * |stats_clustere_corrp_tstat_gc1_2mm| - whole-brain corrected P-values for each cluster
+%
+% As with the previous cell - once you have run this section, try
+% re-running to look at the window between 90 and 120 ms after stimulus
+% onset. What differences do you notice between the early (90-120ms) and
+% later (140-150ms) responses?
 
 S=[];
 S.oat=oat;
