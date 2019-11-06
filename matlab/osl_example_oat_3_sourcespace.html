@@ -7,13 +7,13 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>OAT 3 - Sourcespace Analysis</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-05"><meta name="DC.source" content="osl_example_oat_3_sourcespace.m"></head><body><div class="content"><h1>OAT 3 - Sourcespace Analysis</h1><!--introduction--><p>This practical will work with a single subject's data from an emotional faces experiment (Elekta Neuromag data).</p><p>Work your way through the script cell by cell using the supplied dataset. As well as following the instructions below, make sure that you read all of the comments and understand each step as you go.</p><p>We will estimate neural activity in the brain's source space using a beamformer algorithm, task dependant differences in this source activity is then quantified using a GLM. This will go through the following steps:</p><div><ol><li>Set-up an OAT Analysis: <tt>source_recon</tt> and <tt>first_level</tt></li><li>Run source space GLM fitting and contrasts</li><li>Check coregistration</li><li>Save and view t-stat volumes</li><li>GLM analysis in an ROI</li><li>Time-frequency analysis in an ROI</li><li>Whole brain time-frequency analysis</li></ol></div><p>This practical requires the first part of the osl_example_coregistration practical to be run first. If you haven't run this before, please do so before starting this session.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</a></li><li><a href="#2">SET UP THE SUBJECTS FOR THE ANALYSIS</a></li><li><a href="#3">SETUP THE OAT:</a></li><li><a href="#5">SPECIFIY FIRST LEVEL OPTIONS</a></li><li><a href="#6">RUN THE OAT:</a></li><li><a href="#7">VIEW OAT REPORT</a></li><li><a href="#8">OUTPUT SUBJECT'S NIFTII FILES</a></li><li><a href="#9">OPEN NIFTII RESULTS IN FSLVIEW</a></li><li><a href="#15">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</a></li><li><a href="#17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</a></li><li><a href="#19">TIME-FREQUENCY ANALYSIS ACROSS A SOURCE-SPACE PARCELLATION</a></li><li><a href="#20">LOAD PREVIOUSLY RUN OAT</a></li><li><a href="#21">VIEW THE RESULTS IN THE OAT REPORT</a></li><li><a href="#22">SOURCE ROI TIME-FREQUENCY PLOT</a></li><li><a href="#23">SOURCE ROI SINGLE-FREQUENCY POWER PLOT</a></li></ul></div><h2 id="1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</h2><p>This cell sets the directory that OAT will work in. Change the workingdir variable to correspond to the correct directory on your computer before running the cell.</p><pre class="codeinput"><span class="comment">% directory where the data is:</span>
+   <title>OAT 3 - Sourcespace Analysis</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-06"><meta name="DC.source" content="osl_example_oat_3_sourcespace.m"></head><body><div class="content"><h1>OAT 3 - Sourcespace Analysis</h1><!--introduction--><p>This practical will work with a single subject's data from an emotional faces experiment (Elekta Neuromag data).</p><p>Work your way through the script cell by cell using the supplied dataset. As well as following the instructions below, make sure that you read all of the comments and understand each step as you go.</p><p>We will estimate neural activity in the brain's source space using a beamformer algorithm, task dependant differences in this source activity is then quantified using a GLM. This will go through the following steps:</p><div><ol><li>Set-up an OAT Analysis: <tt>source_recon</tt> and <tt>first_level</tt></li><li>Run source space GLM fitting and contrasts</li><li>Check coregistration</li><li>Save and view t-stat volumes</li><li>GLM analysis in an ROI</li><li>Time-frequency analysis in an ROI</li><li>Whole brain time-frequency analysis</li></ol></div><p>This practical requires the first part of the osl_example_coregistration practical to be run first. If you haven't run this before, please do so before starting this session.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</a></li><li><a href="#2">SET UP THE SUBJECTS FOR THE ANALYSIS</a></li><li><a href="#3">SETUP THE OAT:</a></li><li><a href="#5">SPECIFIY FIRST LEVEL OPTIONS</a></li><li><a href="#6">RUN THE OAT:</a></li><li><a href="#7">VIEW OAT REPORT</a></li><li><a href="#8">OUTPUT SUBJECT'S NIFTII FILES</a></li><li><a href="#9">OPEN NIFTII RESULTS IN FSLVIEW</a></li><li><a href="#15">INVESTIGATING LOCATION OF INTEREST USING AN MNI COORDINATE</a></li><li><a href="#17">INVESTIGATING REGIONS OF INTEREST USING AN MNI MASK</a></li><li><a href="#19">TIME-FREQUENCY ANALYSIS ACROSS A SOURCE-SPACE PARCELLATION</a></li><li><a href="#20">LOAD PREVIOUSLY RUN OAT</a></li><li><a href="#21">VIEW THE RESULTS IN THE OAT REPORT</a></li><li><a href="#22">SOURCE ROI TIME-FREQUENCY PLOT</a></li><li><a href="#23">SOURCE ROI SINGLE-FREQUENCY POWER PLOT</a></li></ul></div><h2 id="1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</h2><p>This cell sets the directory that OAT will work in. Change the workingdir variable to correspond to the correct directory on your computer before running the cell.</p><pre class="codeinput"><span class="comment">% directory where the data is:</span>
 datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>);
 structdir =  fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'structurals'</span>);
 
 <span class="comment">% directory to put the analysis in</span>
 workingdir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_subject1_data_osl2'</span>);
-</pre><h2 id="2">SET UP THE SUBJECTS FOR THE ANALYSIS</h2><p>Specify a list of the SPM input files. Note that here we only have 1 subject, but more generally there would be more than one. For example:</p><p><tt>spm_files{1} = [workingdir '/sub1_face_sss.mat'];</tt> <tt>spm_files{2} = [workingdir '/sub2_face_sss.mat'];</tt></p><p>etc...</p><pre class="codeinput"><span class="comment">% clear old spm files</span>
+</pre><h2 id="2">SET UP THE SUBJECTS FOR THE ANALYSIS</h2><p>Specify a list of the SPM input files. Note that here we only have 1 subject, but more generally there would be more than one. For example:</p><p><tt>spm_files_continuous{1} = [workingdir '/sub1_face_sss.mat'];</tt></p><p><tt>spm_files_continuous{2} = [workingdir '/sub2_face_sss.mat'];</tt></p><p>etc...</p><pre class="codeinput"><span class="comment">% clear old spm files</span>
 clear <span class="string">spm_files_continuous</span> <span class="string">spm_files_epoched</span>
 
 spm_files_continuous{1}=fullfile(datadir,<span class="string">'Aface_meg1.mat'</span>);
@@ -27,7 +27,7 @@ D.save()
 D = spm_eeg_load(spm_files_epoched{1});
 D = osl_update_inv_dir(D,structdir);
 D.save()
-</pre><h2 id="3">SETUP THE OAT:</h2><p>The <tt>oat.source_recon</tt> options define the parameters for the data filtering, windowing and beamforming. We define the continuous and epoched SPM MEEG object files, conditions and time-frequency options in the same way as the sensorspace OAT. The In this section we will do a wholebrain beamformer, followed by a trial-wise GLM that will correspond to a comparison of the ERFs for the different conditions. The source-space projection is defined by a new set of options.</p><p>The critical options are:</p><div><ul><li><tt>method</tt> -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral'</li><li><tt>normalise_method</tt> - How to normalise the magnetometers and gradiometers</li><li><tt>gridstep</tt> - This is the distance (in mm) between points to be reconstructed, the spatial resolution of the analysis. We are using 8mm which is lower than usual but faster to compute.</li><li><tt>forward_meg</tt> - This specifies the forward model used.</li><li><tt>modalities</tt> - Defines which types of sensor to use.</li><li><tt>do_source_variance_maps</tt> - If set to 1, this outputs an optional sanity check</li></ul></div><p>These options are the same as the sensorspace OAT and define input-data, conditions, filtering and windowing.</p><pre class="codeinput">oat=[];
+</pre><h2 id="3">SETUP THE OAT:</h2><p>The <tt>oat.source_recon</tt> options define the parameters for the data filtering, windowing and beamforming. We define the continuous and epoched SPM MEEG object files, conditions and time-frequency options in the same way as the sensorspace OAT. The In this section we will do a wholebrain beamformer, followed by a trial-wise GLM that will correspond to a comparison of the ERFs for the different conditions. The source-space projection is defined by a new set of options.</p><p>The critical options are:</p><div><ul><li><tt>method</tt> -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral'</li><li><tt>normalise_method</tt> - How to normalise the magnetometers and gradiometers</li><li><tt>gridstep</tt> - This is the distance (in mm) between points to be reconstructed, the spatial resolution of the analysis. We are using 9mm which is lower than usual but faster to compute.</li><li><tt>forward_meg</tt> - This specifies the forward model used.</li><li><tt>modalities</tt> - Defines which types of sensor to use.</li><li><tt>do_source_variance_maps</tt> - If set to 1, this outputs an optional sanity check</li></ul></div><p>These options are the same as the sensorspace OAT and define input-data, conditions, filtering and windowing.</p><pre class="codeinput">oat=[];
 oat.source_recon.D_continuous=spm_files_continuous;
 oat.source_recon.D_epoched=spm_files_epoched;
 
@@ -36,7 +36,7 @@ oat.source_recon.freq_range=[3 40]; <span class="comment">% frequency range in H
 oat.source_recon.time_range=[-0.2 0.4]; <span class="comment">% time range in secs</span>
 </pre><p>These options specify the source reconstruction that will take place.</p><pre class="codeinput">oat.source_recon.method=<span class="string">'beamform'</span>;
 oat.source_recon.normalise_method=<span class="string">'mean_eig'</span>;
-oat.source_recon.gridstep=8; <span class="comment">% in mm</span>
+oat.source_recon.gridstep=9; <span class="comment">% in mm</span>
 oat.source_recon.forward_meg=<span class="string">'Single Shell'</span>;
 oat.source_recon.modalities{1}={<span class="string">'MEGPLANAR'</span>, <span class="string">'MEGMAG'</span>};
 oat.source_recon.report.do_source_variance_maps=1;
@@ -207,8 +207,9 @@ workingdir = fullfile(osldir,'example_data','faces_subject1_data_osl2');
 % Note that here we only have 1 subject, but more generally there would be 
 % more than one. For example:
 %
-% |spm_files{1} = [workingdir '/sub1_face_sss.mat'];|
-% |spm_files{2} = [workingdir '/sub2_face_sss.mat'];|
+% |spm_files_continuous{1} = [workingdir '/sub1_face_sss.mat'];|
+%
+% |spm_files_continuous{2} = [workingdir '/sub2_face_sss.mat'];|
 %
 % etc...
 
@@ -243,7 +244,7 @@ D.save()
 % * |method| -   This defines the source reconstruction method to be used. other options include 'beamform_bilateral'
 % * |normalise_method| - How to normalise the magnetometers and gradiometers
 % * |gridstep| - This is the distance (in mm) between points to be reconstructed, the spatial resolution of the analysis. We
-% are using 8mm which is lower than usual but faster to compute.
+% are using 9mm which is lower than usual but faster to compute.
 % * |forward_meg| - This specifies the forward model used.
 % * |modalities| - Defines which types of sensor to use.
 % * |do_source_variance_maps| - If set to 1, this outputs an optional sanity check
@@ -263,7 +264,7 @@ oat.source_recon.time_range=[-0.2 0.4]; % time range in secs
 % These options specify the source reconstruction that will take place.
 oat.source_recon.method='beamform';
 oat.source_recon.normalise_method='mean_eig';
-oat.source_recon.gridstep=8; % in mm
+oat.source_recon.gridstep=9; % in mm
 oat.source_recon.forward_meg='Single Shell';
 oat.source_recon.modalities{1}={'MEGPLANAR', 'MEGMAG'};
 oat.source_recon.report.do_source_variance_maps=1;
