@@ -7,7 +7,7 @@ categories: examples
 
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <title>OAT 2 - Sensorspace Time-Frequency Analysis</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-06"><meta name="DC.source" content="osl_example_oat_2_sensorspace_tf.m"></head><body><div class="content"><h1>OAT 2 - Sensorspace Time-Frequency Analysis</h1><!--introduction--><p>In this practical we will work with a single subject's data from an emotional faces task (data courtesy of Susie Murphy) and perform an Time-Frequency analysis in sensor space.</p><div><ol><li>Set-up an OAT Analysis: <tt>source_recon</tt> and <tt>first_level</tt></li><li>Compute a first level GLM analysis with OAT</li><li>Visualise results with FieldTrip</li><li>Compute a topoplot averaged within a time-frequency window</li></ol></div><p>Please read each cell in turn before copying its contents either directly into the MatLab console or your own blank script. By the end of this session you should have created your own template analysis script which can be applied to further analysis.</p><p>You will need the following files from the example_data directory:</p><div><ul><li>Aface_meg1.mat - an SPM MEEG object that has continuous data that has already been SSS Maxfiltered and downsampled to 250 Hz.</li><li>eAface_meg1.mat - an SPM MEEG object that has the same data epoched into the different task conditions.</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</a></li><li><a href="#2">SET UP THE SUBJECTS FOR THE ANALYSIS</a></li><li><a href="#3">SETUP SENSOR SPACE SOURCE RECON</a></li><li><a href="#4">SETUP THE TIME-FREQUENCY DECOMPOSITION</a></li><li><a href="#6">SETUP THE FIRST LEVEL GLM</a></li><li><a href="#7">RUN OAT</a></li><li><a href="#8">READ REPORT</a></li><li><a href="#9">GENERATE ALTERNATIVE REPORT OF TIME-FREQUENCY RESULTS</a></li><li><a href="#10">RESULTS</a></li><li><a href="#11">VISUALISE USING FIELDTRIP</a></li><li><a href="#12">CREATE A TOPOPLOT AVERAGED WITHIN A TF WINDOW</a></li></ul></div><h2 id="1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</h2><p>This cell sets the directory that OAT will work in. Change the <tt>workingdir</tt> variable to correspond to the correct directory on your computer before running the cell.</p><pre class="codeinput"><span class="comment">% directory where the data is:</span>
+   <title>OAT 2 - Sensorspace Time-Frequency Analysis</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-11"><meta name="DC.source" content="osl_example_oat_2_sensorspace_tf.m"></head><body><div class="content"><h1>OAT 2 - Sensorspace Time-Frequency Analysis</h1><!--introduction--><p>In this practical we will work with a single subject's data from an emotional faces task (data courtesy of Susie Murphy) and perform an Time-Frequency analysis in sensor space.</p><div><ol><li>Set-up an OAT Analysis: <tt>source_recon</tt> and <tt>first_level</tt></li><li>Compute a first level GLM analysis with OAT</li><li>Visualise results with FieldTrip</li><li>Compute a topoplot averaged within a time-frequency window</li></ol></div><p>Please read each cell in turn before copying its contents either directly into the MatLab console or your own blank script. By the end of this session you should have created your own template analysis script which can be applied to further analysis.</p><p>You will need the following files from the example_data directory:</p><div><ul><li>Aface_meg1.mat - an SPM MEEG object that has continuous data that has already been SSS Maxfiltered and downsampled to 250 Hz.</li><li>eAface_meg1.mat - an SPM MEEG object that has the same data epoched into the different task conditions.</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</a></li><li><a href="#2">SET UP THE SUBJECTS FOR THE ANALYSIS</a></li><li><a href="#3">SETUP SENSOR SPACE SOURCE RECON</a></li><li><a href="#4">SETUP THE TIME-FREQUENCY DECOMPOSITION</a></li><li><a href="#6">SETUP THE FIRST LEVEL GLM</a></li><li><a href="#7">RUN OAT</a></li><li><a href="#8">READ REPORT</a></li><li><a href="#9">GENERATE ALTERNATIVE REPORT OF TIME-FREQUENCY RESULTS</a></li><li><a href="#10">RESULTS</a></li><li><a href="#11">VISUALISE USING FIELDTRIP</a></li><li><a href="#12">CREATE A TOPOPLOT AVERAGED WITHIN A TF WINDOW</a></li></ul></div><h2 id="1">INITIALISE GLOBAL SETTINGS FOR THIS ANALYSIS</h2><p>This cell sets the directory that OAT will work in. Change the <tt>workingdir</tt> variable to correspond to the correct directory on your computer before running the cell.</p><pre class="codeinput"><span class="comment">% directory where the data is:</span>
 datadir = fullfile(osldir,<span class="string">'example_data'</span>,<span class="string">'faces_singlesubject'</span>,<span class="string">'spm_files'</span>);
 
 <span class="comment">% directory to put the analysis in</span>
@@ -77,29 +77,29 @@ Using epoched data as input
 Preparing source recon stage for /Users/andrew/toolboxes/osl/example_data/faces_singlesubject/spm_files/Aface_meg1.mat
 Will be designated session1
 
-SPM12: spm_eeg_copy (v7132)                        12:51:06 - 06/11/2019
+SPM12: spm_eeg_copy (v7132)                        01:46:08 - 11/11/2019
 ========================================================================
 
-SPM12: spm_eeg_copy (v7132)                        12:51:09 - 06/11/2019
+SPM12: spm_eeg_copy (v7132)                        01:46:11 - 11/11/2019
 ========================================================================
 Temporal filtering...
 
-SPM12: spm_eeg_filter (v7125)                      12:51:12 - 06/11/2019
+SPM12: spm_eeg_filter (v7125)                      01:46:14 - 11/11/2019
 ========================================================================
 Filter bandpass (but, twopass)          :                    [4  100] Hz
-Completed                               :          12:51:22 - 06/11/2019
+Completed                               :          01:46:26 - 11/11/2019
 Epoching...
 Doing no within-trial baseline correction at the point of epoching
 
-SPM12: spm_eeg_epochs (v7125)                      12:51:22 - 06/11/2019
+SPM12: spm_eeg_epochs (v7125)                      01:46:26 - 11/11/2019
 ========================================================================
 Data type is missing or incorrect, assigning default.
 Baseline correction                     :                              0
 Number of trials                        :                            360
-Completed                               :          12:51:31 - 06/11/2019
+Completed                               :          01:46:38 - 11/11/2019
 Changing the number of channels, so discarding online montages.
 
-SPM12: spm_eeg_copy (v7132)                        12:51:41 - 06/11/2019
+SPM12: spm_eeg_copy (v7132)                        01:46:49 - 11/11/2019
 ========================================================================
 Saving source recon (sensorspace setup) results: session1_recon
 *************************************************************
@@ -113,7 +113,7 @@ ans =
     '/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/efsession1_spm_meeg.mat'
 
 
-SPM12: spm_eeg_copy (v7132)                        12:51:51 - 06/11/2019
+SPM12: spm_eeg_copy (v7132)                        01:47:00 - 11/11/2019
 ========================================================================
 
 ans =
@@ -211,139 +211,41 @@ Averaging the (A)COPEs for orthogonal planar gradiometers
 Changing the number of channels, so discarding online montages.
 Changing the number of channels, so discarding online montages.
 Saving statistics in file /Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/session1_first_level
-</pre><pre class="codeoutput error">Error using alternatePrintPath
-Java exception occurred: 
-com.mathworks.hg.util.OutputHelperProcessingException: Problem while processing in an OutputHelper. Caught OutOfMemoryError: Java heap space on thread AWT-EventQueue-0
-	at com.mathworks.hg.util.HGGetframeOutputHelper.generateOutput(HGGetframeOutputHelper.java:154)
-	at com.mathworks.hg.util.OutputHelper.generateOutput(OutputHelper.java:76)
-	at com.mathworks.hg.util.ImageGrabber.generateOutput(ImageGrabber.java:63)
-	at com.mathworks.hg.util.ImageGrabber.grab(ImageGrabber.java:32)
-	at com.mathworks.hg.util.BufferedImageGrabber.captureImage(BufferedImageGrabber.java:48)
-	at com.mathworks.hg.peer.FigureClientProxyPanel.setPaintDisabled(FigureClientProxyPanel.java:66)
-	at com.mathworks.hg.peer.PaintDisabled.setPaintDisabled(PaintDisabled.java:60)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$FigurePanelContainerLight.disablePaint(HeavyweightLightweightContainerFactory.java:326)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$FigurePanelContainerLight.doSetPaintDisabled(HeavyweightLightweightContainerFactory.java:363)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$FigurePanelContainerLight.setPaintDisabled(HeavyweightLightweightContainerFactory.java:387)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:498)
-	at com.mathworks.jmi.AWTUtilities$Invoker$3$1.call(AWTUtilities.java:525)
-	at com.mathworks.mvm.context.ThreadContext.callWithContext(ThreadContext.java:105)
-	at com.mathworks.mvm.context.MvmContext.callWithContext(MvmContext.java:113)
-	at com.mathworks.jmi.AWTUtilities$Invoker$3.runWithOutput(AWTUtilities.java:522)
-	at com.mathworks.jmi.AWTUtilities$Invoker$2.watchedRun(AWTUtilities.java:475)
-	at com.mathworks.jmi.AWTUtilities$WatchedRunnable.run(AWTUtilities.java:436)
-	at java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:311)
-	at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:758)
-	at java.awt.EventQueue.access$500(EventQueue.java:97)
-	at java.awt.EventQueue$3.run(EventQueue.java:709)
-	at java.awt.EventQueue$3.run(EventQueue.java:703)
-	at java.security.AccessController.doPrivileged(Native Method)
-	at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:74)
-	at java.awt.EventQueue.dispatchEvent(EventQueue.java:728)
-	at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:205)
-	at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:116)
-	at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:105)
-	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
-	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:93)
-	at java.awt.EventDispatchThread.run(EventDispatchThread.java:82)
-Caused by: com.jogamp.opengl.GLException: Caught OutOfMemoryError: Java heap space on thread AWT-EventQueue-0
-	at com.jogamp.opengl.GLException.newGLException(GLException.java:76)
-	at jogamp.opengl.GLDrawableHelper.invokeGLImpl(GLDrawableHelper.java:1311)
-	at jogamp.opengl.GLDrawableHelper.invokeGL(GLDrawableHelper.java:1131)
-	at com.jogamp.opengl.awt.GLJPanel$OffscreenBackend.doPlainPaint(GLJPanel.java:2110)
-	at com.jogamp.opengl.awt.GLJPanel.print(GLJPanel.java:919)
-	at com.mathworks.hg.peer.JavaSceneServerGLJPanel.print(JavaSceneServerGLJPanel.java:134)
-	at javax.swing.JComponent.printAll(JComponent.java:1148)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$PrintHelper.printAllComponents(HeavyweightLightweightContainerFactory.java:512)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$FigurePanelContainerLight.printAll(HeavyweightLightweightContainerFactory.java:495)
-	at javax.swing.JComponent.paintChildren(JComponent.java:896)
-	at javax.swing.JComponent.printChildren(JComponent.java:1233)
-	at javax.swing.JComponent.paint(JComponent.java:1068)
-	at com.mathworks.hg.peer.FigureClientProxyPanel.paint(FigureClientProxyPanel.java:89)
-	at javax.swing.JComponent.print(JComponent.java:1202)
-	at javax.swing.JComponent.printAll(JComponent.java:1148)
-	at com.mathworks.hg.util.HGGetframeOutputHelper$1.run(HGGetframeOutputHelper.java:129)
-	at com.mathworks.jmi.AWTUtilities$Invoker$5$1.run(AWTUtilities.java:591)
-	at com.mathworks.mvm.context.ThreadContext$1.call(ThreadContext.java:76)
-	at com.mathworks.mvm.context.ThreadContext.callWithContext(ThreadContext.java:105)
-	at com.mathworks.mvm.context.ThreadContext.runWithContext(ThreadContext.java:73)
-	at com.mathworks.mvm.context.MvmContext.runWithContext(MvmContext.java:107)
-	at com.mathworks.jmi.AWTUtilities$Invoker$5.runWithOutput(AWTUtilities.java:588)
-	at com.mathworks.jmi.AWTUtilities$Invoker$2.watchedRun(AWTUtilities.java:475)
-	at com.mathworks.jmi.AWTUtilities$WatchedRunnable.run(AWTUtilities.java:436)
-	at com.mathworks.jmi.AWTUtilities$Invoker.invoke(AWTUtilities.java:490)
-	at com.mathworks.jmi.AWTUtilities.invokeAndWait(AWTUtilities.java:304)
-	at com.mathworks.hg.util.HGGetframeOutputHelper.generateOutput(HGGetframeOutputHelper.java:142)
-	... 33 more
-Caused by: java.lang.OutOfMemoryError: Java heap space
-	at java.awt.image.DataBufferInt.&lt;init&gt;(DataBufferInt.java:75)
-	at java.awt.image.Raster.createPackedRaster(Raster.java:467)
-	at java.awt.image.DirectColorModel.createCompatibleWritableRaster(DirectColorModel.java:1032)
-	at java.awt.image.BufferedImage.&lt;init&gt;(BufferedImage.java:324)
-	at com.jogamp.opengl.util.awt.AWTGLPixelBuffer$AWTGLPixelBufferProvider.allocate(AWTGLPixelBuffer.java:239)
-	at jogamp.opengl.awt.AWTTilePainter$1.display(AWTTilePainter.java:294)
-	at com.jogamp.opengl.util.TileRendererBase$1.display(TileRendererBase.java:608)
-	at jogamp.opengl.GLDrawableHelper.displayImpl(GLDrawableHelper.java:691)
-	at jogamp.opengl.GLDrawableHelper.display(GLDrawableHelper.java:673)
-	at com.jogamp.opengl.awt.GLJPanel$Updater.plainPaint(GLJPanel.java:1450)
-	at com.jogamp.opengl.awt.GLJPanel$11.run(GLJPanel.java:1527)
-	at jogamp.opengl.GLDrawableHelper.invokeGLImpl(GLDrawableHelper.java:1277)
-	at jogamp.opengl.GLDrawableHelper.invokeGL(GLDrawableHelper.java:1131)
-	at com.jogamp.opengl.awt.GLJPanel$OffscreenBackend.doPlainPaint(GLJPanel.java:2110)
-	at com.jogamp.opengl.awt.GLJPanel.print(GLJPanel.java:919)
-	at com.mathworks.hg.peer.JavaSceneServerGLJPanel.print(JavaSceneServerGLJPanel.java:134)
-	at javax.swing.JComponent.printAll(JComponent.java:1148)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$PrintHelper.printAllComponents(HeavyweightLightweightContainerFactory.java:512)
-	at com.mathworks.hg.peer.HeavyweightLightweightContainerFactory$FigurePanelContainerLight.printAll(HeavyweightLightweightContainerFactory.java:495)
-	at javax.swing.JComponent.paintChildren(JComponent.java:896)
-	at javax.swing.JComponent.printChildren(JComponent.java:1233)
-	at javax.swing.JComponent.paint(JComponent.java:1068)
-	at com.mathworks.hg.peer.FigureClientProxyPanel.paint(FigureClientProxyPanel.java:89)
-	at javax.swing.JComponent.print(JComponent.java:1202)
-	at javax.swing.JComponent.printAll(JComponent.java:1148)
-	at com.mathworks.hg.util.HGGetframeOutputHelper$1.run(HGGetframeOutputHelper.java:129)
-	at com.mathworks.jmi.AWTUtilities$Invoker$5$1.run(AWTUtilities.java:591)
-	at com.mathworks.mvm.context.ThreadContext$1.call(ThreadContext.java:76)
-	at com.mathworks.mvm.context.ThreadContext.callWithContext(ThreadContext.java:105)
-	at com.mathworks.mvm.context.ThreadContext.runWithContext(ThreadContext.java:73)
-	at com.mathworks.mvm.context.MvmContext.runWithContext(MvmContext.java:107)
-	at com.mathworks.jmi.AWTUtilities$Invoker$5.runWithOutput(AWTUtilities.java:588)
-
-Error in alternatePrintPath
-
-Error in print (line 82)
-pj = alternatePrintPath(pj);
-
-Error in osl_report_print_figs (line 34)
-    print(fighands(ii), ['-d' report.fig_format], sprintf('-r%d',r), report.plot_names{report.index});
-
-Error in oat_first_level_stats_report (line 103)
-        report=osl_report_print_figs(report);
-
-Error in oat_run_first_level_epoched (line 1210)
-        report = oat_first_level_stats_report(oat,first_level_results,'',first_level_results.report);
-
-Error in oat_run_first_level (line 28)
-    [results_fnames results] = oat_run_first_level_epoched(oat); % Do time-wise analysis state-wise       
-
-Error in osl_run_oat (line 93)
-        [results_fnames results] = oat_run_first_level(oat);
-
-Error in osl_example_oat_2_sensorspace_tf (line 154)
-oat = osl_run_oat(oat);
-
-Error in evalmxdom&gt;instrumentAndRun (line 109)
-text = evalc(evalstr);
-
-Error in evalmxdom (line 21)
-[data,text,laste] = instrumentAndRun(file,cellBoundaries,imageDir,imagePrefix,options);
-
-Error in publish
-
-Error in osl_publish (line 52)
-    output_html = publish( filename, opt )</pre><h2 id="8">READ REPORT</h2><p>OAT runs the GLM for every time point and frequency band across all sensors.</p><p>OAT will create a report containing a summary of the first level analysis results (as well as some diagnostic figures from the source reconstruction). The specific content of this report depends upon settings in <tt>oat.first_level.report</tt>:</p><div><ul><li><tt>oat.first_level.report.modality_to_do</tt> - e.g. MEGPLANAR, MEGMAG (only in sensor space)</li><li><tt>oat.first_level.report.first_level_cons_to_do;</tt> - plots only these contrasts and uses first one in list to determine max vox, time, freq</li><li><tt>oat.first_level.report.time_range;</tt> - to determine max vox, time, freq</li><li><tt>oat.first_level.report.freq_range;</tt> - to determine max vox, time, freq</li></ul></div><p>Open the report indicated in <tt>oat.results.report</tt> in a web browser (there will also be a link to this available in the Matlab output). This displays the diagnostic plots.</p><div><ul><li>At the top of the file is a link to <tt>oat.results.logfile</tt> (a file containing the matlab output) - you should check this for any errors or unusual warnings.</li><li>Then there will be a list of reports for each OAT stage.</li><li>Click on the "First level (epoched)" link to bring up the first level reports.</li></ul></div><p>This brings up a list of sessions. Here we have only preprocessed one session. Click on the "Session 1 report" link to bring up the diagnostic plots for session 1 and take a look.</p><p>The settings in the current OAT will generate an image with the COPE and t-stats for all three contrasts from the sensor with the maximum statistic for contrast 2 (faces) from the planar gradiometers as seen below</p><p><img vspace="5" hspace="5" src="osl_example_sensorspace_oat_tf_stats_tc.png" alt=""> </p><pre class="codeinput">disp(oat.results.report.html_fname); <span class="comment">% show path to web page report</span>
+Changing the number of channels, so discarding online montages.
+Changing the number of channels, so discarding online montages.
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_multiplotTFR" took 1 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_topoplotTFR" took 1 seconds and required the additional allocation of an estimated NaN MB
+Changing the number of channels, so discarding online montages.
+Changing the number of channels, so discarding online montages.
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_multiplotTFR" took 1 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_topoplotTFR" took 1 seconds and required the additional allocation of an estimated NaN MB
+Changing the number of channels, so discarding online montages.
+Changing the number of channels, so discarding online montages.
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_multiplotTFR" took 1 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_topoplotTFR" took 0 seconds and required the additional allocation of an estimated NaN MB
+View first level report at:
+/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots/first_level/sess_session1_MEGPLANAR/report.html
+To view OAT report, point your browser to &lt;a href="/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots/report.html"&gt;/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots/report.html&lt;/a&gt;
+</pre><img vspace="5" hspace="5" src="osl_example_oat_2_sensorspace_tf_01.png" alt=""> <img vspace="5" hspace="5" src="osl_example_oat_2_sensorspace_tf_02.png" alt=""> <img vspace="5" hspace="5" src="osl_example_oat_2_sensorspace_tf_03.png" alt=""> <h2 id="8">READ REPORT</h2><p>OAT runs the GLM for every time point and frequency band across all sensors.</p><p>OAT will create a report containing a summary of the first level analysis results (as well as some diagnostic figures from the source reconstruction). The specific content of this report depends upon settings in <tt>oat.first_level.report</tt>:</p><div><ul><li><tt>oat.first_level.report.modality_to_do</tt> - e.g. MEGPLANAR, MEGMAG (only in sensor space)</li><li><tt>oat.first_level.report.first_level_cons_to_do;</tt> - plots only these contrasts and uses first one in list to determine max vox, time, freq</li><li><tt>oat.first_level.report.time_range;</tt> - to determine max vox, time, freq</li><li><tt>oat.first_level.report.freq_range;</tt> - to determine max vox, time, freq</li></ul></div><p>Open the report indicated in <tt>oat.results.report</tt> in a web browser (there will also be a link to this available in the Matlab output). This displays the diagnostic plots.</p><div><ul><li>At the top of the file is a link to <tt>oat.results.logfile</tt> (a file containing the matlab output) - you should check this for any errors or unusual warnings.</li><li>Then there will be a list of reports for each OAT stage.</li><li>Click on the "First level (epoched)" link to bring up the first level reports.</li></ul></div><p>This brings up a list of sessions. Here we have only preprocessed one session. Click on the "Session 1 report" link to bring up the diagnostic plots for session 1 and take a look.</p><p>The settings in the current OAT will generate an image with the COPE and t-stats for all three contrasts from the sensor with the maximum statistic for contrast 2 (faces) from the planar gradiometers as seen below</p><p><img vspace="5" hspace="5" src="osl_example_sensorspace_oat_tf_stats_tc.png" alt=""> </p><pre class="codeinput">disp(oat.results.report.html_fname); <span class="comment">% show path to web page report</span>
+</pre><pre class="codeoutput">/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots/report.html
 </pre><h2 id="9">GENERATE ALTERNATIVE REPORT OF TIME-FREQUENCY RESULTS</h2><p>The <tt>oat_first_level_stats_report</tt> function can be used to produce alternative OAT reports using an already run OAT.</p><p>Here, we will create a new report where we have changed the report to view the results from the magnetometers (the default report showed results from MEGPLANAR), and to only show the motorbikes vs. faces contrast (contrast 3).</p><pre class="codeinput"><span class="comment">% Report settings</span>
 oat.first_level.report.modality_to_do=<span class="string">'MEGMAG'</span>;
 oat.first_level.report.first_level_cons_to_do=[3];
@@ -353,11 +255,29 @@ report = oat_first_level_stats_report(oat,oat.first_level.results_fnames{1});
 
 <span class="comment">% Open the report in matlabs html browser</span>
 open(report.html_fname);
-</pre><h2 id="10">RESULTS</h2><p>The results are stored in the <tt>oat</tt> structure and the can be loaded back into matlab using <tt>oat_load_results</tt>.</p><p>This is useful for checking over results of the GLM or as the basis for further analyses.</p><pre class="codeinput">disp(<span class="string">'oat.results:'</span>);
+</pre><pre class="codeoutput">Changing the number of channels, so discarding online montages.
+Changing the number of channels, so discarding online montages.
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306mag.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_multiplotTFR" took 2 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306mag.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_topoplotTFR" took 0 seconds and required the additional allocation of an estimated NaN MB
+View first level report at:
+/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots/first_level/sess_session1_MEGMAG/report.html
+</pre><img vspace="5" hspace="5" src="osl_example_oat_2_sensorspace_tf_04.png" alt=""> <h2 id="10">RESULTS</h2><p>The results are stored in the <tt>oat</tt> structure and the can be loaded back into matlab using <tt>oat_load_results</tt>.</p><p>This is useful for checking over results of the GLM or as the basis for further analyses.</p><pre class="codeinput">disp(<span class="string">'oat.results:'</span>);
 disp(oat.results);
 
 <span class="comment">% load first-level GLM result</span>
 stats1=oat_load_results(oat,oat.first_level.results_fnames{1});
+</pre><pre class="codeoutput">oat.results:
+        date: '11-Nov-2019'
+    plotsdir: '/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots'
+     logfile: '/Users/andrew/toolboxes/osl/example_data/faces_singlesubject/sensorspace_tf.oat/plots/log-11-Nov-2019.txt'
+      report: [1&times;1 struct]
+
 </pre><h2 id="11">VISUALISE USING FIELDTRIP</h2><p>A lot of the visualisations work using functions from fieldtrip. These offer a wide range of visualisation options and are high customisable. Here we will use an OSL function which plots an OAT result in a fieldtrip multiplot.</p><p>We will plot the T-stat time-frequency results for the faces contrast across all the Planar Gradiometers by defining the following options and calling <tt>oat_stats_multiplotTFR</tt>.</p><p>Note that this produces an interactive figure, with which you can:</p><div><ul><li>draw around a set of sensors</li><li>click in the drawn box to produce a plot of the time series</li><li>on the time series plot you can draw a time window</li><li>and click in the window to create a topoplot averaged over that time window (which is itself interactive....!)</li></ul></div><pre class="codeinput">S2=[];
 S2.oat=oat;
 S2.stats_fname=oat.first_level.results_fnames{1};
@@ -370,12 +290,22 @@ S2.view_cope=0;
 <span class="comment">% calculate t-stat using contrast of absolute value of parameter estimates</span>
 [cfg, data]=osl_stats_multiplotTFR(S2);
 title([oat.first_level.contrast_name{S2.first_level_contrast}]);
-</pre><h2 id="12">CREATE A TOPOPLOT AVERAGED WITHIN A TF WINDOW</h2><p>We often want to focus our visualisations on specific points in time or frequency rather than looking at the everything at once.</p><p>The following code calls creates a topoplot from the same results as the previous section, but now averages the results over 130 to 160 ms, and 8 to 12 Hz.</p><pre class="codeinput">cfg.xlim        = [0.13 0.16]; <span class="comment">% time window in secs</span>
+</pre><pre class="codeoutput">Changing the number of channels, so discarding online montages.
+Changing the number of channels, so discarding online montages.
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_multiplotTFR" took 2 seconds and required the additional allocation of an estimated NaN MB
+</pre><img vspace="5" hspace="5" src="osl_example_oat_2_sensorspace_tf_05.png" alt=""> <h2 id="12">CREATE A TOPOPLOT AVERAGED WITHIN A TF WINDOW</h2><p>We often want to focus our visualisations on specific points in time or frequency rather than looking at the everything at once.</p><p>The following code calls creates a topoplot from the same results as the previous section, but now averages the results over 130 to 160 ms, and 8 to 12 Hz.</p><pre class="codeinput">cfg.xlim        = [0.13 0.16]; <span class="comment">% time window in secs</span>
 cfg.ylim        = [8 12]; <span class="comment">% freq window in Hz</span>
 cfg.interactive = <span class="string">'no'</span>;
 figure; ft_topoplotTFR(cfg,data);
 title([oat.first_level.contrast_name{S2.first_level_contrast}]);
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><pre class="codeoutput">reading layout from file /Users/andrew/toolboxes/osl/layouts/neuromag306cmb.lay
+the call to "ft_prepare_layout" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_selectdata" took 0 seconds and required the additional allocation of an estimated NaN MB
+the call to "ft_topoplotTFR" took 0 seconds and required the additional allocation of an estimated NaN MB
+</pre><img vspace="5" hspace="5" src="osl_example_oat_2_sensorspace_tf_06.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% OAT 2 - Sensorspace Time-Frequency Analysis
 % In this practical we will work with a single subject's data from an
