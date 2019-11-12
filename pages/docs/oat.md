@@ -569,13 +569,19 @@ A note on demeaning and constant regressors...  You need to model the DC offset 
 
 **2) `oat.first_level.design_matrix_summary` as a list of full file paths to text files containing each subject's design matrix.**
 
-Each text file is `num_trials` x `num_regressors` for a subject, where the `num_trials` (and trial order) assumes that the `D.reject` trials have been removed. Outputs the design matrix, X, which is `num_trials` x `num_regressors`.You also can (optionally) set: 
+Each text file is `num_trials` x `num_regressors` for a subject, where the 
+`num_trials` is the actual full number of trials (including any bad trials).
+However, note that the fitted GLM will not use the bad trials when the 
+design matrix is fit to the data.
+ 
+Note that this MUST be used in combination with `all` conditions being specified 
+in |oat.source_recon.conditions|. For example, rather than:
 
-    oat.first_level.trial_rejects 
+    |oat.source_recon.conditions={'Motorbike','Neutral face','Happy face','Fearful face'}|;
 
-which is a text file containing a list of trial indices (indexed via the trial order in the loaded in design matrix) to indicate any further trials (on top of the `D.reject` trials) that you do not want to include in the analysis (e.g. for behavioural reasons), and which will get set to 0 in the design matrix.
+you must instead specify:
 
-This is straightforward if you have 1 condition type (in `oat.source_recon.conditons`), but you need to be careful about getting the trial orderings right if you have more than one condition type. Hence, it is recommended that you collapse all relevant conditions into one uber condition, and specify all trial-wise variability using the subject-specific design matrix.
+    |oat.source_recon.conditions={'all'}|;
 
 ## Subject-level Stage
 
