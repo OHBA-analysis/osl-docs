@@ -575,13 +575,33 @@ However, note that the fitted GLM will not use the bad trials when the
 design matrix is fit to the data.
  
 Note that this MUST be used in combination with `all` conditions being specified 
-in |oat.source_recon.conditions|. For example, rather than:
+in `oat.source_recon.conditions`. For example, rather than:
 
-    |oat.source_recon.conditions={'Motorbike','Neutral face','Happy face','Fearful face'}|;
+    oat.source_recon.conditions={'Motorbike','Neutral face','Happy face','Fearful face'};
 
 you must instead specify:
 
-    |oat.source_recon.conditions={'all'}|;
+    oat.source_recon.conditions={'all'};
+
+Here is an example of how to use some manually built design matrices. We first build the design matrices using the information in `D.conditions` (if you had continously varying trial-wise regressors you would use those to build a design matrix here instead of this).
+
+    D=spm_eeg_load(spm_files);
+    regressors={'Motorbike','Neutral face','Happy face','Fearful face'};
+    design_matrix=zeros(D.ntrials, length(regressors));
+    for cc=1:length(regressors)
+        design_matrix(strcmp(regressors{cc},D.conditions),cc)=1;
+    end
+
+We then need to make sure that `all` conditions is set
+
+    oat.source_recon.conditions={'all'};
+
+We can then set the `design_matrix_summary` text files in `oat.first_level`
+
+    Xsummary=[];
+    Xsummary{1}='design.txt';
+    save(Xsummary{1},'design_matrix','-ascii');
+    oat.first_level.design_matrix_summary=Xsummary;
 
 ## Subject-level Stage
 
