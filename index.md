@@ -3,10 +3,9 @@ layout: title
 title: Home
 ---
 
-NO LONGER SUPPORTED 
-===================
+## NO LONGER SUPPORTED 
+## Please Use [Python version of OSL](https://github.com/OHBA-analysis/osl) instead
 
-## Use [Python version of OSL](https://github.com/OHBA-analysis/osl) instead
 
 The OHBA Software Library (OSL) is created by the OHBA Analysis Group, OHBA, Oxford, UK.
 
